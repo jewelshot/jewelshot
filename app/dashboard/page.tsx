@@ -6,8 +6,13 @@ import { useRouter } from 'next/navigation'
 import { generateImage, checkStatus } from '@/app/actions/generate'
 import { toast } from 'sonner'
 
+interface User {
+  id: string
+  email?: string
+}
+
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [credits, setCredits] = useState<number>(0)
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -56,7 +61,7 @@ export default function Dashboard() {
   }
 
   const handleGenerate = async () => {
-    if (!image) {
+    if (!image || !user) {
       toast.error('Lütfen bir resim seçin')
       return
     }
@@ -127,12 +132,14 @@ export default function Dashboard() {
             setProcessing(false)
             toast.success('Görsel başarıyla oluşturuldu! 🎉')
             
-            await supabase.from('images').insert({
-              user_id: user.id,
-              original_url: base64.substring(0, 100),
-              result_url: statusResult.imageUrl,
-              prompt: 'jewelry catalog'
-            })
+            if (user) {
+              await supabase.from('images').insert({
+                user_id: user.id,
+                original_url: base64.substring(0, 100),
+                result_url: statusResult.imageUrl,
+                prompt: 'jewelry catalog'
+              })
+            }
             
           } else if (!statusResult.success) {
             toast.error('Görsel oluşturulamadı')
@@ -147,8 +154,9 @@ export default function Dashboard() {
         
         setTimeout(pollStatus, 3000)
       }
-    } catch (error: any) {
-      toast.error('Hata: ' + error.message)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+      toast.error('Hata: ' + errorMessage)
       setProcessing(false)
     }
   }
@@ -164,7 +172,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-pink-500 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header - Mobil Responsive */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-3xl sm:text-5xl font-bold text-white">💎 Jewelshot</h1>
@@ -195,7 +202,6 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             
-            {/* Sol taraf - Upload - Mobil Responsive */}
             <div>
               <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Takı Fotoğrafı</h2>
               <div className="border-4 border-dashed border-gray-300 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center hover:border-purple-500 transition">
@@ -228,7 +234,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Sağ taraf - Result - Mobil Responsive */}
             <div>
               <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Sonuç</h2>
               <div className="border-4 border-gray-300 rounded-xl sm:rounded-2xl p-6 sm:p-8 min-h-[300px] sm:min-h-[500px] flex items-center justify-center bg-gray-50">
