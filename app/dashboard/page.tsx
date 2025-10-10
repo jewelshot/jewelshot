@@ -3,12 +3,61 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { generateImage, checkStatus } from '@/app/actions/generate'
 import { toast } from 'sonner'
 
 interface User {
   id: string
   email?: string
+}
+
+async function generateImageClient(base64: string) {
+  const response = await fetch('https://queue.fal.run/fal-ai/nano-banana/edit', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Key ${process.env.NEXT_PUBLIC_FAL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: "A professional fashion model wearing this elegant jewelry on a clean white background, high fashion photography, studio lighting, photorealistic, detailed, luxury jewelry catalog style",
+      image_urls: [base64],
+      num_images: 1,
+      output_format: "jpeg"
+    }),
+  })
+  return response.json()
+}
+
+async function checkStatusClient(statusUrl: string, responseUrl: string) {
+  const statusResponse = await fetch(statusUrl, {
+    headers: {
+      'Authorization': `Key ${process.env.NEXT_PUBLIC_FAL_API_KEY}`,
+    },
+  })
+  
+  const statusData = await statusResponse.json()
+  
+  if (statusData.status === 'COMPLETED') {
+    const resultResponse = await fetch(responseUrl, {
+      headers: {
+        'Authorization': `Key ${process.env.NEXT_PUBLIC_FAL_API_KEY}`,
+      },
+    })
+    
+    const resultData = await resultResponse.json()
+    
+    if (resultData.images && resultData.images[0]) {
+      return {
+        success: true,
+        status: 'COMPLETED',
+        imageUrl: resultData.images[0].url
+      }
+    }
+  }
+  
+  return {
+    success: true,
+    status: statusData.status
+  }
 }
 
 export default function Dashboard() {
@@ -67,7 +116,7 @@ export default function Dashboard() {
     }
 
     if (credits <= 0) {
-      toast.error('Krediniz bitti! Lütfen kredi satın alın.')
+      toast.error('Krediniz bitti!')
       return
     }
 
@@ -109,10 +158,10 @@ export default function Dashboard() {
         const base64 = reader.result as string
         setStatus('AI ile işleniyor...')
         
-        const response = await generateImage(base64)
+        const response = await generateImageClient(base64)
         
-        if (!response.success) {
-          toast.error('Hata: ' + response.error)
+        if (!response.request_id) {
+          toast.error('İstek başlatılamadı')
           setProcessing(false)
           return
         }
@@ -124,7 +173,7 @@ export default function Dashboard() {
           attempts++
           setStatus(`Görsel oluşturuluyor... (${attempts}/${maxAttempts})`)
           
-          const statusResult = await checkStatus(response.statusUrl!, response.responseUrl!)
+          const statusResult = await checkStatusClient(response.status_url, response.response_url)
           
           if (statusResult.success && statusResult.status === 'COMPLETED' && statusResult.imageUrl) {
             setResult(statusResult.imageUrl)
@@ -132,14 +181,12 @@ export default function Dashboard() {
             setProcessing(false)
             toast.success('Görsel başarıyla oluşturuldu! 🎉')
             
-            if (user) {
-              await supabase.from('images').insert({
-                user_id: user.id,
-                original_url: base64.substring(0, 100),
-                result_url: statusResult.imageUrl,
-                prompt: 'jewelry catalog'
-              })
-            }
+            await supabase.from('images').insert({
+              user_id: user.id,
+              original_url: base64.substring(0, 100),
+              result_url: statusResult.imageUrl,
+              prompt: 'jewelry catalog'
+            })
             
           } else if (!statusResult.success) {
             toast.error('Görsel oluşturulamadı')
