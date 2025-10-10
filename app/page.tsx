@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [showAuth, setShowAuth] = useState(false)
-  const router = useRouter()
 
   if (showAuth) {
     return <AuthForm />
@@ -14,7 +13,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-pink-500">
-      {/* Hero */}
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-6xl font-bold text-white mb-6">
           💎 Takılarınızı AI Mankenlerle Sergileyin
@@ -31,7 +29,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Nasıl Çalışır */}
       <div className="bg-white py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">Nasıl Çalışır?</h2>
@@ -58,7 +55,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CTA */}
       <div className="bg-purple-600 py-20 text-center">
         <h2 className="text-4xl font-bold text-white mb-6">Hemen Başlayın</h2>
         <button
@@ -87,13 +83,14 @@ function AuthForm() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        alert('Kayıt başarılı! E-postanızı kontrol edin.')
+        alert('Kayıt başarılı! Giriş yapabilirsiniz.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         router.push('/dashboard')
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error
       alert(error.message)
     } finally {
       setLoading(false)
