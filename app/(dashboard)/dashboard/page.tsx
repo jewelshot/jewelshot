@@ -15,7 +15,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('email, credits, created_at')
     .eq('id', user.id)
     .single()
 
@@ -24,21 +24,21 @@ export default async function DashboardPage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Hosgeldiniz, {profile?.email}</p>
+          <p className="text-gray-600 mt-1">Hosgeldiniz, {profile?.email ?? user.email}</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Kredi Bakiyesi</h2>
-            <p className="text-4xl font-bold text-black">{profile?.credits || 0}</p>
+            <p className="text-4xl font-bold text-black">{profile?.credits ?? 0}</p>
             <p className="text-sm text-gray-600 mt-1">Kalan kredi</p>
           </Card>
 
           <Card>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Hesap Bilgileri</h2>
-            <p className="text-sm text-gray-600">E-posta: {profile?.email}</p>
+            <p className="text-sm text-gray-600">E-posta: {profile?.email ?? user.email}</p>
             <p className="text-sm text-gray-600 mt-1">
-              Uyelik: {new Date(profile?.created_at || '').toLocaleDateString('tr-TR')}
+              Uyelik: {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('tr-TR') : '-'}
             </p>
           </Card>
         </div>
