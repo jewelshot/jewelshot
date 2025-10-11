@@ -13,13 +13,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // IP-based rate limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
                request.headers.get('x-real-ip') || 
                'unknown'
     
     const rateLimitKey = `login:${ip}`
-    const { allowed, remaining } = await checkRateLimit(rateLimitKey, 5, 15)
+    const { allowed } = await checkRateLimit(rateLimitKey, 5, 15)
 
     if (!allowed) {
       return NextResponse.json(
@@ -48,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Bir hata olustu' },
       { status: 500 }

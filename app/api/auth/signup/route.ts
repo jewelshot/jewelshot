@@ -13,7 +13,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Password validation (backend)
     if (password.length < 6) {
       return NextResponse.json(
         { error: 'Sifre en az 6 karakter olmali' },
@@ -28,7 +27,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // IP-based rate limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
                request.headers.get('x-real-ip') || 
                'unknown'
@@ -65,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Bir hata olustu' },
       { status: 500 }

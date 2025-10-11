@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -10,8 +9,6 @@ interface AuthStatusProps {
 }
 
 export function AuthStatus({ email }: AuthStatusProps) {
-  const router = useRouter()
-
   const handleLogout = async () => {
     try {
       const supabase = createClient()
@@ -24,11 +21,10 @@ export function AuthStatus({ email }: AuthStatusProps) {
       
       toast.success('Cikis yapildi')
       
-      // Önce cookie'leri temizle, sonra redirect
       setTimeout(() => {
         window.location.href = '/login'
       }, 500)
-    } catch (err) {
+    } catch {
       toast.error('Bir hata olustu')
     }
   }

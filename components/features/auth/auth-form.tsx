@@ -41,9 +41,10 @@ export function AuthForm({ mode }: AuthFormProps) {
       toast.success(mode === 'signup' ? 'Hesap olusturuldu!' : 'Giris basarili!')
       router.push('/dashboard')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message || 'Bir hata olustu')
-      toast.error(err.message || 'Bir hata olustu')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Bir hata olustu'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
