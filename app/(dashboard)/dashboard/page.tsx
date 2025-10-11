@@ -2,6 +2,12 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 
+interface Profile {
+  email: string
+  credits: number
+  created_at: string
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   
@@ -17,7 +23,7 @@ export default async function DashboardPage() {
     .from('profiles')
     .select('email, credits, created_at')
     .eq('id', user.id)
-    .single()
+    .single() as { data: Profile | null }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
