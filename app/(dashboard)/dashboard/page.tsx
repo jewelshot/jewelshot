@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
+import { ImageUpload } from '@/components/features/image/image-upload'
 
 interface Profile {
   email: string
@@ -27,26 +28,34 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Hosgeldiniz, {profile?.email ?? user.email}</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Kredi Bakiyesi</h2>
-            <p className="text-4xl font-bold text-black">{profile?.credits ?? 0}</p>
-            <p className="text-sm text-gray-600 mt-1">Kalan kredi</p>
-          </Card>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Sol: Credits & Info */}
+          <div className="space-y-6">
+            <Card>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Kredi Bakiyesi</h2>
+              <p className="text-4xl font-bold text-black">{profile?.credits ?? 0}</p>
+              <p className="text-sm text-gray-600 mt-1">Kalan kredi</p>
+            </Card>
 
-          <Card>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Hesap Bilgileri</h2>
-            <p className="text-sm text-gray-600">E-posta: {profile?.email ?? user.email}</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Uyelik: {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('tr-TR') : '-'}
-            </p>
-          </Card>
+            <Card>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Hesap Bilgileri</h2>
+              <p className="text-sm text-gray-600">E-posta: {profile?.email ?? user.email}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Uyelik: {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('tr-TR') : '-'}
+              </p>
+            </Card>
+          </div>
+
+          {/* Sağ: Image Upload (2 column) */}
+          <div className="lg:col-span-2">
+            <ImageUpload />
+          </div>
         </div>
       </div>
     </div>
