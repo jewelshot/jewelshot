@@ -3,10 +3,11 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const params = await props.params
+    const { id } = params
     const supabase = await createClient()
     
     const { data: { user } } = await supabase.auth.getUser()
