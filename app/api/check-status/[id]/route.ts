@@ -1,6 +1,14 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
+interface ImageJob {
+  id: string
+  user_id: string
+  status: string
+  result_url: string | null
+  fal_request_id: string
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -20,7 +28,7 @@ export async function GET(
       .select('*')
       .eq('id', id)
       .eq('user_id', user.id)
-      .single()
+      .single() as { data: ImageJob | null }
 
     if (!job) {
       return NextResponse.json({ error: 'Islem bulunamadi' }, { status: 404 })
@@ -34,7 +42,7 @@ export async function GET(
       })
     }
 
-    // Check external service status (WITHOUT /edit)
+    // Check external service status
     const statusResponse = await fetch(
       `https://queue.fal.run/fal-ai/nano-banana/requests/${job.fal_request_id}/status`,
       {
@@ -56,7 +64,7 @@ export async function GET(
     const statusData = JSON.parse(statusText)
 
     if (statusData.status === 'COMPLETED') {
-      // Get result (WITHOUT /edit)
+      // Get result
       const resultResponse = await fetch(
         `https://queue.fal.run/fal-ai/nano-banana/requests/${job.fal_request_id}`,
         {
