@@ -1,6 +1,6 @@
 // File upload constraints
 export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-export const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png'] as const
+export const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png']
 
 // AI Generation
 export const DEFAULT_PROMPT = 'Professional jewelry model photoshoot, elegant hand wearing luxury jewelry, studio lighting, high quality, commercial photography'

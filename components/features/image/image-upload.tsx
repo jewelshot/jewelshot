@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES, POLL_INTERVAL_MS, MESSAGES } from '@/lib/constants'
 
 export function ImageUpload() {
   const [file, setFile] = useState<File | null>(null)
@@ -17,13 +18,13 @@ export function ImageUpload() {
     if (!selectedFile) return
 
     // Validation
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      toast.error('Dosya boyutu 5MB\'dan kucuk olmali')
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      toast.error(MESSAGES.IMAGE.FILE_TOO_LARGE)
       return
     }
 
-    if (!['image/jpeg', 'image/png'].includes(selectedFile.type)) {
-      toast.error('Sadece JPG ve PNG dosyalari yuklenebilir')
+    if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
+      toast.error(MESSAGES.IMAGE.INVALID_FILE_TYPE)
       return
     }
 
@@ -46,7 +47,7 @@ export function ImageUpload() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        toast.error('Giris yapmaniz gerekiyor')
+        toast.error(MESSAGES.AUTH.LOGIN_REQUIRED)
         return
       }
 
@@ -69,13 +70,13 @@ export function ImageUpload() {
           throw new Error(data.error)
         }
 
-        toast.success('Gorsel isleme alindi!')
+        toast.success(MESSAGES.IMAGE.UPLOAD_SUCCESS)
         
         // Start polling
         pollStatus(data.job_id)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gorsel yuklenemedi'
+      const errorMessage = err instanceof Error ? err.message : MESSAGES.IMAGE.GENERATION_FAILED
       toast.error(errorMessage)
       setLoading(false)
     }
@@ -91,30 +92,30 @@ export function ImageUpload() {
           clearInterval(interval)
           setResult(data.image_url)
           setLoading(false)
-          toast.success('Gorsel hazir!')
+          toast.success(MESSAGES.IMAGE.GENERATION_COMPLETE)
         } else if (data.status === 'failed') {
           clearInterval(interval)
           setLoading(false)
-          toast.error('Gorsel olusturulamadi')
+          toast.error(MESSAGES.IMAGE.GENERATION_FAILED)
         }
       } catch {
         clearInterval(interval)
         setLoading(false)
-        toast.error('Durum kontrolu basarisiz')
+        toast.error(MESSAGES.ERRORS.GENERIC)
       }
-    }, 3000)
+    }, POLL_INTERVAL_MS)
   }
 
   return (
     <Card>
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        Taki Fotografinizi Yukleyin
+        Takı Fotoğrafınızı Yükleyin
       </h2>
 
       <div className="space-y-4">
         <input
           type="file"
-          accept="image/jpeg,image/png"
+          accept={ALLOWED_FILE_TYPES.join(',')}
           onChange={handleFileChange}
           className="block w-full text-sm text-gray-600
             file:mr-4 file:py-2 file:px-4
@@ -138,15 +139,15 @@ export function ImageUpload() {
 
         {file && !loading && !result && (
           <Button onClick={handleUpload} className="w-full">
-            AI ile Donustur
+            AI ile Dönüştür
           </Button>
         )}
 
         {loading && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-            <p className="text-sm text-gray-600">Profesyonel gorsel olusturuluyor...</p>
-            <p className="text-xs text-gray-500 mt-1">Bu islem 30-60 saniye surebilir</p>
+            <p className="text-sm text-gray-600">Profesyonel görsel oluşturuluyor...</p>
+            <p className="text-xs text-gray-500 mt-1">Bu işlem 30-60 saniye sürebilir</p>
           </div>
         )}
 
@@ -169,7 +170,7 @@ export function ImageUpload() {
               variant="secondary"
               className="w-full"
             >
-              Yeni Gorsel Olustur
+              Yeni Görsel Oluştur
             </Button>
           </div>
         )}
