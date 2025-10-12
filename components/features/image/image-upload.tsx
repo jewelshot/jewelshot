@@ -11,7 +11,6 @@ export function ImageUpload() {
   const [preview, setPreview] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<string>('')
-  const [jobId, setJobId] = useState<string>('')
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -70,7 +69,6 @@ export function ImageUpload() {
           throw new Error(data.error)
         }
 
-        setJobId(data.job_id)
         toast.success('Gorsel isleme alindi!')
         
         // Start polling
@@ -104,7 +102,7 @@ export function ImageUpload() {
         setLoading(false)
         toast.error('Durum kontrolu basarisiz')
       }
-    }, 3000) // Her 3 saniyede kontrol et
+    }, 3000)
   }
 
   return (
@@ -129,6 +127,7 @@ export function ImageUpload() {
 
         {preview && (
           <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview}
               alt="Preview"
@@ -154,6 +153,7 @@ export function ImageUpload() {
         {result && (
           <div className="space-y-4">
             <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={result}
                 alt="Generated"
@@ -165,7 +165,6 @@ export function ImageUpload() {
                 setFile(null)
                 setPreview('')
                 setResult('')
-                setJobId('')
               }}
               variant="secondary"
               className="w-full"

@@ -91,7 +91,8 @@ export async function GET(
           .from('generated-images')
           .getPublicUrl(fileName)
 
-        // Update database (cast to any to bypass TypeScript)
+        // Update database
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabase
           .from('images')
           .update({
@@ -106,6 +107,7 @@ export async function GET(
         })
       }
     } else if (statusData.status === 'FAILED') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase
         .from('images')
         .update({ status: 'failed' } as any)
