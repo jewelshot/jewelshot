@@ -92,14 +92,14 @@ export async function GET(
           .getPublicUrl(fileName)
 
         // Update database
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase
+        // @ts-ignore - Supabase type issue
+        await supabase
           .from('images')
           .update({
             status: 'completed',
             result_url: publicUrlData.publicUrl,
-          } as any)
-          .eq('id', id))
+          })
+          .eq('id', id)
 
         return NextResponse.json({
           status: 'completed',
@@ -107,11 +107,11 @@ export async function GET(
         })
       }
     } else if (statusData.status === 'FAILED') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase
+      // @ts-ignore - Supabase type issue
+      await supabase
         .from('images')
-        .update({ status: 'failed' } as any)
-        .eq('id', id))
+        .update({ status: 'failed' })
+        .eq('id', id)
 
       return NextResponse.json({ status: 'failed' })
     }
