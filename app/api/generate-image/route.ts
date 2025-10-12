@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
+import { DEFAULT_PROMPT, IMAGE_GENERATION_COST, MESSAGES } from '@/lib/constants'
 
 export async function POST(request: Request) {
   try {
@@ -7,7 +8,7 @@ export async function POST(request: Request) {
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: 'Giris yapmaniz gerekiyor' }, { status: 401 })
+      return NextResponse.json({ error: MESSAGES.AUTH.LOGIN_REQUIRED }, { status: 401 })
     }
 
     // Check credits
@@ -17,14 +18,14 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (!profile || !profile.credits || profile.credits < 1) {
-      return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 402 })
+    if (!profile || !profile.credits || profile.credits < IMAGE_GENERATION_COST) {
+      return NextResponse.json({ error: MESSAGES.CREDITS.INSUFFICIENT }, { status: 402 })
     }
 
     const { image } = await request.json()
     
     if (!image) {
-      return NextResponse.json({ error: 'Gorsel gerekli' }, { status: 400 })
+      return NextResponse.json({ error: 'Görsel gerekli' }, { status: 400 })
     }
 
     // Call Nano Banana API
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: 'Professional jewelry model photoshoot, elegant hand wearing luxury jewelry, studio lighting, high quality, commercial photography',
+        prompt: DEFAULT_PROMPT,
         image_urls: [image],
         num_images: 1,
         output_format: 'jpeg',
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     if (!externalResponse.ok) {
       console.error('API Error:', responseText)
       return NextResponse.json(
-        { error: 'Gorsel olusturulamadi' },
+        { error: MESSAGES.IMAGE.GENERATION_FAILED },
         { status: 500 }
       )
     }
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
     // Deduct credit
     await supabase.rpc('deduct_credit', {
       user_uuid: user.id,
-      amount: 1,
+      amount: IMAGE_GENERATION_COST,
     })
 
     return NextResponse.json({
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Generation error:', error)
     return NextResponse.json(
-      { error: 'Gorsel olusturulamadi' },
+      { error: MESSAGES.IMAGE.GENERATION_FAILED },
       { status: 500 }
     )
   }
