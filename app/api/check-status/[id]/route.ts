@@ -92,7 +92,7 @@ export async function GET(
           .getPublicUrl(fileName)
 
         // Update database
-        // @ts-ignore - Supabase type issue
+        // @ts-expect-error - Supabase type inference issue
         await supabase
           .from('images')
           .update({
@@ -107,7 +107,7 @@ export async function GET(
         })
       }
     } else if (statusData.status === 'FAILED') {
-      // @ts-ignore - Supabase type issue
+      // @ts-expect-error - Supabase type inference issue
       await supabase
         .from('images')
         .update({ status: 'failed' })
