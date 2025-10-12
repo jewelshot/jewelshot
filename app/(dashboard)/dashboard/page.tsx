@@ -3,12 +3,6 @@ import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { ImageUpload } from '@/components/features/image/image-upload'
 
-interface Profile {
-  email: string
-  credits: number
-  created_at: string
-}
-
 export default async function DashboardPage() {
   const supabase = await createClient()
   
@@ -20,11 +14,12 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  // Types automatically inferred from Database schema!
   const { data: profile } = await supabase
     .from('profiles')
     .select('email, credits, created_at')
     .eq('id', user.id)
-    .single() as { data: Profile | null }
+    .single()
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -35,7 +30,6 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Sol: Credits & Info */}
           <div className="space-y-6">
             <Card>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Kredi Bakiyesi</h2>
@@ -52,7 +46,6 @@ export default async function DashboardPage() {
             </Card>
           </div>
 
-          {/* Sağ: Image Upload (2 column) */}
           <div className="lg:col-span-2">
             <ImageUpload />
           </div>

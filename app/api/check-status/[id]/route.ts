@@ -1,14 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
-interface ImageJob {
-  id: string
-  user_id: string
-  status: string
-  result_url: string | null
-  fal_request_id: string
-}
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -22,15 +14,15 @@ export async function GET(
       return NextResponse.json({ error: 'Giris yapmaniz gerekiyor' }, { status: 401 })
     }
 
-    // Get job from database
-    const { data: job } = await supabase
+    // Get job from database - Types automatically inferred!
+    const { data: job, error: jobError } = await supabase
       .from('images')
       .select('*')
       .eq('id', id)
       .eq('user_id', user.id)
-      .single() as { data: ImageJob | null }
+      .single()
 
-    if (!job) {
+    if (jobError || !job) {
       return NextResponse.json({ error: 'Islem bulunamadi' }, { status: 404 })
     }
 
@@ -91,8 +83,7 @@ export async function GET(
           .from('generated-images')
           .getPublicUrl(fileName)
 
-        // Update database
-        // @ts-expect-error - Supabase type inference issue
+        // Update database - Types work now!
         await supabase
           .from('images')
           .update({
@@ -107,7 +98,6 @@ export async function GET(
         })
       }
     } else if (statusData.status === 'FAILED') {
-      // @ts-expect-error - Supabase type inference issue
       await supabase
         .from('images')
         .update({ status: 'failed' })

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.credits < 1) {
+    if (!profile || !profile.credits || profile.credits < 1) {
       return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 402 })
     }
 
@@ -36,13 +36,12 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         prompt: 'Professional jewelry model photoshoot, elegant hand wearing luxury jewelry, studio lighting, high quality, commercial photography',
-        image_urls: [image], // Base64 data URI supported
+        image_urls: [image],
         num_images: 1,
         output_format: 'jpeg',
       }),
     })
 
-    // Debug: Log response details
     console.log('API Response Status:', externalResponse.status)
     const responseText = await externalResponse.text()
     console.log('API Response Body:', responseText)
