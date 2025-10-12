@@ -52,15 +52,11 @@ export async function GET(
       }
     )
 
-    console.log('Status Check Response:', statusResponse.status)
-    const statusText = await statusResponse.text()
-    console.log('Status Check Body:', statusText)
-
     if (!statusResponse.ok) {
-      console.error('Status check failed:', statusText)
       return NextResponse.json({ status: 'processing' })
     }
 
+    const statusText = await statusResponse.text()
     const statusData = JSON.parse(statusText)
 
     if (statusData.status === 'COMPLETED') {
@@ -95,14 +91,14 @@ export async function GET(
           .from('generated-images')
           .getPublicUrl(fileName)
 
-        // Update database
-        await supabase
+        // Update database (cast to any to bypass TypeScript)
+        await (supabase
           .from('images')
           .update({
             status: 'completed',
             result_url: publicUrlData.publicUrl,
-          })
-          .eq('id', id)
+          } as any)
+          .eq('id', id))
 
         return NextResponse.json({
           status: 'completed',
@@ -110,10 +106,10 @@ export async function GET(
         })
       }
     } else if (statusData.status === 'FAILED') {
-      await supabase
+      await (supabase
         .from('images')
-        .update({ status: 'failed' })
-        .eq('id', id)
+        .update({ status: 'failed' } as any)
+        .eq('id', id))
 
       return NextResponse.json({ status: 'failed' })
     }
