@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { SIGNUP_RATE_LIMIT, SIGNUP_RATE_WINDOW_MINUTES, MESSAGES } from '@/lib/constants'
 
 export async function POST(request: Request) {
   try {
@@ -8,21 +9,21 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email ve sifre gerekli' },
+        { error: 'Email ve şifre gerekli' },
         { status: 400 }
       )
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Sifre en az 6 karakter olmali' },
+        { error: 'Şifre en az 6 karakter olmalı' },
         { status: 400 }
       )
     }
 
     if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
       return NextResponse.json(
-        { error: 'Sifre en az bir harf ve bir rakam icermeli' },
+        { error: 'Şifre en az bir harf ve bir rakam içermeli' },
         { status: 400 }
       )
     }
@@ -32,11 +33,11 @@ export async function POST(request: Request) {
                'unknown'
     
     const rateLimitKey = `signup:${ip}`
-    const { allowed } = await checkRateLimit(rateLimitKey, 3, 60)
+    const { allowed } = await checkRateLimit(rateLimitKey, SIGNUP_RATE_LIMIT, SIGNUP_RATE_WINDOW_MINUTES)
 
     if (!allowed) {
       return NextResponse.json(
-        { error: 'Cok fazla kayit denemesi. 1 saat sonra tekrar deneyin.' },
+        { error: `Çok fazla kayıt denemesi. ${SIGNUP_RATE_WINDOW_MINUTES} dakika sonra tekrar deneyin.` },
         { status: 429 }
       )
     }
@@ -53,11 +54,11 @@ export async function POST(request: Request) {
 
     if (error) {
       const errorMessages: Record<string, string> = {
-        'User already registered': 'Bu email zaten kayitli',
+        'User already registered': 'Bu email zaten kayıtlı',
       }
       
       return NextResponse.json(
-        { error: errorMessages[error.message] || 'Kayit yapilamadi' },
+        { error: errorMessages[error.message] || 'Kayıt yapılamadı' },
         { status: 400 }
       )
     }
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(
-      { error: 'Bir hata olustu' },
+      { error: MESSAGES.ERRORS.GENERIC },
       { status: 500 }
     )
   }

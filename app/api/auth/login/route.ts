@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW_MINUTES, MESSAGES } from '@/lib/constants'
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email ve sifre gerekli' },
+        { error: 'Email ve şifre gerekli' },
         { status: 400 }
       )
     }
@@ -18,11 +19,11 @@ export async function POST(request: Request) {
                'unknown'
     
     const rateLimitKey = `login:${ip}`
-    const { allowed } = await checkRateLimit(rateLimitKey, 5, 15)
+    const { allowed } = await checkRateLimit(rateLimitKey, LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW_MINUTES)
 
     if (!allowed) {
       return NextResponse.json(
-        { error: 'Cok fazla giris denemesi. 15 dakika sonra tekrar deneyin.' },
+        { error: `Çok fazla giriş denemesi. ${LOGIN_RATE_WINDOW_MINUTES} dakika sonra tekrar deneyin.` },
         { status: 429 }
       )
     }
@@ -36,12 +37,12 @@ export async function POST(request: Request) {
 
     if (error) {
       const errorMessages: Record<string, string> = {
-        'Invalid login credentials': 'Gecersiz email veya sifre',
-        'Email not confirmed': 'Email adresinizi onaylayin',
+        'Invalid login credentials': MESSAGES.AUTH.INVALID_CREDENTIALS,
+        'Email not confirmed': MESSAGES.AUTH.EMAIL_NOT_CONFIRMED,
       }
       
       return NextResponse.json(
-        { error: errorMessages[error.message] || 'Giris yapilamadi' },
+        { error: errorMessages[error.message] || 'Giriş yapılamadı' },
         { status: 401 }
       )
     }
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(
-      { error: 'Bir hata olustu' },
+      { error: MESSAGES.ERRORS.GENERIC },
       { status: 500 }
     )
   }
