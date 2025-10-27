@@ -23,6 +23,7 @@ export function ImageViewer({
   const [isDragging, setIsDragging] = useState(false);
   const lastPositionRef = useRef({ x: 0, y: 0 });
   const lastTouchDistanceRef = useRef<number | null>(null);
+  const lastGestureScaleRef = useRef<number>(1);
 
   // Mouse drag
   useEffect(() => {
@@ -150,11 +151,47 @@ export function ImageViewer({
     };
   }, [scale, onScaleChange]);
 
+  // WebKit/Safari gesture events (for Safari trackpad pinch)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleGestureStart = (e: Event) => {
+      e.preventDefault();
+      lastGestureScaleRef.current = 1;
+    };
+
+    const handleGestureChange = (e: Event) => {
+      e.preventDefault();
+      const gestureScale = (e as unknown as { scale: number }).scale;
+      const delta = gestureScale - lastGestureScaleRef.current;
+      const newScale = Math.max(0.1, Math.min(3.0, scale + delta));
+      onScaleChange(newScale);
+      lastGestureScaleRef.current = gestureScale;
+    };
+
+    const handleGestureEnd = (e: Event) => {
+      e.preventDefault();
+      lastGestureScaleRef.current = 1;
+    };
+
+    // Add gesture events (Safari/WebKit)
+    container.addEventListener('gesturestart', handleGestureStart);
+    container.addEventListener('gesturechange', handleGestureChange);
+    container.addEventListener('gestureend', handleGestureEnd);
+
+    return () => {
+      container.removeEventListener('gesturestart', handleGestureStart);
+      container.removeEventListener('gesturechange', handleGestureChange);
+      container.removeEventListener('gestureend', handleGestureEnd);
+    };
+  }, [scale, onScaleChange]);
+
   return (
     <div
       ref={containerRef}
       className="flex h-full items-center justify-center p-8"
-      style={{ cursor: 'grab' }}
+      style={{ cursor: 'grab', touchAction: 'none' }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
