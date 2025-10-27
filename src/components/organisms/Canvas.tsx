@@ -2,8 +2,10 @@
 
 import React, { useRef, useState } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
-import { Camera, Upload } from 'lucide-react';
 import ZoomControls from '@/components/molecules/ZoomControls';
+import EmptyState from '@/components/molecules/EmptyState';
+import LoadingState from '@/components/atoms/LoadingState';
+import ImageViewer from '@/components/molecules/ImageViewer';
 
 export function Canvas() {
   const { leftOpen, rightOpen, topOpen, bottomOpen } = useSidebarStore();
@@ -69,41 +71,14 @@ export function Canvas() {
         }}
       >
         {!uploadedImage && !isLoading && (
-          <div className="flex h-full items-center justify-center">
-            <div className="space-y-6 text-center">
-              <Camera className="mx-auto h-16 w-16 text-purple-400" />
-              <h2 className="text-2xl font-bold text-white">
-                Welcome to Jewelshot Studio
-              </h2>
-              <p className="text-white/60">Upload an image to start editing</p>
-              <button className="inline-flex items-center gap-2 rounded-xl border border-[rgba(139,92,246,0.4)] bg-gradient-to-br from-[rgba(139,92,246,0.15)] to-[rgba(99,102,241,0.1)] px-6 py-3 font-semibold text-white transition-all hover:border-[rgba(139,92,246,0.6)] hover:shadow-[0_4px_16px_rgba(139,92,246,0.3)]">
-                <Upload className="h-5 w-5" />
-                Upload Image
-              </button>
-            </div>
-          </div>
+          <EmptyState onUploadClick={handleCanvasClick} />
         )}
 
-        {isLoading && (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-white/60">Loading...</div>
-          </div>
-        )}
+        {isLoading && <LoadingState />}
 
         {uploadedImage && (
           <>
-            <div className="flex h-full items-center justify-center p-8">
-              <img
-                src={uploadedImage}
-                alt="Uploaded"
-                className="max-h-full max-w-full object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-                style={{
-                  transform: `scale(${scale})`,
-                  transition: 'transform 400ms ease-in-out',
-                  animation: 'scaleIn 700ms ease-in-out',
-                }}
-              />
-            </div>
+            <ImageViewer src={uploadedImage} alt="Uploaded" scale={scale} />
 
             {/* Zoom Controls - Top Right */}
             <div
