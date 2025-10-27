@@ -31,9 +31,9 @@ interface BadgeConfig {
 
 interface NavigationItemProps {
   /**
-   * Icon to display (emoji or component)
+   * Icon to display (Lucide icon component)
    */
-  icon: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
 
   /**
    * Text label for the nav item
@@ -69,7 +69,7 @@ interface NavigationItemProps {
 }
 
 export function NavigationItem({
-  icon,
+  icon: Icon,
   label,
   href,
   active = false,
@@ -95,11 +95,9 @@ export function NavigationItem({
       )}
 
       {/* Icon */}
-      <span
-        className={`duration-400 flex w-5 items-center justify-center text-base transition-opacity ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'} `}
-      >
-        {icon}
-      </span>
+      <Icon
+        className={`duration-400 h-[18px] w-[18px] transition-opacity ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}
+      />
 
       {/* Label */}
       <span className="flex-1">{label}</span>

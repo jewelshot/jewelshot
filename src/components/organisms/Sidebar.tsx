@@ -19,25 +19,37 @@ import SidebarLogo from '@/components/molecules/SidebarLogo';
 import NavigationItem from '@/components/atoms/NavigationItem';
 import SectionHeader from '@/components/atoms/SectionHeader';
 import UserProfile from '@/components/molecules/UserProfile';
+import {
+  Home,
+  Palette,
+  Image,
+  FolderOpen,
+  Sparkles,
+  Scissors,
+  Droplet,
+  Zap,
+  Settings,
+  CreditCard,
+} from 'lucide-react';
 
 // Main navigation items
 const mainNavItems = [
-  { icon: '🏠', label: 'Home', href: '/', shortcut: '⌘H' },
+  { icon: Home, label: 'Home', href: '/', shortcut: '⌘H' },
   {
-    icon: '🎨',
+    icon: Palette,
     label: 'Studio',
     href: '/studio',
     active: true,
     badge: { variant: 'new' as const },
   },
   {
-    icon: '🖼️',
+    icon: Image,
     label: 'Gallery',
     href: '/gallery',
     badge: { variant: 'count' as const, count: 24 },
   },
   {
-    icon: '📦',
+    icon: FolderOpen,
     label: 'Projects',
     href: '/projects',
     badge: { variant: 'count' as const, count: 3 },
@@ -47,31 +59,31 @@ const mainNavItems = [
 // Tools section
 const toolsItems = [
   {
-    icon: '✨',
+    icon: Sparkles,
     label: 'AI Generate',
     href: '/tools/ai-generate',
     badge: { variant: 'pro' as const },
   },
   {
-    icon: '✂️',
+    icon: Scissors,
     label: 'Background Remove',
     href: '/tools/background-remove',
     badge: { variant: 'dot' as const, color: 'green' as const },
   },
-  { icon: '🎨', label: 'Color Enhance', href: '/tools/color-enhance' },
-  { icon: '⚡', label: 'Resize & Crop', href: '/tools/resize-crop' },
+  { icon: Droplet, label: 'Color Enhance', href: '/tools/color-enhance' },
+  { icon: Zap, label: 'Resize & Crop', href: '/tools/resize-crop' },
 ];
 
 // Settings section
 const settingsItems = [
   {
-    icon: '⚙️',
+    icon: Settings,
     label: 'Preferences',
     href: '/settings/preferences',
     shortcut: '⌘,',
   },
   {
-    icon: '💳',
+    icon: CreditCard,
     label: 'Billing',
     href: '/settings/billing',
     badge: { variant: 'count' as const, count: 1 },
