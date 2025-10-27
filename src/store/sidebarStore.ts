@@ -48,7 +48,7 @@ interface SidebarState {
 export const useSidebarStore = create<SidebarState>()(
   devtools(
     (set) => ({
-      isOpen: false,
+      isOpen: true, // Default: expanded
 
       toggle: () =>
         set(
