@@ -86,7 +86,7 @@ export function Sidebar() {
       className={`fixed top-0 left-0 z-[100] h-screen w-[260px] border-r border-[rgba(139,92,246,0.15)] bg-[rgba(10,10,10,0.7)] shadow-[4px_0_24px_rgba(0,0,0,0.3)] backdrop-blur-[24px] backdrop-saturate-[200%] transition-transform duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] ${isOpen ? 'translate-x-0' : '-translate-x-full'} `}
     >
       {/* Sidebar Content */}
-      <div className="scrollbar-thin scrollbar-thumb-[rgba(139,92,246,0.2)] scrollbar-track-transparent hover:scrollbar-thumb-[rgba(139,92,246,0.4)] flex h-full flex-col overflow-y-auto px-4 py-3">
+      <div className="sidebar-scroll flex h-full flex-col overflow-y-auto px-4 py-3">
         {/* Logo */}
         <SidebarLogo />
 
