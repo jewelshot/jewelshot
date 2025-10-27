@@ -1,21 +1,24 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import ZoomControls from '@/components/molecules/ZoomControls';
+import ActionControls from '@/components/molecules/ActionControls';
 import TopLeftControls from '@/components/molecules/TopLeftControls';
 import EmptyState from '@/components/molecules/EmptyState';
 import LoadingState from '@/components/atoms/LoadingState';
 import ImageViewer from '@/components/molecules/ImageViewer';
 
 export function Canvas() {
-  const { leftOpen, rightOpen, topOpen, bottomOpen } = useSidebarStore();
+  const { leftOpen, rightOpen, topOpen, bottomOpen, toggleAll } =
+    useSidebarStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [scale, setScale] = useState(1.0);
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -58,6 +61,28 @@ export function Canvas() {
   const handleFitScreen = () => {
     setScale(1.0);
   };
+
+  const handleToggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const allBarsOpen = leftOpen && rightOpen && topOpen && bottomOpen;
 
   const leftPos = leftOpen ? 260 : 0;
   const rightPos = rightOpen ? 260 : 0;
@@ -108,14 +133,20 @@ export function Canvas() {
               />
             </div>
 
-            {/* Zoom Controls - Top Right */}
+            {/* Top Right Controls */}
             <div
-              className="fixed z-20 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              className="fixed z-20 flex items-center gap-2 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
               style={{
                 top: topOpen ? '80px' : '16px',
                 right: rightOpen ? '276px' : '16px',
               }}
             >
+              <ActionControls
+                allBarsOpen={allBarsOpen}
+                onToggleAllBars={toggleAll}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={handleToggleFullscreen}
+              />
               <ZoomControls
                 scale={scale}
                 onZoomIn={handleZoomIn}

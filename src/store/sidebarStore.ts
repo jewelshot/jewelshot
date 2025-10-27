@@ -98,6 +98,21 @@ interface SidebarState {
    * Explicitly close the bottom bar
    */
   closeBottom: () => void;
+
+  /**
+   * Toggle all bars at once
+   */
+  toggleAll: () => void;
+
+  /**
+   * Open all bars
+   */
+  openAll: () => void;
+
+  /**
+   * Close all bars
+   */
+  closeAll: () => void;
 }
 
 /**
@@ -160,6 +175,50 @@ export const useSidebarStore = create<SidebarState>()(
 
       closeBottom: () =>
         set({ bottomOpen: false }, undefined, 'sidebar/closeBottom'),
+
+      toggleAll: () =>
+        set(
+          (state) => {
+            // If any bar is closed, open all. If all are open, close all.
+            const anyBarClosed =
+              !state.leftOpen ||
+              !state.rightOpen ||
+              !state.topOpen ||
+              !state.bottomOpen;
+            return {
+              leftOpen: anyBarClosed,
+              rightOpen: anyBarClosed,
+              topOpen: anyBarClosed,
+              bottomOpen: anyBarClosed,
+            };
+          },
+          undefined,
+          'sidebar/toggleAll'
+        ),
+
+      openAll: () =>
+        set(
+          {
+            leftOpen: true,
+            rightOpen: true,
+            topOpen: true,
+            bottomOpen: true,
+          },
+          undefined,
+          'sidebar/openAll'
+        ),
+
+      closeAll: () =>
+        set(
+          {
+            leftOpen: false,
+            rightOpen: false,
+            topOpen: false,
+            bottomOpen: false,
+          },
+          undefined,
+          'sidebar/closeAll'
+        ),
     }),
     {
       name: 'sidebar-store',
