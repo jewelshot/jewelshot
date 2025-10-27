@@ -80,9 +80,9 @@ export function Canvas() {
             <img
               src={uploadedImage}
               alt="Uploaded"
-              className="max-h-full max-w-full rounded-2xl object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-700 ease-out"
+              className="max-h-full max-w-full object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-700 ease-in-out"
               style={{
-                animation: 'scaleIn 700ms ease-out forwards',
+                animation: 'scaleIn 700ms ease-in-out forwards',
               }}
             />
           </div>
