@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import ZoomControls from '@/components/molecules/ZoomControls';
+import TopLeftControls from '@/components/molecules/TopLeftControls';
 import EmptyState from '@/components/molecules/EmptyState';
 import LoadingState from '@/components/atoms/LoadingState';
 import ImageViewer from '@/components/molecules/ImageViewer';
@@ -13,6 +14,8 @@ export function Canvas() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [scale, setScale] = useState(1.0);
+  const [fileName, setFileName] = useState('');
+  const [fileSize, setFileSize] = useState(0);
 
   const handleCanvasClick = () => {
     if (!uploadedImage) {
@@ -24,6 +27,8 @@ export function Canvas() {
     const file = e.target.files?.[0];
     if (file) {
       setIsLoading(true);
+      setFileName(file.name);
+      setFileSize(file.size);
       const reader = new FileReader();
       reader.onload = (event) => {
         setUploadedImage(event.target?.result as string);
@@ -31,6 +36,16 @@ export function Canvas() {
         setIsLoading(false);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCloseImage = () => {
+    setUploadedImage(null);
+    setFileName('');
+    setFileSize(0);
+    setScale(1.0);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -79,6 +94,22 @@ export function Canvas() {
         {uploadedImage && (
           <>
             <ImageViewer src={uploadedImage} alt="Uploaded" scale={scale} />
+
+            {/* Top Left Controls - File Info */}
+            <div
+              className="fixed z-20 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              style={{
+                top: topOpen ? '80px' : '16px',
+                left: leftOpen ? '276px' : '16px',
+              }}
+            >
+              <TopLeftControls
+                fileName={fileName}
+                fileSizeInBytes={fileSize}
+                onClose={handleCloseImage}
+                visible={!!uploadedImage}
+              />
+            </div>
 
             {/* Zoom Controls - Top Right */}
             <div
