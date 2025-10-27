@@ -22,18 +22,15 @@ export function ImageViewer({
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Touchpad zoom
+  // Scroll/Touchpad zoom
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
-      // Only zoom when Ctrl is pressed (trackpad pinch)
-      if (e.ctrlKey) {
-        e.preventDefault();
-        const delta = -e.deltaY * 0.01;
-        onScaleChange((prev) => Math.max(0.1, Math.min(3.0, prev + delta)));
-      }
+      e.preventDefault();
+      const delta = -e.deltaY * 0.01;
+      onScaleChange((prev) => Math.max(0.1, Math.min(3.0, prev + delta)));
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
