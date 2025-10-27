@@ -22,6 +22,7 @@ export function ImageViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const lastPositionRef = useRef({ x: 0, y: 0 });
+  const lastTouchDistanceRef = useRef<number | null>(null);
 
   // Mouse drag
   useEffect(() => {
@@ -64,7 +65,7 @@ export function ImageViewer({
     };
   }, [position, onPositionChange, isDragging]);
 
-  // Wheel/Touchpad zoom
+  // Wheel/Touchpad zoom and pan
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -72,17 +73,19 @@ export function ImageViewer({
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
 
-      // Detect pinch gesture (ctrlKey is set on pinch zoom)
+      // macOS trackpad pinch sets ctrlKey
+      // Windows Ctrl+Wheel also sets ctrlKey
       if (e.ctrlKey) {
-        // Pinch to zoom
+        // Pinch to zoom (two-finger pinch on trackpad or Ctrl+Wheel)
         const delta = -e.deltaY * 0.01;
         const newScale = Math.max(0.1, Math.min(3.0, scale + delta));
         onScaleChange(newScale);
       } else {
-        // Regular scroll: pan
+        // Two-finger scroll: pan the image
+        // Use smaller multiplier for smoother panning on trackpad
         onPositionChange({
-          x: position.x - e.deltaX,
-          y: position.y - e.deltaY,
+          x: position.x - e.deltaX * 0.5,
+          y: position.y - e.deltaY * 0.5,
         });
       }
     };
@@ -93,6 +96,59 @@ export function ImageViewer({
       container.removeEventListener('wheel', handleWheel);
     };
   }, [scale, position, onScaleChange, onPositionChange]);
+
+  // Touch events for mobile/trackpad pinch
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const getTouchDistance = (touches: TouchList) => {
+      if (touches.length < 2) return null;
+      const touch1 = touches[0];
+      const touch2 = touches[1];
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        lastTouchDistanceRef.current = getTouchDistance(e.touches);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && lastTouchDistanceRef.current) {
+        e.preventDefault();
+        const currentDistance = getTouchDistance(e.touches);
+        if (currentDistance) {
+          const delta = (currentDistance - lastTouchDistanceRef.current) * 0.01;
+          const newScale = Math.max(0.1, Math.min(3.0, scale + delta));
+          onScaleChange(newScale);
+          lastTouchDistanceRef.current = currentDistance;
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      lastTouchDistanceRef.current = null;
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, {
+      passive: false,
+    });
+    container.addEventListener('touchmove', handleTouchMove, {
+      passive: false,
+    });
+    container.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [scale, onScaleChange]);
 
   return (
     <div
