@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface ImageViewerProps {
   src: string;
   alt: string;
   scale: number;
   position: { x: number; y: number };
-  onScaleChange: (scale: number) => void;
-  onPositionChange: (position: { x: number; y: number }) => void;
+  onScaleChange: React.Dispatch<React.SetStateAction<number>>;
+  onPositionChange: React.Dispatch<
+    React.SetStateAction<{ x: number; y: number }>
+  >;
 }
 
 export function ImageViewer({
@@ -20,38 +22,39 @@ export function ImageViewer({
   onPositionChange,
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const lastPositionRef = useRef({ x: 0, y: 0 });
-  const lastTouchDistanceRef = useRef<number | null>(null);
-  const lastGestureScaleRef = useRef<number>(1);
 
   // Mouse drag
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let dragging = false;
+    const lastPos = { x: 0, y: 0 };
+
     const handleMouseDown = (e: MouseEvent) => {
-      setIsDragging(true);
-      lastPositionRef.current = { x: e.clientX, y: e.clientY };
+      dragging = true;
+      lastPos.x = e.clientX;
+      lastPos.y = e.clientY;
       container.style.cursor = 'grabbing';
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      if (!dragging) return;
 
-      const deltaX = e.clientX - lastPositionRef.current.x;
-      const deltaY = e.clientY - lastPositionRef.current.y;
+      const deltaX = e.clientX - lastPos.x;
+      const deltaY = e.clientY - lastPos.y;
 
       onPositionChange({
         x: position.x + deltaX,
         y: position.y + deltaY,
       });
 
-      lastPositionRef.current = { x: e.clientX, y: e.clientY };
+      lastPos.x = e.clientX;
+      lastPos.y = e.clientY;
     };
 
     const handleMouseUp = () => {
-      setIsDragging(false);
+      dragging = false;
       container.style.cursor = 'grab';
     };
 
@@ -64,7 +67,7 @@ export function ImageViewer({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [position, onPositionChange, isDragging]);
+  }, [onPositionChange, position]);
 
   // Wheel/Touchpad zoom and pan
   useEffect(() => {
@@ -74,20 +77,16 @@ export function ImageViewer({
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
 
-      // macOS trackpad pinch sets ctrlKey
-      // Windows Ctrl+Wheel also sets ctrlKey
       if (e.ctrlKey) {
-        // Pinch to zoom (two-finger pinch on trackpad or Ctrl+Wheel)
+        // Ctrl+Wheel = Zoom
         const delta = -e.deltaY * 0.01;
-        const newScale = Math.max(0.1, Math.min(3.0, scale + delta));
-        onScaleChange(newScale);
+        onScaleChange((prev) => Math.max(0.1, Math.min(3.0, prev + delta)));
       } else {
-        // Two-finger scroll: pan the image
-        // Use smaller multiplier for smoother panning on trackpad
-        onPositionChange({
-          x: position.x - e.deltaX * 0.5,
-          y: position.y - e.deltaY * 0.5,
-        });
+        // Normal scroll = Pan
+        onPositionChange((prev) => ({
+          x: prev.x - e.deltaX * 0.5,
+          y: prev.y - e.deltaY * 0.5,
+        }));
       }
     };
 
@@ -96,44 +95,40 @@ export function ImageViewer({
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [scale, position, onScaleChange, onPositionChange]);
+  }, [onScaleChange, onPositionChange]);
 
-  // Touch events for mobile/trackpad pinch
+  // Touch pinch zoom (mobile/tablet)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let lastDistance: number | null = null;
+
     const getTouchDistance = (touches: TouchList) => {
-      if (touches.length < 2) return null;
-      const touch1 = touches[0];
-      const touch2 = touches[1];
-      const dx = touch1.clientX - touch2.clientX;
-      const dy = touch1.clientY - touch2.clientY;
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
       return Math.sqrt(dx * dx + dy * dy);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        lastTouchDistanceRef.current = getTouchDistance(e.touches);
+        lastDistance = getTouchDistance(e.touches);
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && lastTouchDistanceRef.current) {
+      if (e.touches.length === 2 && lastDistance) {
         e.preventDefault();
         const currentDistance = getTouchDistance(e.touches);
-        if (currentDistance) {
-          const delta = (currentDistance - lastTouchDistanceRef.current) * 0.01;
-          const newScale = Math.max(0.1, Math.min(3.0, scale + delta));
-          onScaleChange(newScale);
-          lastTouchDistanceRef.current = currentDistance;
-        }
+        const delta = (currentDistance - lastDistance) * 0.01;
+        onScaleChange((prev) => Math.max(0.1, Math.min(3.0, prev + delta)));
+        lastDistance = currentDistance;
       }
     };
 
     const handleTouchEnd = () => {
-      lastTouchDistanceRef.current = null;
+      lastDistance = null;
     };
 
     container.addEventListener('touchstart', handleTouchStart, {
@@ -149,43 +144,7 @@ export function ImageViewer({
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [scale, onScaleChange]);
-
-  // WebKit/Safari gesture events (for Safari trackpad pinch)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleGestureStart = (e: Event) => {
-      e.preventDefault();
-      lastGestureScaleRef.current = 1;
-    };
-
-    const handleGestureChange = (e: Event) => {
-      e.preventDefault();
-      const gestureScale = (e as unknown as { scale: number }).scale;
-      const delta = gestureScale - lastGestureScaleRef.current;
-      const newScale = Math.max(0.1, Math.min(3.0, scale + delta));
-      onScaleChange(newScale);
-      lastGestureScaleRef.current = gestureScale;
-    };
-
-    const handleGestureEnd = (e: Event) => {
-      e.preventDefault();
-      lastGestureScaleRef.current = 1;
-    };
-
-    // Add gesture events (Safari/WebKit)
-    container.addEventListener('gesturestart', handleGestureStart);
-    container.addEventListener('gesturechange', handleGestureChange);
-    container.addEventListener('gestureend', handleGestureEnd);
-
-    return () => {
-      container.removeEventListener('gesturestart', handleGestureStart);
-      container.removeEventListener('gesturechange', handleGestureChange);
-      container.removeEventListener('gestureend', handleGestureEnd);
-    };
-  }, [scale, onScaleChange]);
+  }, [onScaleChange]);
 
   return (
     <div
@@ -200,7 +159,7 @@ export function ImageViewer({
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          transition: isDragging ? 'none' : 'transform 100ms ease-out',
+          transition: 'transform 100ms ease-out',
           animation: 'scaleIn 700ms ease-in-out',
         }}
         draggable={false}
