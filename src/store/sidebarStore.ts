@@ -35,6 +35,11 @@ interface SidebarState {
   topOpen: boolean;
 
   /**
+   * Whether the bottom bar is currently open
+   */
+  bottomOpen: boolean;
+
+  /**
    * Toggle left sidebar open/close state
    */
   toggleLeft: () => void;
@@ -48,6 +53,11 @@ interface SidebarState {
    * Toggle top bar open/close state
    */
   toggleTop: () => void;
+
+  /**
+   * Toggle bottom bar open/close state
+   */
+  toggleBottom: () => void;
 
   /**
    * Explicitly open the left sidebar
@@ -78,6 +88,16 @@ interface SidebarState {
    * Explicitly close the top bar
    */
   closeTop: () => void;
+
+  /**
+   * Explicitly open the bottom bar
+   */
+  openBottom: () => void;
+
+  /**
+   * Explicitly close the bottom bar
+   */
+  closeBottom: () => void;
 }
 
 /**
@@ -92,6 +112,7 @@ export const useSidebarStore = create<SidebarState>()(
       leftOpen: true, // Default: left sidebar expanded
       rightOpen: false, // Default: right sidebar collapsed
       topOpen: true, // Default: top bar expanded
+      bottomOpen: true, // Default: bottom bar expanded
 
       toggleLeft: () =>
         set(
@@ -114,6 +135,13 @@ export const useSidebarStore = create<SidebarState>()(
           'sidebar/toggleTop'
         ),
 
+      toggleBottom: () =>
+        set(
+          (state) => ({ bottomOpen: !state.bottomOpen }),
+          undefined,
+          'sidebar/toggleBottom'
+        ),
+
       openLeft: () => set({ leftOpen: true }, undefined, 'sidebar/openLeft'),
 
       closeLeft: () => set({ leftOpen: false }, undefined, 'sidebar/closeLeft'),
@@ -126,6 +154,12 @@ export const useSidebarStore = create<SidebarState>()(
       openTop: () => set({ topOpen: true }, undefined, 'sidebar/openTop'),
 
       closeTop: () => set({ topOpen: false }, undefined, 'sidebar/closeTop'),
+
+      openBottom: () =>
+        set({ bottomOpen: true }, undefined, 'sidebar/openBottom'),
+
+      closeBottom: () =>
+        set({ bottomOpen: false }, undefined, 'sidebar/closeBottom'),
     }),
     {
       name: 'sidebar-store',
