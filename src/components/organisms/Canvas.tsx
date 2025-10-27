@@ -2,7 +2,8 @@
 
 import React, { useRef, useState } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
-import { Camera, Upload, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { Camera, Upload } from 'lucide-react';
+import ZoomControls from '@/components/molecules/ZoomControls';
 
 export function Canvas() {
   const { leftOpen, rightOpen, topOpen, bottomOpen } = useSidebarStore();
@@ -105,41 +106,18 @@ export function Canvas() {
 
             {/* Zoom Controls - Top Right */}
             <div
-              className="fixed z-20 flex items-center gap-2 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-2 backdrop-blur-[16px] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              className="fixed z-20 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
               style={{
                 top: topOpen ? '80px' : '16px',
                 right: rightOpen ? '276px' : '16px',
               }}
             >
-              <button
-                onClick={handleZoomOut}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] text-white/80 transition-all hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:text-white"
-                title="Zoom Out"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </button>
-
-              <div className="min-w-[60px] px-2 text-center text-sm font-medium text-white">
-                {Math.round(scale * 100)}%
-              </div>
-
-              <button
-                onClick={handleZoomIn}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] text-white/80 transition-all hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:text-white"
-                title="Zoom In"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </button>
-
-              <div className="mx-1 h-6 w-px bg-[rgba(139,92,246,0.2)]" />
-
-              <button
-                onClick={handleFitScreen}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] text-white/80 transition-all hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:text-white"
-                title="Fit Screen"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </button>
+              <ZoomControls
+                scale={scale}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onFitScreen={handleFitScreen}
+              />
             </div>
           </>
         )}
