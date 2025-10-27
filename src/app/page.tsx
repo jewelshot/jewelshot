@@ -7,6 +7,8 @@
 import AuroraBackground from '@/components/atoms/AuroraBackground';
 import Sidebar from '@/components/organisms/Sidebar';
 import SidebarToggle from '@/components/atoms/SidebarToggle';
+import RightSidebar from '@/components/organisms/RightSidebar';
+import RightSidebarToggle from '@/components/atoms/RightSidebarToggle';
 
 export default function StudioPage() {
   return (
@@ -17,6 +19,10 @@ export default function StudioPage() {
       {/* Left Sidebar */}
       <Sidebar />
       <SidebarToggle />
+
+      {/* Right Sidebar */}
+      <RightSidebar />
+      <RightSidebarToggle />
 
       {/* Canvas Area - Empty State */}
       <div className="relative z-10 flex h-screen w-screen items-center justify-center">
