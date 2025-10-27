@@ -54,7 +54,7 @@ jewelshot/
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/jewelshot.git
+git clone https://github.com/jewelshot/jewelshot.git
 
 # Navigate to project
 cd jewelshot
