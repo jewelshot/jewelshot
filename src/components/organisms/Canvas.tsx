@@ -33,11 +33,11 @@ export function Canvas() {
   };
 
   const handleZoomIn = () => {
-    setScale((prev) => Math.min(prev + 0.15, 3.0));
+    setScale((prev) => Math.min(prev + 0.1, 3.0));
   };
 
   const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.15, 0.1));
+    setScale((prev) => Math.max(prev - 0.1, 0.1));
   };
 
   const handleFitScreen = () => {
@@ -96,10 +96,11 @@ export function Canvas() {
               <img
                 src={uploadedImage}
                 alt="Uploaded"
-                className="max-h-full max-w-full object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-700 ease-in-out"
+                className="max-h-full max-w-full object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                 style={{
-                  animation: 'scaleIn 700ms ease-in-out forwards',
                   transform: `scale(${scale})`,
+                  transition: 'transform 400ms ease-in-out',
+                  animation: 'scaleIn 700ms ease-in-out',
                 }}
               />
             </div>
