@@ -9,12 +9,18 @@ import Sidebar from '@/components/organisms/Sidebar';
 import SidebarToggle from '@/components/atoms/SidebarToggle';
 import RightSidebar from '@/components/organisms/RightSidebar';
 import RightSidebarToggle from '@/components/atoms/RightSidebarToggle';
+import TopBar from '@/components/organisms/TopBar';
+import TopBarToggle from '@/components/atoms/TopBarToggle';
 
 export default function StudioPage() {
   return (
     <>
       {/* Aurora Background */}
       <AuroraBackground />
+
+      {/* Top Bar */}
+      <TopBar />
+      <TopBarToggle />
 
       {/* Left Sidebar */}
       <Sidebar />
