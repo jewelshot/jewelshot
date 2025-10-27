@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import DeleteButton from '@/components/atoms/DeleteButton';
 import SaveButton from '@/components/atoms/SaveButton';

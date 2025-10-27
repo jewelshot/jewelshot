@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
