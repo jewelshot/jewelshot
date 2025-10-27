@@ -91,10 +91,10 @@ export function Sidebar() {
         <SidebarLogo />
 
         {/* Divider */}
-        <div className="my-2.5 h-px bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.2)] to-transparent" />
+        <div className="my-3 h-px bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.25)] to-transparent" />
 
         {/* Main Navigation */}
-        <nav className="mb-1 flex flex-col gap-0.5">
+        <nav className="mb-2 flex flex-col gap-1">
           {mainNavItems.map((item, index) => (
             <NavigationItem
               key={item.href}
@@ -111,7 +111,7 @@ export function Sidebar() {
 
         {/* Tools Section */}
         <SectionHeader title="TOOLS" />
-        <nav className="mb-1 flex flex-col gap-0.5">
+        <nav className="mb-2 flex flex-col gap-1">
           {toolsItems.map((item, index) => (
             <NavigationItem
               key={item.href}
@@ -126,7 +126,7 @@ export function Sidebar() {
 
         {/* Settings Section */}
         <SectionHeader title="SETTINGS" />
-        <nav className="mb-3 flex flex-col gap-0.5">
+        <nav className="mb-4 flex flex-col gap-1">
           {settingsItems.map((item, index) => (
             <NavigationItem
               key={item.href}

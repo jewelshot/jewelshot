@@ -58,7 +58,7 @@ export function Badge({ variant, count, color = 'green' }: BadgeProps) {
   // Count Badge
   if (variant === 'count' && count !== undefined) {
     return (
-      <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#6366f1]/20 px-1.5 text-[11px] font-semibold text-[#a5b4fc]">
+      <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#6366f1]/30 px-1.5 text-[10px] font-semibold text-[#c7d2fe]">
         {count}
       </span>
     );
