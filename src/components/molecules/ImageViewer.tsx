@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface ImageViewerProps {
   src: string;
@@ -13,9 +13,38 @@ interface ImageViewerProps {
   >;
 }
 
-export function ImageViewer({ src, alt, scale, position }: ImageViewerProps) {
+export function ImageViewer({
+  src,
+  alt,
+  scale,
+  position,
+  onScaleChange,
+}: ImageViewerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Touchpad zoom
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Only zoom when Ctrl is pressed (trackpad pinch)
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const delta = -e.deltaY * 0.01;
+        onScaleChange((prev) => Math.max(0.1, Math.min(3.0, prev + delta)));
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [onScaleChange]);
+
   return (
-    <div className="flex h-full items-center justify-center p-8">
+    <div
+      ref={containerRef}
+      className="flex h-full items-center justify-center p-8"
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
