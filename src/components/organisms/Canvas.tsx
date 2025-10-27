@@ -10,6 +10,7 @@ import BottomRightControls from '@/components/molecules/BottomRightControls';
 import EmptyState from '@/components/molecules/EmptyState';
 import LoadingState from '@/components/atoms/LoadingState';
 import ImageViewer from '@/components/molecules/ImageViewer';
+import EditPanel from '@/components/organisms/EditPanel';
 
 export function Canvas() {
   const { leftOpen, rightOpen, topOpen, bottomOpen, toggleAll } =
@@ -25,6 +26,7 @@ export function Canvas() {
   const [background, setBackground] = useState<
     'none' | 'black' | 'gray' | 'white' | 'alpha'
   >('none');
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -97,6 +99,10 @@ export function Canvas() {
       link.download = fileName || 'image.jpg';
       link.click();
     }
+  };
+
+  const handleToggleEditPanel = () => {
+    setIsEditPanelOpen((prev) => !prev);
   };
 
   // Listen for fullscreen changes
@@ -231,11 +237,20 @@ export function Canvas() {
               }}
             >
               <BottomRightControls
+                onEdit={handleToggleEditPanel}
+                editActive={isEditPanelOpen}
                 onDelete={handleDelete}
                 onSave={handleSave}
                 onDownload={handleDownload}
               />
             </div>
+
+            {/* Edit Panel */}
+            <EditPanel
+              isOpen={isEditPanelOpen}
+              onClose={() => setIsEditPanelOpen(false)}
+              initialPosition={{ x: 100, y: 100 }}
+            />
           </>
         )}
       </div>
