@@ -13,14 +13,18 @@
 'use client';
 
 import React from 'react';
-import { useSidebarStore } from '@/store/sidebarStore';
+import { useLayoutStore } from '@/store/layoutStore';
 
 export function RightSidebar() {
-  const rightOpen = useSidebarStore((state) => state.rightOpen);
+  const { rightOpen, topOpen, bottomOpen } = useLayoutStore();
 
   return (
     <aside
-      className={`fixed right-0 top-0 z-[100] h-screen w-[260px] border-l border-[rgba(139,92,246,0.15)] bg-[rgba(10,10,10,0.7)] shadow-[-4px_0_24px_rgba(0,0,0,0.3)] backdrop-blur-[24px] backdrop-saturate-[200%] transition-transform duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] ${rightOpen ? 'translate-x-0' : 'translate-x-full'} `}
+      className={`fixed right-0 z-[100] w-[260px] border-l border-[rgba(139,92,246,0.15)] bg-[rgba(10,10,10,0.7)] shadow-[-4px_0_24px_rgba(0,0,0,0.3)] backdrop-blur-[24px] backdrop-saturate-[200%] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] ${rightOpen ? 'translate-x-0' : 'translate-x-full'} `}
+      style={{
+        top: topOpen ? '64px' : '0px',
+        bottom: bottomOpen ? '40px' : '0px',
+      }}
     >
       {/* Sidebar Content - Empty for now */}
       <div className="sidebar-scroll flex h-full flex-col items-center justify-center overflow-y-auto px-4 py-3">
