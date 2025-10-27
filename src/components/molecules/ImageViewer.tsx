@@ -92,6 +92,8 @@ export function ImageViewer({
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           animation: 'scaleIn 700ms ease-in-out',
+          cursor: 'inherit',
+          pointerEvents: 'none',
         }}
         draggable={false}
       />
