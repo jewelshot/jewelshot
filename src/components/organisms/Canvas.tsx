@@ -18,6 +18,7 @@ export function Canvas() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [scale, setScale] = useState(1.0);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -39,6 +40,7 @@ export function Canvas() {
       reader.onload = (event) => {
         setUploadedImage(event.target?.result as string);
         setScale(1.0);
+        setPosition({ x: 0, y: 0 });
         setIsLoading(false);
       };
       reader.readAsDataURL(file);
@@ -50,6 +52,7 @@ export function Canvas() {
     setFileName('');
     setFileSize(0);
     setScale(1.0);
+    setPosition({ x: 0, y: 0 });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -65,6 +68,7 @@ export function Canvas() {
 
   const handleFitScreen = () => {
     setScale(1.0);
+    setPosition({ x: 0, y: 0 });
   };
 
   const handleToggleFullscreen = () => {
@@ -155,7 +159,14 @@ export function Canvas() {
 
         {uploadedImage && (
           <>
-            <ImageViewer src={uploadedImage} alt="Uploaded" scale={scale} />
+            <ImageViewer
+              src={uploadedImage}
+              alt="Uploaded"
+              scale={scale}
+              position={position}
+              onScaleChange={setScale}
+              onPositionChange={setPosition}
+            />
 
             {/* Top Left Controls - File Info */}
             <div
@@ -228,19 +239,6 @@ export function Canvas() {
           </>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
     </>
   );
 }
