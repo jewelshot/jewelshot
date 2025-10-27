@@ -2,7 +2,8 @@
  * Sidebar Component
  *
  * Main sidebar with premium glassmorphism effect.
- * Features smooth slide animations and navigation menu.
+ * Features smooth slide animations, sections, and full navigation menu.
+ * Matches mock design exactly.
  *
  * @example
  * ```tsx
@@ -16,13 +17,65 @@ import React from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import SidebarLogo from '@/components/molecules/SidebarLogo';
 import NavigationItem from '@/components/atoms/NavigationItem';
+import SectionHeader from '@/components/atoms/SectionHeader';
+import UserProfile from '@/components/molecules/UserProfile';
 
-const navigationItems = [
-  { icon: '🏠', label: 'Home', href: '/' },
-  { icon: '🎨', label: 'Studio', href: '/studio', active: true },
-  { icon: '🖼️', label: 'Gallery', href: '/gallery' },
-  { icon: '📦', label: 'Batch', href: '/batch' },
-  { icon: '⚙️', label: 'Settings', href: '/settings' },
+// Main navigation items
+const mainNavItems = [
+  { icon: '🏠', label: 'Home', href: '/', shortcut: '⌘H' },
+  {
+    icon: '🎨',
+    label: 'Studio',
+    href: '/studio',
+    active: true,
+    badge: { variant: 'new' as const },
+  },
+  {
+    icon: '🖼️',
+    label: 'Gallery',
+    href: '/gallery',
+    badge: { variant: 'count' as const, count: 24 },
+  },
+  {
+    icon: '📦',
+    label: 'Projects',
+    href: '/projects',
+    badge: { variant: 'count' as const, count: 3 },
+  },
+];
+
+// Tools section
+const toolsItems = [
+  {
+    icon: '✨',
+    label: 'AI Generate',
+    href: '/tools/ai-generate',
+    badge: { variant: 'pro' as const },
+  },
+  {
+    icon: '✂️',
+    label: 'Background Remove',
+    href: '/tools/background-remove',
+    badge: { variant: 'dot' as const, color: 'green' as const },
+  },
+  { icon: '🎨', label: 'Color Enhance', href: '/tools/color-enhance' },
+  { icon: '⚡', label: 'Resize & Crop', href: '/tools/resize-crop' },
+];
+
+// Settings section
+const settingsItems = [
+  {
+    icon: '⚙️',
+    label: 'Preferences',
+    href: '/settings/preferences',
+    shortcut: '⌘,',
+  },
+  {
+    icon: '💳',
+    label: 'Billing',
+    href: '/settings/billing',
+    badge: { variant: 'count' as const, count: 1 },
+  },
 ];
 
 export function Sidebar() {
@@ -40,16 +93,49 @@ export function Sidebar() {
         {/* Divider */}
         <div className="my-2.5 h-px bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.2)] to-transparent" />
 
-        {/* Navigation */}
-        <nav className="mb-3 flex flex-col gap-0.5">
-          {navigationItems.map((item, index) => (
+        {/* Main Navigation */}
+        <nav className="mb-1 flex flex-col gap-0.5">
+          {mainNavItems.map((item, index) => (
             <NavigationItem
               key={item.href}
               icon={item.icon}
               label={item.label}
               href={item.href}
               active={item.active}
+              badge={item.badge}
+              shortcut={item.shortcut}
               animationDelay={100 + index * 50}
+            />
+          ))}
+        </nav>
+
+        {/* Tools Section */}
+        <SectionHeader title="TOOLS" />
+        <nav className="mb-1 flex flex-col gap-0.5">
+          {toolsItems.map((item, index) => (
+            <NavigationItem
+              key={item.href}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              badge={item.badge}
+              animationDelay={300 + index * 50}
+            />
+          ))}
+        </nav>
+
+        {/* Settings Section */}
+        <SectionHeader title="SETTINGS" />
+        <nav className="mb-3 flex flex-col gap-0.5">
+          {settingsItems.map((item, index) => (
+            <NavigationItem
+              key={item.href}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              badge={item.badge}
+              shortcut={item.shortcut}
+              animationDelay={500 + index * 50}
             />
           ))}
         </nav>
@@ -57,8 +143,13 @@ export function Sidebar() {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Footer (optional) */}
-        <div className="py-2 text-center text-[10px] text-white/30">v0.1.0</div>
+        {/* User Profile */}
+        <UserProfile
+          name="Yasin"
+          status="Premium User"
+          avatar="Y"
+          online={true}
+        />
       </div>
     </aside>
   );

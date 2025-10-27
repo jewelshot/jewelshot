@@ -2,7 +2,7 @@
  * NavigationItem Component
  *
  * A single navigation item for the sidebar menu.
- * Features hover effects and active state.
+ * Features hover effects, active state, badges, and keyboard shortcuts.
  *
  * @example
  * ```tsx
@@ -11,6 +11,8 @@
  *   label="Home"
  *   href="/home"
  *   active={false}
+ *   badge={{ variant: 'new' }}
+ *   shortcut="⌘H"
  * />
  * ```
  */
@@ -19,6 +21,13 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Badge from './Badge';
+
+interface BadgeConfig {
+  variant: 'new' | 'pro' | 'count' | 'dot';
+  count?: number;
+  color?: 'green' | 'blue' | 'red' | 'orange';
+}
 
 interface NavigationItemProps {
   /**
@@ -43,6 +52,16 @@ interface NavigationItemProps {
   active?: boolean;
 
   /**
+   * Badge configuration
+   */
+  badge?: BadgeConfig;
+
+  /**
+   * Keyboard shortcut display
+   */
+  shortcut?: string;
+
+  /**
    * Animation delay for stagger effect (in ms)
    * @default 0
    */
@@ -54,6 +73,8 @@ export function NavigationItem({
   label,
   href,
   active = false,
+  badge,
+  shortcut,
   animationDelay = 0,
 }: NavigationItemProps) {
   return (
@@ -81,7 +102,23 @@ export function NavigationItem({
       </span>
 
       {/* Label */}
-      <span>{label}</span>
+      <span className="flex-1">{label}</span>
+
+      {/* Badge */}
+      {badge && (
+        <Badge
+          variant={badge.variant}
+          count={badge.count}
+          color={badge.color}
+        />
+      )}
+
+      {/* Keyboard Shortcut */}
+      {shortcut && (
+        <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-white/40">
+          {shortcut}
+        </span>
+      )}
     </Link>
   );
 }
