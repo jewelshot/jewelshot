@@ -40,7 +40,7 @@ export function Badge({ variant, count, color = 'green' }: BadgeProps) {
   // NEW Badge
   if (variant === 'new') {
     return (
-      <span className="rounded-full bg-[#6366f1] px-2 py-0.5 text-[10px] font-semibold tracking-wider text-white uppercase">
+      <span className="rounded-full bg-[#6366f1] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
         NEW
       </span>
     );
@@ -49,7 +49,7 @@ export function Badge({ variant, count, color = 'green' }: BadgeProps) {
   // PRO Badge
   if (variant === 'pro') {
     return (
-      <span className="rounded-full bg-[#f97316] px-2 py-0.5 text-[10px] font-semibold tracking-wider text-white uppercase">
+      <span className="rounded-full bg-[#f97316] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
         PRO
       </span>
     );

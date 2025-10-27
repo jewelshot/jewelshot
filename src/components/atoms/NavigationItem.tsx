@@ -80,7 +80,7 @@ export function NavigationItem({
   return (
     <Link
       href={href}
-      className={`relative flex animate-[fadeInSlide_500ms_ease-out_forwards] items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-[13px] font-medium opacity-0 transition-all duration-400 ease-in-out ${
+      className={`duration-400 relative flex animate-[fadeInSlide_500ms_ease-out_forwards] items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-[13px] font-medium opacity-0 transition-all ease-in-out ${
         active
           ? 'border-[rgba(139,92,246,0.4)] bg-gradient-to-br from-[rgba(139,92,246,0.15)] to-[rgba(99,102,241,0.1)] text-white shadow-[0_2px_8px_rgba(139,92,246,0.15)]'
           : 'text-white/65 hover:translate-x-[2px] hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-white'
@@ -91,12 +91,12 @@ export function NavigationItem({
     >
       {/* Active indicator */}
       {active && (
-        <div className="absolute top-1/2 -left-px h-[60%] w-[2px] -translate-y-1/2 rounded-r-sm bg-gradient-to-b from-[#8b5cf6] to-[#6366f1]" />
+        <div className="absolute -left-px top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-r-sm bg-gradient-to-b from-[#8b5cf6] to-[#6366f1]" />
       )}
 
       {/* Icon */}
       <span
-        className={`flex w-5 items-center justify-center text-base transition-opacity duration-400 ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'} `}
+        className={`duration-400 flex w-5 items-center justify-center text-base transition-opacity ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'} `}
       >
         {icon}
       </span>

@@ -21,10 +21,10 @@ export function SidebarToggle() {
   return (
     <button
       onClick={toggle}
-      className={`fixed top-1/2 z-[200] flex h-8 w-3 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/12 bg-[rgba(17,17,17,0.8)] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(139,92,246,0.15)] hover:backdrop-blur-[10px] ${
+      className={`border-white/12 fixed top-1/2 z-[200] flex h-8 w-3 -translate-y-1/2 cursor-pointer items-center justify-center border bg-[rgba(17,17,17,0.8)] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(139,92,246,0.15)] hover:backdrop-blur-[10px] ${
         isOpen
-          ? 'left-[248px] rounded-l-md border-r-0 border-l'
-          : 'left-0 rounded-r-md border-r border-l-0'
+          ? 'left-[248px] rounded-l-md border-l border-r-0'
+          : 'left-0 rounded-r-md border-l-0 border-r'
       } `}
       aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
       aria-expanded={isOpen}
