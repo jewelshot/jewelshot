@@ -14,6 +14,7 @@
 
 import React from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
+import { ImagePlus } from 'lucide-react';
 
 export function RightSidebar() {
   const { rightOpen } = useSidebarStore();
@@ -25,7 +26,7 @@ export function RightSidebar() {
       {/* Sidebar Content - Empty for now */}
       <div className="sidebar-scroll flex h-full flex-col items-center justify-center overflow-y-auto px-4 py-3">
         <div className="space-y-4 text-center">
-          <div className="text-4xl opacity-30">📸</div>
+          <ImagePlus className="mx-auto h-10 w-10 text-white/30" />
           <p className="text-sm text-white/30">Right Sidebar</p>
           <p className="text-xs text-white/20">Content will appear here</p>
         </div>
