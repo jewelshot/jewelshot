@@ -17,10 +17,8 @@ export function Canvas() {
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState(0);
 
-  const handleCanvasClick = () => {
-    if (!uploadedImage) {
-      fileInputRef.current?.click();
-    }
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,8 +74,7 @@ export function Canvas() {
         className="hidden"
       />
       <div
-        onClick={handleCanvasClick}
-        className={`fixed z-10 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] ${!uploadedImage && 'cursor-pointer'}`}
+        className="fixed z-10 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
         style={{
           left: `${leftPos}px`,
           right: `${rightPos}px`,
@@ -86,7 +83,7 @@ export function Canvas() {
         }}
       >
         {!uploadedImage && !isLoading && (
-          <EmptyState onUploadClick={handleCanvasClick} />
+          <EmptyState onUploadClick={handleUploadClick} />
         )}
 
         {isLoading && <LoadingState />}
