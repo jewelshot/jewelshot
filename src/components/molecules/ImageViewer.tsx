@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface ImageViewerProps {
   src: string;
@@ -22,44 +22,46 @@ export function ImageViewer({
   onPositionChange,
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+  const startPosRef = useRef({ x: 0, y: 0 });
 
   // Mouse drag
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-
     const handleMouseDown = (e: MouseEvent) => {
-      isDragging = true;
-      startX = e.clientX - position.x;
-      startY = e.clientY - position.y;
-      container.style.cursor = 'grabbing';
+      isDraggingRef.current = true;
+      setIsDragging(true);
+      startPosRef.current = {
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      };
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
       onPositionChange({
-        x: e.clientX - startX,
-        y: e.clientY - startY,
+        x: e.clientX - startPosRef.current.x,
+        y: e.clientY - startPosRef.current.y,
       });
     };
 
     const handleMouseUp = () => {
-      isDragging = false;
-      container.style.cursor = 'grab';
+      isDraggingRef.current = false;
+      setIsDragging(false);
     };
 
     container.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       container.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [position, onPositionChange]);
 
@@ -82,7 +84,7 @@ export function ImageViewer({
     <div
       ref={containerRef}
       className="flex h-full items-center justify-center p-8"
-      style={{ cursor: 'grab' }}
+      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -92,8 +94,6 @@ export function ImageViewer({
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           animation: 'scaleIn 700ms ease-in-out',
-          cursor: 'inherit',
-          pointerEvents: 'none',
         }}
         draggable={false}
       />
