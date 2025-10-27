@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Palette } from 'lucide-react';
 import BackgroundOption from '@/components/atoms/BackgroundOption';
 
-type BackgroundType = 'black' | 'gray' | 'white' | 'alpha';
+type BackgroundType = 'none' | 'black' | 'gray' | 'white' | 'alpha';
 
 interface BackgroundSelectorProps {
   /**
@@ -18,6 +18,7 @@ interface BackgroundSelectorProps {
 }
 
 const backgrounds = [
+  { type: 'none' as const, label: 'Default' },
   { type: 'black' as const, label: 'Black' },
   { type: 'gray' as const, label: '50% Gray' },
   { type: 'white' as const, label: 'White' },

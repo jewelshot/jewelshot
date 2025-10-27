@@ -22,8 +22,8 @@ export function Canvas() {
   const [fileSize, setFileSize] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [background, setBackground] = useState<
-    'black' | 'gray' | 'white' | 'alpha'
-  >('black');
+    'none' | 'black' | 'gray' | 'white' | 'alpha'
+  >('none');
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -115,6 +115,7 @@ export function Canvas() {
   const bottomPos = bottomOpen ? 40 : 0;
 
   const backgroundStyles = {
+    none: {},
     black: { backgroundColor: '#000000' },
     gray: { backgroundColor: '#808080' },
     white: { backgroundColor: '#ffffff' },

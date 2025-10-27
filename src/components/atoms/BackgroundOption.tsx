@@ -4,7 +4,7 @@ interface BackgroundOptionProps {
   /**
    * Background type
    */
-  type: 'black' | 'gray' | 'white' | 'alpha';
+  type: 'none' | 'black' | 'gray' | 'white' | 'alpha';
   /**
    * Display label
    */
@@ -20,6 +20,10 @@ interface BackgroundOptionProps {
 }
 
 const bgStyles = {
+  none: {
+    background: 'transparent',
+    border: '1px dashed rgba(255,255,255,0.3)',
+  },
   black: { background: '#000000' },
   gray: { background: '#808080' },
   white: { background: '#ffffff' },

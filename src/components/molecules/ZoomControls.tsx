@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Scan } from 'lucide-react';
 import ZoomButton from '@/components/atoms/ZoomButton';
 import ZoomDisplay from '@/components/atoms/ZoomDisplay';
 
@@ -44,7 +44,7 @@ export function ZoomControls({
 
       <ZoomButton
         onClick={onFitScreen}
-        icon={<Maximize2 className="h-4 w-4" />}
+        icon={<Scan className="h-4 w-4" />}
         title="Fit Screen"
       />
     </div>
