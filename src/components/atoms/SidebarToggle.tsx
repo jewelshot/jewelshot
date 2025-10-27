@@ -13,10 +13,10 @@
 'use client';
 
 import React from 'react';
-import { useLayoutStore } from '@/store/layoutStore';
+import { useSidebarStore } from '@/store/sidebarStore';
 
 export function SidebarToggle() {
-  const { leftOpen, toggleLeft } = useLayoutStore();
+  const { leftOpen, toggleLeft } = useSidebarStore();
 
   return (
     <button
