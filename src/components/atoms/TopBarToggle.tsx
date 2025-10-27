@@ -37,7 +37,7 @@ export function TopBarToggle() {
     >
       <span
         className={`text-[8px] text-white/60 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] group-hover:text-[rgba(139,92,246,1)] ${
-          topOpen ? 'rotate-180' : 'rotate-0'
+          topOpen ? 'rotate-0' : 'rotate-180'
         }`}
       >
         ∧
