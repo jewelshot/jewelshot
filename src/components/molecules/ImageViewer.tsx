@@ -19,8 +19,49 @@ export function ImageViewer({
   scale,
   position,
   onScaleChange,
+  onPositionChange,
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Mouse drag
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDragging = true;
+      startX = e.clientX - position.x;
+      startY = e.clientY - position.y;
+      container.style.cursor = 'grabbing';
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      onPositionChange({
+        x: e.clientX - startX,
+        y: e.clientY - startY,
+      });
+    };
+
+    const handleMouseUp = () => {
+      isDragging = false;
+      container.style.cursor = 'grab';
+    };
+
+    container.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      container.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [position, onPositionChange]);
 
   // Scroll/Touchpad zoom
   useEffect(() => {
@@ -41,6 +82,7 @@ export function ImageViewer({
     <div
       ref={containerRef}
       className="flex h-full items-center justify-center p-8"
+      style={{ cursor: 'grab' }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
