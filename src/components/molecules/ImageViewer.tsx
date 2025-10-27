@@ -49,7 +49,6 @@ export function ImageViewer({
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          transition: 'transform 400ms ease-in-out',
           animation: 'scaleIn 700ms ease-in-out',
         }}
         draggable={false}
