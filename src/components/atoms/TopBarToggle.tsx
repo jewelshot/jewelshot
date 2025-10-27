@@ -1,38 +1,21 @@
 'use client';
 
-import React, { useLayoutEffect, useState } from 'react';
+import React from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 
 export function TopBarToggle() {
-  const { topOpen, toggleTop, leftOpen, rightOpen } = useSidebarStore();
-  const [centerLeft, setCenterLeft] = useState<number | null>(null);
-
-  useLayoutEffect(() => {
-    const calculateCenter = () => {
-      const leftPos = leftOpen ? 260 : 0;
-      const rightPos = rightOpen ? 260 : 0;
-      const totalWidth = window.innerWidth - leftPos - rightPos;
-      setCenterLeft(leftPos + totalWidth / 2);
-    };
-
-    calculateCenter();
-    window.addEventListener('resize', calculateCenter);
-    return () => window.removeEventListener('resize', calculateCenter);
-  }, [leftOpen, rightOpen]);
-
-  if (centerLeft === null) return null;
+  const { topOpen, toggleTop } = useSidebarStore();
 
   return (
     <button
       onClick={toggleTop}
-      className={`fixed z-[200] flex h-3 w-8 -translate-x-1/2 cursor-pointer items-center justify-center border border-[rgba(139,92,246,0.2)] bg-[rgba(17,17,17,0.8)] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:backdrop-blur-[10px] ${
+      className={`fixed left-1/2 z-[200] flex h-3 w-8 -translate-x-1/2 cursor-pointer items-center justify-center border border-[rgba(139,92,246,0.2)] bg-[rgba(17,17,17,0.8)] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:backdrop-blur-[10px] ${
         topOpen
           ? 'rounded-t-md border-b-0 border-t'
           : 'rounded-b-md border-b border-t-0'
       }`}
       style={{
         top: topOpen ? '52px' : '0px',
-        left: `${centerLeft}px`,
       }}
       aria-label={topOpen ? 'Close top bar' : 'Open top bar'}
       aria-expanded={topOpen}
