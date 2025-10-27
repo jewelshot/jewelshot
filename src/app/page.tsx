@@ -15,7 +15,7 @@ export default function StudioPage() {
       <AuroraBackground />
 
       {/* Studio Layout */}
-      <StudioLayout showRightSidebar={true}>
+      <StudioLayout>
         {/* Canvas Area - Empty State */}
         <div className="relative z-10 flex h-full items-center justify-center">
           <div className="space-y-6 text-center">

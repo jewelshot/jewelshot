@@ -14,7 +14,7 @@
 'use client';
 
 import React from 'react';
-import { useSidebarStore } from '@/store/sidebarStore';
+import { useLayoutStore } from '@/store/layoutStore';
 import SidebarLogo from '@/components/molecules/SidebarLogo';
 import NavigationItem from '@/components/atoms/NavigationItem';
 import SectionHeader from '@/components/atoms/SectionHeader';
@@ -79,11 +79,15 @@ const settingsItems = [
 ];
 
 export function Sidebar() {
-  const isOpen = useSidebarStore((state) => state.isOpen);
+  const { leftSidebarOpen, topBarOpen, bottomBarOpen } = useLayoutStore();
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-[100] h-screen w-[260px] border-r border-[rgba(139,92,246,0.15)] bg-[rgba(10,10,10,0.7)] shadow-[4px_0_24px_rgba(0,0,0,0.3)] backdrop-blur-[24px] backdrop-saturate-[200%] transition-transform duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] ${isOpen ? 'translate-x-0' : '-translate-x-full'} `}
+      className={`fixed left-0 z-[100] w-[260px] border-r border-[rgba(139,92,246,0.15)] bg-[rgba(10,10,10,0.7)] shadow-[4px_0_24px_rgba(0,0,0,0.3)] backdrop-blur-[24px] backdrop-saturate-[200%] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] ${leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      style={{
+        top: topBarOpen ? '64px' : '0px',
+        bottom: bottomBarOpen ? '40px' : '0px',
+      }}
     >
       {/* Sidebar Content */}
       <div className="sidebar-scroll flex h-full flex-col overflow-y-auto px-4 py-3">
