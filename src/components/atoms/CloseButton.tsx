@@ -19,7 +19,7 @@ export function CloseButton({
   return (
     <button
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/20 hover:text-red-300"
+      className="flex h-8 w-8 items-center justify-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/20 hover:text-red-300"
       aria-label={ariaLabel}
     >
       <X className="h-4 w-4" />

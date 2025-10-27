@@ -30,8 +30,9 @@ export function TopLeftControls({
   if (!visible) return null;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] px-4 py-3 shadow-lg backdrop-blur-md">
+    <div className="flex items-center gap-2 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-2 backdrop-blur-[16px]">
       <FileInfo fileName={fileName} fileSizeInBytes={fileSizeInBytes} />
+      <div className="h-6 w-px bg-[rgba(139,92,246,0.2)]" />
       <CloseButton onClick={onClose} ariaLabel="Close Image" />
     </div>
   );

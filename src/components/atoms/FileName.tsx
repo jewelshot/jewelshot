@@ -8,7 +8,11 @@ interface FileNameProps {
 }
 
 export function FileName({ name }: FileNameProps) {
-  return <div className="text-sm font-medium text-white">{name}</div>;
+  return (
+    <div className="max-w-[200px] truncate text-sm font-medium text-white">
+      {name}
+    </div>
+  );
 }
 
 export default FileName;
