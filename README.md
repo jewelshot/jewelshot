@@ -1,205 +1,154 @@
 # 💎 Jewelshot Studio
 
-> Professional AI-powered jewelry photography platform
+> AI-powered jewelry photography platform with premium prompt generation
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.0-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## 🎯 Overview
+## 🚀 Overview
 
-Jewelshot Studio is a modern SaaS platform that enables jewelry brands to generate professional product photography using AI. Built with Next.js, TypeScript, and Tailwind CSS.
+Jewelshot Studio is a professional SaaS platform for generating AI-powered jewelry photography using advanced prompt engineering and fal.ai's Nano Banana model.
 
-## ✨ Features
+### ✨ Features
 
-- 🎨 **Professional Studio Interface** - Premium aurora background with glassmorphism effects
-- 🤖 **AI-Powered Generation** - Integration with fal.ai's Nano Banana model
-- 📱 **Responsive Design** - Optimized for both desktop and mobile
-- 🎭 **Dual Mode Generation**:
-  - **Preset Mode**: Quick 4-step generation (Model, Location, Mood, Ratio)
-  - **Advanced Mode**: Full control with 12+ parameters
-- 🖼️ **Gallery Management** - View and manage generated images
-- 📦 **Batch Processing** - Generate multiple variations at once
+- 🎨 **Aurora Background** - Premium animated gradient effects
+- 🎯 **Preset Mode** - Quick 4-step prompt generation
+- 🎛️ **Advanced Mode** - 12+ parameter control
+- 📸 **Image Upload** - Direct integration with Supabase Storage
+- 🤖 **AI Generation** - fal.ai Nano Banana integration
+- 📱 **Responsive Design** - Desktop-first with mobile optimization
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 20.x or higher
-- npm or yarn
-- Supabase account
-- fal.ai API key
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/jewelshot.git
-   cd jewelshot
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Fill in your credentials:
-   - Supabase URL and keys
-   - fal.ai API key
-
-4. **Run development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   ```
-   http://localhost:3000
-   ```
-
-## 📁 Project Structure
+## 🏗️ Architecture
 
 ```
 jewelshot/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/            # Authentication routes
-│   │   ├── (dashboard)/       # Dashboard routes
-│   │   └── studio/            # Studio interface
-│   ├── components/            # Atomic Design Pattern
-│   │   ├── atoms/            # Basic building blocks
-│   │   ├── molecules/        # Simple component groups
-│   │   ├── organisms/        # Complex UI sections
-│   │   └── templates/        # Page layouts
-│   ├── features/             # Feature-based modules
-│   │   ├── studio/
-│   │   ├── auth/
-│   │   └── gallery/
-│   ├── lib/                  # External integrations
-│   │   ├── supabase/
-│   │   └── fal-ai/
-│   ├── hooks/                # Custom React hooks
-│   ├── store/                # Zustand state management
-│   └── types/                # TypeScript definitions
-└── public/                    # Static assets
+│   ├── app/              # Next.js App Router
+│   ├── components/       # Atomic Design Pattern
+│   │   ├── atoms/       # Basic components (AuroraBackground, Button, etc.)
+│   │   ├── molecules/   # Composite components
+│   │   ├── organisms/   # Complex components
+│   │   └── templates/   # Page layouts
+│   ├── features/        # Feature-based modules
+│   ├── lib/             # External integrations (Supabase, fal.ai)
+│   └── hooks/           # Custom React hooks
 ```
 
 ## 🛠️ Tech Stack
 
-### Core
-- **[Next.js 16](https://nextjs.org/)** - React framework with App Router
-- **[TypeScript](https://www.typescriptlang.org/)** - Type safety
-- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript 5
+- **Styling:** Tailwind CSS 4
+- **State:** Zustand
+- **Forms:** React Hook Form + Zod
+- **Animations:** Framer Motion
+- **Database:** Supabase
+- **Storage:** Supabase Storage
+- **AI:** fal.ai (Nano Banana)
+- **Deployment:** Netlify
+- **Testing:** Vitest + React Testing Library
 
-### State & Forms
-- **[Zustand](https://zustand-demo.pmnd.rs/)** - Lightweight state management
-- **[React Hook Form](https://react-hook-form.com/)** - Form handling
-- **[Zod](https://zod.dev/)** - Schema validation
+## 📦 Installation
 
-### Backend & Storage
-- **[Supabase](https://supabase.com/)** - Authentication, Database, Storage
-- **[fal.ai](https://fal.ai/)** - AI image generation (Nano Banana)
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/jewelshot.git
 
-### UI & Animation
-- **[shadcn/ui](https://ui.shadcn.com/)** - Component library
-- **[Framer Motion](https://www.framer.com/motion/)** - Animations
-- **[Lucide React](https://lucide.dev/)** - Icon set
+# Navigate to project
+cd jewelshot
 
-### Development
-- **[ESLint](https://eslint.org/)** - Code linting
-- **[Prettier](https://prettier.io/)** - Code formatting
-- **[Husky](https://typicode.github.io/husky/)** - Git hooks
-- **[Vitest](https://vitest.dev/)** - Unit testing
+# Install dependencies
+npm install
 
-## 📝 Development Workflow
+# Setup environment variables
+cp .env.example .env.local
+# Add your API keys:
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - FAL_AI_API_KEY
 
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat(studio): add sidebar component
-fix(auth): resolve login redirect
-docs(readme): update installation steps
-test(studio): add aurora background tests
-style(ui): improve button spacing
-refactor(api): simplify fal.ai integration
+# Run development server
+npm run dev
 ```
 
-### Branch Strategy
+Visit [http://localhost:3000](http://localhost:3000)
+
+## 🧪 Development
+
+```bash
+# Development server
+npm run dev
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+npm run lint:fix
+
+# Formatting
+npm run format
+npm run format:check
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## 📝 Commit Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-main          # Production-ready code
-├── develop   # Development branch
+feat(studio): add aurora background component
+fix(auth): resolve login redirect issue
+docs(readme): update installation guide
+test(studio): add unit tests for prompt generator
+```
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`
+
+## 🌿 Branch Strategy
+
+```
+main            # Production-ready code
+└── develop     # Integration branch
     ├── feature/studio-sidebar
     ├── feature/fal-ai-integration
     └── fix/animation-performance
 ```
 
-## 🧪 Testing
-
-```bash
-# Run unit tests
-npm run test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-## 🚢 Deployment
-
-### Netlify
-
-1. Push your code to GitHub
-2. Connect repository to Netlify
-3. Configure environment variables
-4. Deploy!
-
-### Manual Deployment
-
-```bash
-npm run build
-npm run start
-```
-
-## 📚 Documentation
-
-- [Architecture Decisions](./docs/architecture.md)
-- [Component Guidelines](./docs/components.md)
-- [API Integration](./docs/api.md)
-- [Deployment Guide](./docs/deployment.md)
-
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file
 
-## 👨‍💻 Author
+## 🔗 Links
 
-**Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
-
-## 🙏 Acknowledgments
-
-- Original design inspiration from studio.html mock
-- fal.ai for AI image generation
-- Supabase for backend infrastructure
+- [Documentation](docs/)
+- [fal.ai Documentation](https://fal.ai/models/fal-ai/nano-banana/edit/api)
+- [Supabase Docs](https://supabase.com/docs)
 
 ---
 
-**Status:** 🚧 In Development - Step 1: Aurora Background ✅
+**Current Status:** 🚧 In Development (Step 1: Aurora Background ✅)
+
+**Next Steps:**
+
+- [ ] Sidebar Component
+- [ ] Project Context Form
+- [ ] Preset Mode
+- [ ] Advanced Mode
+- [ ] fal.ai Integration
+- [ ] Authentication & Database
+
+---
+
+Built with ❤️ by [Your Name]

@@ -1,280 +1,246 @@
 # Contributing to Jewelshot Studio
 
-## 🎯 Development Philosophy
+Thank you for your interest in contributing to Jewelshot Studio! 🎉
 
-- **Clean Code**: Write self-documenting, maintainable code
-- **Test-Driven**: Every feature must have tests
-- **Atomic Design**: Follow atomic component structure
-- **Type Safety**: Leverage TypeScript fully
+## 🚀 Getting Started
 
-## 📝 Commit Messages
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/jewelshot.git`
+3. Create a feature branch: `git checkout -b feature/your-feature`
+4. Make your changes
+5. Commit using conventional commits
+6. Push to your fork
+7. Open a Pull Request
+
+## 📋 Development Workflow
+
+### 1. Branch Naming
+
+```
+feature/studio-sidebar      # New features
+fix/animation-performance   # Bug fixes
+docs/api-documentation      # Documentation
+test/component-tests        # Tests
+refactor/state-management   # Code refactoring
+```
+
+### 2. Commit Messages
 
 We use [Conventional Commits](https://www.conventionalcommits.org/):
 
-### Format
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-### Types
-- **feat**: New feature
-- **fix**: Bug fix
-- **docs**: Documentation changes
-- **style**: Code style changes (formatting)
-- **refactor**: Code refactoring
-- **test**: Adding or updating tests
-- **chore**: Maintenance tasks
-
-### Examples
 ```bash
+# Format
+type(scope): subject
+
+# Examples
 feat(studio): add aurora background component
-
-Implemented 4 gradient blobs with smooth animations
-- Deep purple, indigo, teal, and crimson gradients
-- 28-32s animation cycles
-- GPU-accelerated CSS animations
-
-Closes #123
+fix(auth): resolve login redirect issue
+docs(readme): update installation guide
+test(studio): add unit tests for prompt generator
+refactor(sidebar): improve state management
+style(ui): update button styles
+chore(deps): update dependencies
 ```
 
-```bash
-fix(auth): resolve token refresh issue
+**Commit will be blocked if it doesn't follow this format!**
 
-Token was not refreshing correctly after 1 hour
-Added retry logic with exponential backoff
+### 3. Code Style
 
-Fixes #456
-```
+- **TypeScript**: Use strict mode
+- **Formatting**: Prettier (runs automatically on commit)
+- **Linting**: ESLint (runs automatically on commit)
+- **Naming Conventions**:
+  - Components: `PascalCase` (e.g., `AuroraBackground.tsx`)
+  - Hooks: `camelCase` with `use` prefix (e.g., `useStudioState.ts`)
+  - Utils: `camelCase` (e.g., `generatePrompt.ts`)
+  - Types: `PascalCase` with suffix (e.g., `ProjectContextType`)
 
-## 🌳 Branch Strategy
+### 4. Component Structure
 
-```
-main                    # Production-ready
-├── develop            # Integration branch
-    ├── feature/*      # New features
-    ├── fix/*          # Bug fixes
-    └── hotfix/*       # Urgent production fixes
-```
-
-### Branch Naming
-- `feature/studio-sidebar` - New features
-- `fix/animation-performance` - Bug fixes
-- `hotfix/security-patch` - Urgent fixes
-- `refactor/state-management` - Code improvements
-- `docs/api-documentation` - Documentation
-
-## 🧪 Testing Requirements
-
-### Before Submitting PR
-- [ ] All tests pass: `npm test`
-- [ ] No linting errors: `npm run lint`
-- [ ] Code formatted: `npm run format`
-- [ ] TypeScript compiles: `npm run type-check`
-- [ ] Build succeeds: `npm run build`
-
-### Test Coverage
-- Minimum 80% coverage required
-- Every utility function must have tests
-- Every component must have tests
-
-## 📁 File Structure
-
-### Component Guidelines
 ```typescript
-// src/components/atoms/Button.tsx
-
 /**
- * Button Component
- * 
- * Primary action button with variants and sizes
- * 
+ * Component documentation
  * @example
- * <Button variant="primary" size="lg">
- *   Click Me
- * </Button>
+ * <AuroraBackground enabled={true} />
  */
 
-'use client';
+'use client'; // If needed
 
 import React from 'react';
-import { type ButtonProps } from './Button.types';
 
-export function Button({ 
-  children, 
-  variant = 'primary',
-  size = 'md',
-  ...props 
-}: ButtonProps) {
-  return (
-    <button 
-      className={buttonStyles({ variant, size })}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+interface ComponentProps {
+  /** Prop documentation */
+  enabled?: boolean;
 }
+
+export function Component({ enabled = true }: ComponentProps) {
+  // Implementation
+}
+
+export default Component;
 ```
 
-### Naming Conventions
-- **Components**: PascalCase (`AuroraBackground.tsx`)
-- **Hooks**: camelCase with `use` prefix (`useStudioState.ts`)
-- **Utils**: camelCase (`generatePrompt.ts`)
-- **Types**: PascalCase with suffix (`ButtonProps`, `StudioState`)
-- **Constants**: UPPER_SNAKE_CASE (`API_ENDPOINTS.ts`)
+### 5. Testing Requirements
 
-## 🔄 Pull Request Process
+- ✅ Unit tests for utilities and hooks
+- ✅ Component tests for UI components
+- ✅ Integration tests for features
+- 🎯 Aim for 80%+ coverage
 
-1. **Fork & Clone**
-   ```bash
-   git clone https://github.com/your-username/jewelshot.git
-   cd jewelshot
-   ```
+```bash
+# Run tests
+npm run test
 
-2. **Create Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-3. **Make Changes**
-   - Write clean, tested code
-   - Follow naming conventions
-   - Add JSDoc comments
-
-4. **Test Locally**
-   ```bash
-   npm test
-   npm run lint
-   npm run build
-   ```
-
-5. **Commit**
-   ```bash
-   git add .
-   git commit -m "feat(scope): your message"
-   ```
-
-6. **Push & PR**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-   - Open PR on GitHub
-   - Fill in PR template
-   - Request review
-
-## 📋 PR Checklist
-
-- [ ] Follows atomic design pattern
-- [ ] Includes TypeScript types
-- [ ] Has JSDoc documentation
-- [ ] Tests added/updated
-- [ ] No console.logs (use proper logging)
-- [ ] Responsive on mobile
-- [ ] Accessible (ARIA labels, keyboard navigation)
-- [ ] No performance regressions
-
-## 🎨 Code Style
-
-### TypeScript
-```typescript
-// Good ✅
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-}
-
-export function getUserProfile(id: string): Promise<UserProfile> {
-  // ...
-}
-
-// Bad ❌
-function getUserProfile(id: any): any {
-  // ...
-}
+# Run tests with coverage
+npm run test:coverage
 ```
 
-### React
-```typescript
-// Good ✅
-'use client';
+### 6. Pre-Commit Checklist
 
-import { type FC } from 'react';
+Before committing, ensure:
 
-interface Props {
-  title: string;
-  onClose: () => void;
-}
+- [ ] Code is formatted (`npm run format`)
+- [ ] No linting errors (`npm run lint`)
+- [ ] TypeScript compiles (`npm run type-check`)
+- [ ] Tests pass (`npm run test`)
+- [ ] Commit message follows convention
 
-export const Modal: FC<Props> = ({ title, onClose }) => {
-  return (
-    <div role="dialog" aria-label={title}>
-      {/* ... */}
-    </div>
-  );
-};
+_Note: Pre-commit hooks will automatically check most of these!_
 
-// Bad ❌
-export default function Modal(props: any) {
-  return <div>{props.title}</div>;
-}
+## 🏗️ Architecture Guidelines
+
+### Atomic Design Pattern
+
 ```
+atoms/       # Basic building blocks (Button, Input, Icon)
+molecules/   # Simple combinations (FormField, Card)
+organisms/   # Complex components (Sidebar, Header)
+templates/   # Page layouts
+```
+
+### Feature-Based Structure
+
+```
+features/
+  studio/
+    components/    # Feature-specific components
+    hooks/        # Feature-specific hooks
+    store/        # Feature-specific state
+    types/        # Feature-specific types
+    utils/        # Feature-specific utilities
+    __tests__/    # Feature tests
+```
+
+## 📝 Pull Request Guidelines
+
+### PR Title
+
+Use conventional commit format:
+
+```
+feat(studio): add sidebar component
+```
+
+### PR Description Template
+
+```markdown
+## Description
+
+Brief description of changes
+
+## Type of Change
+
+- [ ] New feature
+- [ ] Bug fix
+- [ ] Documentation
+- [ ] Refactoring
+- [ ] Test
+
+## Testing
+
+- [ ] Unit tests added/updated
+- [ ] Manual testing completed
+
+## Screenshots (if applicable)
+
+[Add screenshots]
+
+## Checklist
+
+- [ ] Code follows style guidelines
+- [ ] Self-review completed
+- [ ] Comments added for complex code
+- [ ] Documentation updated
+- [ ] No new warnings
+- [ ] Tests pass
+```
+
+### Review Process
+
+1. Automated checks must pass (linting, tests, build)
+2. At least 1 approval required
+3. No merge conflicts
+4. Branch is up-to-date with `develop`
 
 ## 🐛 Bug Reports
 
-Use GitHub Issues with this template:
+Use GitHub Issues with the bug template:
 
 ```markdown
-**Description**
-Clear description of the bug
+**Describe the bug**
+Clear description
 
-**Steps to Reproduce**
-1. Go to '...'
-2. Click on '...'
-3. See error
+**To Reproduce**
+Steps to reproduce
 
-**Expected Behavior**
+**Expected behavior**
 What should happen
-
-**Actual Behavior**
-What actually happens
 
 **Screenshots**
 If applicable
 
 **Environment**
-- OS: [e.g. macOS 14]
-- Browser: [e.g. Chrome 120]
-- Version: [e.g. 1.2.0]
+
+- OS: [e.g., macOS]
+- Browser: [e.g., Chrome 120]
+- Node version: [e.g., 20.10]
 ```
 
 ## 💡 Feature Requests
 
-```markdown
-**Feature Description**
-Clear description of the feature
+Use GitHub Issues with the feature template:
 
-**Use Case**
-Why is this needed?
+```markdown
+**Problem Statement**
+What problem does this solve?
 
 **Proposed Solution**
 How should it work?
 
 **Alternatives Considered**
-Other approaches you thought about
+Other approaches
+
+**Additional Context**
+Any other information
 ```
 
-## 📞 Questions?
+## 🔒 Security
 
-- Open a Discussion on GitHub
-- Check existing Issues and PRs
-- Review documentation
+Report security vulnerabilities privately to: [your-email@example.com]
+
+## ❓ Questions
+
+- Join our [Discord](https://discord.gg/jewelshot)
+- Check [Documentation](docs/)
+- Open a [Discussion](https://github.com/YOUR_USERNAME/jewelshot/discussions)
+
+## 📜 Code of Conduct
+
+- Be respectful
+- Be collaborative
+- Be professional
+- Focus on constructive feedback
 
 ---
 
-Thank you for contributing to Jewelshot Studio! 💎
-
+Thank you for contributing! 🙏

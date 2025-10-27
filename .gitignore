@@ -31,8 +31,12 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
-!.env.local.template
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+# Keep .env.example for template
 
 # vercel
 .vercel
@@ -40,3 +44,32 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs
+logs
+*.log
+
+# Storybook
+storybook-static/
+
+# Temporary files
+*.tmp
+.cache/
+
+# API Keys & Secrets (extra safety)
+*.key
+*.pem
+secrets.json
+.secrets
