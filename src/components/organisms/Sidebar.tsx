@@ -16,7 +16,7 @@
 import React from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import SidebarLogo from '@/components/molecules/SidebarLogo';
-import NavigationItem from '@/components/atoms/NavigationItem';
+import NavigationItem from '@/components/molecules/NavigationItem';
 import SectionHeader from '@/components/atoms/SectionHeader';
 import UserProfile from '@/components/molecules/UserProfile';
 import {

@@ -1,13 +1,14 @@
 /**
- * NavigationItem Component
+ * NavigationItem Component (Molecule)
  *
  * A single navigation item for the sidebar menu.
+ * Orchestrates NavIcon, NavLabel, ActiveIndicator, Badge, and NavShortcut atoms.
  * Features hover effects, active state, badges, and keyboard shortcuts.
  *
  * @example
  * ```tsx
  * <NavigationItem
- *   icon="🏠"
+ *   icon={Home}
  *   label="Home"
  *   href="/home"
  *   active={false}
@@ -21,7 +22,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Badge from './Badge';
+import Badge from '@/components/atoms/Badge';
+import NavIcon from '@/components/atoms/NavIcon';
+import NavLabel from '@/components/atoms/NavLabel';
+import ActiveIndicator from '@/components/atoms/ActiveIndicator';
+import NavShortcut from '@/components/atoms/NavShortcut';
 
 interface BadgeConfig {
   variant: 'new' | 'pro' | 'count' | 'dot';
@@ -90,17 +95,13 @@ export function NavigationItem({
       }}
     >
       {/* Active indicator */}
-      {active && (
-        <div className="absolute -left-px top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-r-sm bg-gradient-to-b from-[#8b5cf6] to-[#6366f1]" />
-      )}
+      <ActiveIndicator active={active} />
 
       {/* Icon */}
-      <Icon
-        className={`duration-400 h-[18px] w-[18px] transition-opacity ${active ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}
-      />
+      <NavIcon icon={Icon} active={active} />
 
       {/* Label */}
-      <span className="flex-1">{label}</span>
+      <NavLabel>{label}</NavLabel>
 
       {/* Badge */}
       {badge && (
@@ -112,11 +113,7 @@ export function NavigationItem({
       )}
 
       {/* Keyboard Shortcut */}
-      {shortcut && (
-        <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-white/40">
-          {shortcut}
-        </span>
-      )}
+      {shortcut && <NavShortcut shortcut={shortcut} />}
     </Link>
   );
 }
