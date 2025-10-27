@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 
 export function TopBarToggle() {
   const { topOpen, toggleTop, leftOpen, rightOpen } = useSidebarStore();
-  const [centerLeft, setCenterLeft] = useState(0);
+  const [centerLeft, setCenterLeft] = useState<number | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const calculateCenter = () => {
       const leftPos = leftOpen ? 260 : 0;
       const rightPos = rightOpen ? 260 : 0;
@@ -20,13 +20,15 @@ export function TopBarToggle() {
     return () => window.removeEventListener('resize', calculateCenter);
   }, [leftOpen, rightOpen]);
 
+  if (centerLeft === null) return null;
+
   return (
     <button
       onClick={toggleTop}
       className={`fixed z-[200] flex h-3 w-8 -translate-x-1/2 cursor-pointer items-center justify-center border border-[rgba(139,92,246,0.2)] bg-[rgba(17,17,17,0.8)] transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:backdrop-blur-[10px] ${
         topOpen
-          ? 'rounded-b-md border-b border-t-0'
-          : 'rounded-t-md border-b-0 border-t'
+          ? 'rounded-t-md border-b-0 border-t'
+          : 'rounded-b-md border-b border-t-0'
       }`}
       style={{
         top: topOpen ? '52px' : '0px',
