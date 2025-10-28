@@ -28,6 +28,7 @@ export function Canvas() {
   >('none');
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [cropRatio, setCropRatio] = useState<number | null>(null);
+  const [isCropMode, setIsCropMode] = useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -108,8 +109,9 @@ export function Canvas() {
 
   const handleCropRatioChange = (ratio: number | null) => {
     setCropRatio(ratio);
-    console.log('Crop ratio selected:', ratio);
-    // TODO: Implement actual crop functionality
+    setIsCropMode(true);
+    console.log('Crop mode activated with ratio:', ratio);
+    // TODO: Implement actual crop functionality with overlay
   };
 
   // Listen for fullscreen changes
@@ -180,6 +182,41 @@ export function Canvas() {
               onScaleChange={setScale}
               onPositionChange={setPosition}
             />
+
+            {/* Crop Mode Indicator */}
+            {isCropMode && (
+              <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
+                <div className="rounded-lg border-2 border-dashed border-white/50 bg-white/5 p-8 backdrop-blur-sm">
+                  <p className="text-center text-sm font-medium text-white">
+                    Crop Mode Active
+                  </p>
+                  <p className="mt-2 text-center text-xs text-white/70">
+                    {cropRatio === null
+                      ? 'Free crop'
+                      : `Ratio: ${
+                          [
+                            { ratio: null, label: 'Free' },
+                            { ratio: 1, label: '1:1' },
+                            { ratio: 4 / 3, label: '4:3' },
+                            { ratio: 3 / 4, label: '3:4' },
+                            { ratio: 16 / 9, label: '16:9' },
+                            { ratio: 9 / 16, label: '9:16' },
+                          ].find((r) => r.ratio === cropRatio)?.label ||
+                          'Unknown'
+                        }`}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsCropMode(false);
+                      setCropRatio(null);
+                    }}
+                    className="pointer-events-auto mt-4 w-full rounded-md border border-[rgba(139,92,246,0.5)] bg-[rgba(139,92,246,0.15)] px-4 py-2 text-xs font-medium text-white transition-all hover:bg-[rgba(139,92,246,0.25)]"
+                  >
+                    Cancel Crop
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Top Left Controls - File Info */}
             <div

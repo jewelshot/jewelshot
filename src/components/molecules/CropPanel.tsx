@@ -28,7 +28,9 @@ const cropRatios: CropRatio[] = [
  * CropPanel - Molecule component for crop controls
  */
 export function CropPanel({ onCropRatioChange }: CropPanelProps) {
-  const [selectedRatio, setSelectedRatio] = useState<number | null>(null);
+  const [selectedRatio, setSelectedRatio] = useState<number | null | undefined>(
+    undefined
+  );
 
   const handleRatioClick = (ratio: number | null) => {
     setSelectedRatio(ratio);
@@ -36,32 +38,19 @@ export function CropPanel({ onCropRatioChange }: CropPanelProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h4 className="mb-3 text-sm font-medium text-white">Aspect Ratio</h4>
-        <div className="grid grid-cols-3 gap-3">
-          {cropRatios.map((item) => (
-            <CropRatioButton
-              key={item.label}
-              label={item.label}
-              ratio={item.ratio}
-              active={selectedRatio === item.ratio}
-              onClick={() => handleRatioClick(item.ratio)}
-            />
-          ))}
-        </div>
+    <div>
+      <h4 className="mb-3 text-sm font-medium text-white">Aspect Ratio</h4>
+      <div className="grid grid-cols-3 gap-3">
+        {cropRatios.map((item) => (
+          <CropRatioButton
+            key={item.label}
+            label={item.label}
+            ratio={item.ratio}
+            active={selectedRatio === item.ratio}
+            onClick={() => handleRatioClick(item.ratio)}
+          />
+        ))}
       </div>
-
-      {selectedRatio !== null && (
-        <div className="rounded-lg border border-[rgba(139,92,246,0.3)] bg-gradient-to-br from-[rgba(139,92,246,0.1)] to-[rgba(139,92,246,0.05)] p-3">
-          <p className="text-xs font-medium text-white">
-            {cropRatios.find((r) => r.ratio === selectedRatio)?.label} Selected
-          </p>
-          <p className="mt-1 text-xs text-white/60">
-            Click and drag on the image to crop with this ratio
-          </p>
-        </div>
-      )}
     </div>
   );
 }
