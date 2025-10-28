@@ -14,8 +14,21 @@ import EditPanel from '@/components/organisms/EditPanel';
 import CropModal from '@/components/organisms/CropModal';
 
 export function Canvas() {
-  const { leftOpen, rightOpen, topOpen, bottomOpen, toggleAll } =
-    useSidebarStore();
+  const {
+    leftOpen,
+    rightOpen,
+    topOpen,
+    bottomOpen,
+    toggleAll,
+    openLeft,
+    closeLeft,
+    openRight,
+    closeRight,
+    openTop,
+    closeTop,
+    openBottom,
+    closeBottom,
+  } = useSidebarStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,6 +41,12 @@ export function Canvas() {
     'none' | 'black' | 'gray' | 'white' | 'alpha'
   >('none');
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [savedBarStates, setSavedBarStates] = useState({
+    left: false,
+    right: false,
+    top: false,
+    bottom: false,
+  });
   const [cropRatio, setCropRatio] = useState<number | null>(null);
   const [isCropMode, setIsCropMode] = useState(false);
   const [transform, setTransform] = useState({
@@ -165,6 +184,52 @@ export function Canvas() {
   const handleToggleEditPanel = () => {
     setIsEditPanelOpen((prev) => !prev);
   };
+
+  // Auto-collapse/restore bars when edit panel opens/closes
+  useEffect(() => {
+    if (isEditPanelOpen) {
+      // Opening edit panel - save current bar states and collapse all
+      setSavedBarStates({
+        left: leftOpen,
+        right: rightOpen,
+        top: topOpen,
+        bottom: bottomOpen,
+      });
+
+      // Collapse all bars
+      closeLeft();
+      closeRight();
+      closeTop();
+      closeBottom();
+
+      // Push image to the right (EditPanel width 384px + smaller gap = 200px offset)
+      setPosition((prev) => ({ ...prev, x: prev.x + 200 }));
+    } else {
+      // Edit panel closed - restore previous bar states (only if we have saved states)
+      if (
+        savedBarStates.left ||
+        savedBarStates.right ||
+        savedBarStates.top ||
+        savedBarStates.bottom
+      ) {
+        if (savedBarStates.left) openLeft();
+        else closeLeft();
+
+        if (savedBarStates.right) openRight();
+        else closeRight();
+
+        if (savedBarStates.top) openTop();
+        else closeTop();
+
+        if (savedBarStates.bottom) openBottom();
+        else closeBottom();
+      }
+
+      // Reset image to center position
+      setPosition((prev) => ({ ...prev, x: 0 }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditPanelOpen]);
 
   const handleCropRatioChange = (ratio: number | null) => {
     setCropRatio(ratio);
@@ -332,7 +397,12 @@ export function Canvas() {
             <EditPanel
               isOpen={isEditPanelOpen}
               onClose={() => setIsEditPanelOpen(false)}
-              initialPosition={{ x: 100, y: 100 }}
+              initialPosition={{
+                x: leftOpen ? 276 : 16,
+                y: topOpen ? 80 + 48 + 12 : 16 + 48 + 12, // top position + file bar height + gap
+              }}
+              leftOpen={leftOpen}
+              topOpen={topOpen}
               onCropRatioChange={handleCropRatioChange}
               onTransformChange={(transformData) => {
                 setTransform({

@@ -64,8 +64,10 @@ export function ImageViewer({
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isZooming, setIsZooming] = useState(false);
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0 });
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Processing pipeline (order matters):
   // 1. Dehaze (atmospheric correction first)
@@ -562,12 +564,32 @@ export function ImageViewer({
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+
+      // Set zooming state to disable transitions
+      setIsZooming(true);
+
+      // Clear existing timeout
+      if (zoomTimeoutRef.current) {
+        clearTimeout(zoomTimeoutRef.current);
+      }
+
+      // Debounce: reset zooming state after 150ms of no zoom activity
+      zoomTimeoutRef.current = setTimeout(() => {
+        setIsZooming(false);
+      }, 150);
+
       const delta = -e.deltaY * 0.01;
       onScaleChange((prev) => Math.max(0.1, Math.min(3.0, prev + delta)));
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container.removeEventListener('wheel', handleWheel);
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      // Cleanup timeout on unmount
+      if (zoomTimeoutRef.current) {
+        clearTimeout(zoomTimeoutRef.current);
+      }
+    };
   }, [onScaleChange]);
 
   return (
@@ -585,6 +607,10 @@ export function ImageViewer({
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
           filter: buildFilterString(),
           animation: 'scaleIn 700ms ease-in-out',
+          transition:
+            isDragging || isZooming
+              ? 'none'
+              : 'transform 800ms cubic-bezier(0.4, 0.0, 0.2, 1)',
         }}
         draggable={false}
       />
