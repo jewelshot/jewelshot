@@ -379,57 +379,59 @@ export function Canvas() {
               />
             </div>
 
-            {/* Edit Panel */}
-            <EditPanel
-              isOpen={isEditPanelOpen}
-              onClose={() => setIsEditPanelOpen(false)}
-              initialPosition={{
-                x: leftOpen ? 276 : 16,
-                y: topOpen ? 80 + 48 + 12 : 16 + 48 + 12, // top position + file bar height + gap
-              }}
-              leftOpen={leftOpen}
-              topOpen={topOpen}
-              onCropRatioChange={handleCropRatioChange}
-              onTransformChange={(transformData) => {
-                setTransform({
-                  rotation: transformData.rotation,
-                  flipHorizontal: transformData.flipHorizontal,
-                  flipVertical: transformData.flipVertical,
-                });
-              }}
-              onAdjustChange={(adjustData) => {
-                setAdjustFilters({
-                  brightness: adjustData.brightness,
-                  contrast: adjustData.contrast,
-                  exposure: adjustData.exposure,
-                  highlights: adjustData.highlights,
-                  shadows: adjustData.shadows,
-                  whites: adjustData.whites,
-                  blacks: adjustData.blacks,
-                  clarity: adjustData.clarity,
-                  sharpness: adjustData.sharpness,
-                  dehaze: adjustData.dehaze,
-                });
-              }}
-              onColorChange={(colorData) => {
-                setColorFilters({
-                  temperature: colorData.temperature || 0,
-                  tint: colorData.tint || 0,
-                  saturation: colorData.saturation || 0,
-                  vibrance: colorData.vibrance || 0,
-                });
-              }}
-              onFilterChange={(filterData) => {
-                setFilterEffects({
-                  vignetteAmount: filterData.vignetteAmount || 0,
-                  vignetteSize: filterData.vignetteSize || 50,
-                  vignetteFeather: filterData.vignetteFeather || 50,
-                  grainAmount: filterData.grainAmount || 0,
-                  grainSize: filterData.grainSize || 50,
-                  fadeAmount: filterData.fadeAmount || 0,
-                });
-              }}
-            />
+            {/* Edit Panel - Only render when image is uploaded */}
+            {uploadedImage && (
+              <EditPanel
+                isOpen={isEditPanelOpen}
+                onClose={() => setIsEditPanelOpen(false)}
+                initialPosition={{
+                  x: leftOpen ? 276 : 16,
+                  y: topOpen ? 80 + 48 + 12 : 16 + 48 + 12, // top position + file bar height + gap
+                }}
+                leftOpen={leftOpen}
+                topOpen={topOpen}
+                onCropRatioChange={handleCropRatioChange}
+                onTransformChange={(transformData) => {
+                  setTransform({
+                    rotation: transformData.rotation,
+                    flipHorizontal: transformData.flipHorizontal,
+                    flipVertical: transformData.flipVertical,
+                  });
+                }}
+                onAdjustChange={(adjustData) => {
+                  setAdjustFilters({
+                    brightness: adjustData.brightness,
+                    contrast: adjustData.contrast,
+                    exposure: adjustData.exposure,
+                    highlights: adjustData.highlights,
+                    shadows: adjustData.shadows,
+                    whites: adjustData.whites,
+                    blacks: adjustData.blacks,
+                    clarity: adjustData.clarity,
+                    sharpness: adjustData.sharpness,
+                    dehaze: adjustData.dehaze,
+                  });
+                }}
+                onColorChange={(colorData) => {
+                  setColorFilters({
+                    temperature: colorData.temperature || 0,
+                    tint: colorData.tint || 0,
+                    saturation: colorData.saturation || 0,
+                    vibrance: colorData.vibrance || 0,
+                  });
+                }}
+                onFilterChange={(filterData) => {
+                  setFilterEffects({
+                    vignetteAmount: filterData.vignetteAmount || 0,
+                    vignetteSize: filterData.vignetteSize || 50,
+                    vignetteFeather: filterData.vignetteFeather || 50,
+                    grainAmount: filterData.grainAmount || 0,
+                    grainSize: filterData.grainSize || 50,
+                    fadeAmount: filterData.fadeAmount || 0,
+                  });
+                }}
+              />
+            )}
           </>
         )}
 
