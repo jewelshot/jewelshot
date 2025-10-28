@@ -1,8 +1,8 @@
 /**
  * 404 Not Found Page
  *
- * Animated and stylish 404 page with glassmorphic design
- * matching the app's purple/dark theme.
+ * Minimal and elegant 404 page with subtle animations.
+ * Designed to match the app's sophisticated aesthetic.
  */
 
 'use client';
@@ -17,88 +17,80 @@ export default function NotFound() {
     <>
       <AuroraBackground />
 
+      {/* Main Container - Fixed height to prevent layout shift */}
       <div className="fixed inset-0 z-10 flex items-center justify-center p-6">
-        {/* Main Card */}
-        <div
-          className="relative flex flex-col items-center gap-8 rounded-3xl border border-white/10 bg-black/40 px-12 py-16 text-center shadow-2xl backdrop-blur-xl"
-          style={{
-            animation: 'fadeInScale 600ms ease-out',
-            boxShadow:
-              '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          {/* Animated 404 */}
-          <div className="relative">
+        <div className="flex w-full max-w-lg flex-col items-center gap-10 text-center">
+          {/* 404 Number - Elegant and minimal */}
+          <div
+            className="relative"
+            style={{
+              opacity: 0,
+              animation:
+                'gentleFadeIn 1200ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            }}
+          >
             <div
-              className="text-[120px] font-bold leading-none tracking-tight"
+              className="text-[100px] font-light leading-none tracking-wider text-white/90"
               style={{
-                background:
-                  'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #a855f7 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                animation: 'float 3s ease-in-out infinite',
+                fontVariantNumeric: 'tabular-nums',
               }}
             >
               404
             </div>
 
-            {/* Glow effect */}
+            {/* Subtle underline */}
             <div
-              className="pointer-events-none absolute inset-0 -z-10"
+              className="mx-auto mt-4 h-[1px] w-16 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"
               style={{
-                background:
-                  'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)',
-                filter: 'blur(40px)',
-                animation: 'pulse 2s ease-in-out infinite',
+                opacity: 0,
+                animation:
+                  'gentleFadeIn 1200ms cubic-bezier(0.16, 1, 0.3, 1) 300ms forwards',
               }}
             />
           </div>
 
-          {/* Title */}
-          <div className="flex flex-col gap-3">
-            <h1
-              className="text-2xl font-semibold text-white"
-              style={{
-                animation: 'fadeInUp 600ms ease-out 200ms backwards',
-              }}
-            >
+          {/* Text Content */}
+          <div
+            className="flex flex-col gap-3"
+            style={{
+              opacity: 0,
+              animation:
+                'gentleFadeIn 1200ms cubic-bezier(0.16, 1, 0.3, 1) 400ms forwards',
+            }}
+          >
+            <h1 className="text-xl font-normal text-white/95">
               Page Not Found
             </h1>
-            <p
-              className="max-w-md text-sm text-white/60"
-              style={{
-                animation: 'fadeInUp 600ms ease-out 300ms backwards',
-              }}
-            >
-              The page you&apos;re looking for doesn&apos;t exist or has been
-              moved.
+            <p className="text-sm font-light leading-relaxed text-white/50">
+              The page you&apos;re looking for doesn&apos;t exist.
             </p>
           </div>
 
-          {/* Actions */}
+          {/* Actions - Minimal buttons */}
           <div
-            className="flex flex-col gap-3 sm:flex-row"
+            className="flex items-center gap-4"
             style={{
-              animation: 'fadeInUp 600ms ease-out 400ms backwards',
+              opacity: 0,
+              animation:
+                'gentleFadeIn 1200ms cubic-bezier(0.16, 1, 0.3, 1) 600ms forwards',
             }}
           >
             {/* Back Button */}
             <button
               onClick={() => router.back()}
-              className="group relative overflow-hidden rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-all duration-300 hover:border-white/30 hover:bg-white/10"
+              className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 px-5 py-2.5 text-[13px] font-normal text-white/80 backdrop-blur-sm transition-all duration-500 hover:border-white/20 hover:bg-white/10 hover:text-white"
             >
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="flex items-center gap-2">
                 <svg
-                  className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1"
+                  className="h-3.5 w-3.5 transition-transform duration-500 group-hover:-translate-x-0.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  strokeWidth={1.5}
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
@@ -109,77 +101,39 @@ export default function NotFound() {
             {/* Home Button */}
             <button
               onClick={() => router.push('/studio')}
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-purple-500/40"
+              className="group relative overflow-hidden rounded-lg border border-purple-500/20 bg-purple-500/10 px-5 py-2.5 text-[13px] font-normal text-white backdrop-blur-sm transition-all duration-500 hover:border-purple-500/30 hover:bg-purple-500/20"
             >
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="flex items-center gap-2">
                 Home
                 <svg
-                  className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                  className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-0.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  strokeWidth={1.5}
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
               </span>
-
-              {/* Hover gradient effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </button>
           </div>
-
-          {/* Decorative elements */}
-          <div className="pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full bg-purple-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -right-20 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
         </div>
       </div>
 
-      {/* Animations */}
+      {/* Animations - Smooth and subtle */}
       <style jsx>{`
-        @keyframes fadeInScale {
+        @keyframes gentleFadeIn {
           from {
             opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(8px);
           }
           to {
             opacity: 1;
             transform: translateY(0);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 0.3;
-          }
-          50% {
-            opacity: 0.6;
           }
         }
       `}</style>
