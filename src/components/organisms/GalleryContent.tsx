@@ -96,8 +96,12 @@ export function GalleryContent() {
   }, [searchValue, activeFilter, sortValue]);
 
   const handleOpenInStudio = (image: GalleryImage) => {
-    // TODO: In production, pass image data to studio page via state/query
-    router.push(`/studio?imageId=${image.id}`);
+    // Pass image URL via query param to studio page
+    const params = new URLSearchParams({
+      imageUrl: image.src,
+      imageName: image.alt || 'gallery-image',
+    });
+    router.push(`/studio?${params.toString()}`);
   };
 
   const handleDownload = (image: GalleryImage) => {

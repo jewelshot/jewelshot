@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useImageState } from '@/hooks/useImageState';
 import { useImageTransform } from '@/hooks/useImageTransform';
@@ -25,6 +26,9 @@ import UIToggleButton from '@/components/atoms/UIToggleButton';
 import ViewModeSelector from '@/components/atoms/ViewModeSelector';
 
 export function Canvas() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const {
     leftOpen,
     rightOpen,
@@ -234,6 +238,62 @@ export function Canvas() {
     }
     setIsEditPanelOpen(false); // Close EditPanel when image is closed
   }, [resetImageState, resetTransform, resetFilters]);
+
+  // Load image from gallery via query param
+  useEffect(() => {
+    const imageUrl = searchParams.get('imageUrl');
+    const imageName = searchParams.get('imageName');
+
+    if (imageUrl && !uploadedImage) {
+      // Fetch image and load into canvas
+      setIsLoading(true);
+
+      fetch(imageUrl)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (e.target?.result) {
+              setUploadedImage(e.target.result as string);
+              setFileName(imageName || 'gallery-image.jpg');
+              setFileSize(blob.size);
+              setIsLoading(false);
+
+              // Reset transformations and filters for fresh start
+              resetTransform();
+              resetFilters();
+
+              showToast('Image loaded from gallery!', 'success');
+
+              // Clear query params
+              router.replace('/studio', { scroll: false });
+            }
+          };
+          reader.onerror = () => {
+            setIsLoading(false);
+            showToast('Failed to load image from gallery', 'error');
+            router.replace('/studio', { scroll: false });
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(() => {
+          setIsLoading(false);
+          showToast('Failed to fetch image from gallery', 'error');
+          router.replace('/studio', { scroll: false });
+        });
+    }
+  }, [
+    searchParams,
+    uploadedImage,
+    router,
+    setIsLoading,
+    setUploadedImage,
+    setFileName,
+    setFileSize,
+    resetTransform,
+    resetFilters,
+    showToast,
+  ]);
 
   const handleZoomIn = useCallback(() => {
     setScale((prev) => Math.min(prev + 0.1, 3.0));
