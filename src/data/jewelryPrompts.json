@@ -1,30 +1,30 @@
 [
   {
-    "id": "enhance-sparkle",
-    "label": "Enhance Sparkle",
-    "prompt": "Enhance diamond sparkle and gemstone brilliance with professional jewelry photography lighting. Boost crystal clarity, increase shine on metal surfaces, and bring out the natural fire and scintillation of precious stones. Studio-quality enhancement with perfect white balance and sharp macro details. No text, no words, no letters on the image.",
-    "icon": "sparkles",
-    "category": "enhancement"
-  },
-  {
-    "id": "white-background",
-    "label": "Clean White Background",
-    "prompt": "Transform to professional jewelry catalog photography with pure white background. Remove all distractions, create clean seamless backdrop, maintain perfect product shadows for depth. High-end e-commerce ready with consistent lighting and premium presentation quality. No text, no words, no letters on the image.",
+    "id": "clean-white",
+    "label": "Clean White",
+    "prompt": "Professional e-commerce jewelry product photography on pure white seamless background. Center the jewelry piece with perfect symmetry and optimal viewing angle. Use soft diffused studio lighting to eliminate harsh shadows while maintaining subtle depth with gentle drop shadow beneath the product. Ensure maximum clarity with sharp macro focus showing every detail of gemstones, metal texture, and craftsmanship. Maintain natural metallic shine and gemstone brilliance without overexposure. Clean, minimal, catalog-ready presentation with consistent white balance (RGB 255,255,255 background). Position jewelry flat lay style if ring or earrings, vertical hang if necklace or bracelet, ensuring full visibility of design. High-resolution product shot suitable for white background e-commerce platforms. No props, no decorations, no text, no words, no letters on the image.",
     "icon": "square",
-    "category": "background"
+    "category": "ecommerce"
   },
   {
-    "id": "studio-lighting",
-    "label": "Studio Lighting",
-    "prompt": "Apply professional studio lighting setup for luxury jewelry photography. Multi-point lighting with soft diffusion, eliminate harsh shadows, create dimensional depth with subtle highlights. Perfect exposure with dramatic yet elegant illumination that showcases every facet and detail. No text, no words, no letters on the image.",
-    "icon": "zap",
-    "category": "lighting"
+    "id": "minimalist-model",
+    "label": "Minimalist Model",
+    "prompt": "Professional jewelry photography on live model in minimal studio setting. Jewelry worn naturally on model - ring on finger, necklace on neck and collarbone, earring on ear, bracelet on wrist. Clean neutral background (soft gray or beige studio backdrop). Soft natural-looking studio lighting that highlights both the jewelry and model's skin tone elegantly. Focus primarily on the jewelry piece with model as elegant context. Minimal styling - no excessive makeup or distracting elements. Model pose should be natural and refined, hands or face positioned to showcase jewelry without competing for attention. Shallow depth of field with jewelry in sharp focus. Contemporary e-commerce aesthetic with human touch. Professional catalog quality that shows jewelry scale and wearability. Neutral color palette, clean composition. No dramatic fashion styling, no text, no words, no letters on the image.",
+    "icon": "sparkles",
+    "category": "lifestyle"
+  },
+  {
+    "id": "still-life",
+    "label": "Still Life",
+    "prompt": "Artistic still life jewelry photography with carefully curated composition. Place jewelry piece as the focal point within an elegant scene featuring complementary decorative elements - natural elements like marble surfaces, silk fabric, dried flowers, stone textures, or minimalist luxury props. Create depth and visual interest through layered composition while ensuring jewelry remains the hero of the image. Use soft directional natural light or studio lighting that creates gentle shadows and dimension. Sophisticated color palette with muted tones, earth tones, or monochromatic scheme that enhances rather than distracts. Jewelry should be positioned naturally - ring resting on surface or elevated on small platform, necklace draped elegantly, earrings arranged with intentional spacing. Achieve balanced composition following rule of thirds. Editorial still life aesthetic with refined, timeless atmosphere. Textural variety in background elements but maintaining visual cohesion. Elevated product photography that tells a story of luxury and craftsmanship. Naturmort inspired arrangement. No text, no words, no letters on the image.",
+    "icon": "gem",
+    "category": "artistic"
   },
   {
     "id": "luxury-editorial",
     "label": "Luxury Editorial",
-    "prompt": "Transform into high-end magazine editorial jewelry photography. Cinematic color grading with rich tones, sophisticated atmosphere, and artistic composition. Premium fashion catalog quality with dramatic contrast, elegant styling, and luxurious presentation that tells a story. No text, no words, no letters on the image.",
-    "icon": "gem",
-    "category": "style"
+    "prompt": "High-end luxury editorial jewelry photography for premium fashion magazines. Dramatic cinematic lighting with rich contrast, deep shadows, and strategic highlights that create mood and dimension. Sophisticated composition with artistic flair - jewelry can be worn on model (close-up on neck, ear, hand) or styled independently with premium materials. Elevated production value with rich color grading - deep jewel tones, warm golden light, or cool silver tones depending on jewelry metal. Create aspirational luxury atmosphere through lighting, styling, and composition. Use premium props if needed - velvet, silk, marble, gold leaf, crystal - but jewelry remains the star. Artistic shallow depth of field with selective focus. Fashion-forward styling that feels exclusive and high-end. Vogue, Harper's Bazaar editorial quality. Moody yet refined aesthetic with sophisticated use of negative space. Emphasize jewelry's luxury positioning through elegant visual storytelling. Professional retouching quality with enhanced colors and contrast while maintaining natural look. No text, no words, no letters on the image.",
+    "icon": "zap",
+    "category": "editorial"
   }
 ]
