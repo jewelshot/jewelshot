@@ -5,6 +5,7 @@ import { useSidebarStore } from '@/store/sidebarStore';
 import { useImageState } from '@/hooks/useImageState';
 import { useImageTransform } from '@/hooks/useImageTransform';
 import { useImageFilters } from '@/hooks/useImageFilters';
+import { useCanvasUI } from '@/hooks/useCanvasUI';
 import ZoomControls from '@/components/molecules/ZoomControls';
 import ActionControls from '@/components/molecules/ActionControls';
 import TopLeftControls from '@/components/molecules/TopLeftControls';
@@ -68,11 +69,21 @@ export function Canvas() {
     resetFilters,
   } = useImageFilters();
 
+  // Canvas UI state (extracted to hook)
+  const {
+    isFullscreen,
+    setIsFullscreen,
+    background,
+    setBackground,
+    cropRatio,
+    setCropRatio,
+    isCropMode,
+    setIsCropMode,
+    resetCropState,
+  } = useCanvasUI();
+
+  // Canvas-specific UI state (not extracted)
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [background, setBackground] = useState<
-    'none' | 'black' | 'gray' | 'white' | 'alpha'
-  >('none');
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [savedBarStates, setSavedBarStates] = useState({
     left: false,
@@ -80,8 +91,6 @@ export function Canvas() {
     top: false,
     bottom: false,
   });
-  const [cropRatio, setCropRatio] = useState<number | null>(null);
-  const [isCropMode, setIsCropMode] = useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -218,14 +227,12 @@ export function Canvas() {
 
   const handleCropApply = (croppedImage: string) => {
     setUploadedImage(croppedImage);
-    setIsCropMode(false);
-    setCropRatio(null);
+    resetCropState(); // Reset crop mode and ratio
     resetTransform(); // Reset scale, position, transform after crop
   };
 
   const handleCropCancel = () => {
-    setIsCropMode(false);
-    setCropRatio(null);
+    resetCropState(); // Reset crop mode and ratio
   };
 
   // Listen for fullscreen changes
