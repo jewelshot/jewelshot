@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useImageState } from '@/hooks/useImageState';
 import { useImageTransform } from '@/hooks/useImageTransform';
+import { useImageFilters } from '@/hooks/useImageFilters';
 import ZoomControls from '@/components/molecules/ZoomControls';
 import ActionControls from '@/components/molecules/ActionControls';
 import TopLeftControls from '@/components/molecules/TopLeftControls';
@@ -56,6 +57,17 @@ export function Canvas() {
     resetTransform,
   } = useImageTransform();
 
+  // Image filters state (extracted to hook)
+  const {
+    adjustFilters,
+    setAdjustFilters,
+    colorFilters,
+    setColorFilters,
+    filterEffects,
+    setFilterEffects,
+    resetFilters,
+  } = useImageFilters();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [background, setBackground] = useState<
@@ -70,32 +82,6 @@ export function Canvas() {
   });
   const [cropRatio, setCropRatio] = useState<number | null>(null);
   const [isCropMode, setIsCropMode] = useState(false);
-  const [adjustFilters, setAdjustFilters] = useState({
-    brightness: 0,
-    contrast: 0,
-    exposure: 0,
-    highlights: 0,
-    shadows: 0,
-    whites: 0,
-    blacks: 0,
-    clarity: 0,
-    sharpness: 0,
-    dehaze: 0,
-  });
-  const [colorFilters, setColorFilters] = useState({
-    temperature: 0,
-    tint: 0,
-    saturation: 0,
-    vibrance: 0,
-  });
-  const [filterEffects, setFilterEffects] = useState({
-    vignetteAmount: 0,
-    vignetteSize: 50,
-    vignetteFeather: 50,
-    grainAmount: 0,
-    grainSize: 50,
-    fadeAmount: 0,
-  });
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -124,32 +110,10 @@ export function Canvas() {
 
     // Reset transformation state (scale, position, transform)
     resetTransform();
-    setAdjustFilters({
-      brightness: 0,
-      contrast: 0,
-      exposure: 0,
-      highlights: 0,
-      shadows: 0,
-      whites: 0,
-      blacks: 0,
-      clarity: 0,
-      sharpness: 0,
-      dehaze: 0,
-    });
-    setColorFilters({
-      temperature: 0,
-      tint: 0,
-      saturation: 0,
-      vibrance: 0,
-    });
-    setFilterEffects({
-      vignetteAmount: 0,
-      vignetteSize: 50,
-      vignetteFeather: 50,
-      grainAmount: 0,
-      grainSize: 50,
-      fadeAmount: 0,
-    });
+
+    // Reset all filters (adjust, color, effects)
+    resetFilters();
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
