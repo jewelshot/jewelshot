@@ -14,6 +14,8 @@ export interface SavedImage {
 }
 
 const STORAGE_KEY = 'jewelshot_gallery_images';
+const MAX_IMAGES =
+  parseInt(process.env.NEXT_PUBLIC_MAX_GALLERY_IMAGES || '100', 10) || 100;
 
 /**
  * Get all saved images from localStorage
@@ -47,6 +49,15 @@ export function saveImageToGallery(
   alt: string,
   type: 'ai-edited' | 'manual' = 'manual'
 ): SavedImage {
+  const existing = getSavedImages();
+
+  // Check image limit
+  if (existing.length >= MAX_IMAGES) {
+    throw new Error(
+      `Gallery limit reached (${MAX_IMAGES} images). Please delete some images first.`
+    );
+  }
+
   const newImage: SavedImage = {
     id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     src,
@@ -55,7 +66,6 @@ export function saveImageToGallery(
     type,
   };
 
-  const existing = getSavedImages();
   const updated = [newImage, ...existing]; // Add to beginning
 
   try {
@@ -63,7 +73,19 @@ export function saveImageToGallery(
     return newImage;
   } catch (error) {
     console.error('Failed to save image to gallery:', error);
-    throw new Error('Failed to save image. Storage might be full.');
+
+    // Handle quota exceeded
+    if (
+      error instanceof DOMException &&
+      (error.name === 'QuotaExceededError' ||
+        error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+    ) {
+      throw new Error(
+        'Storage quota exceeded. Please delete some images or use a smaller image size.'
+      );
+    }
+
+    throw new Error('Failed to save image. Please try again.');
   }
 }
 

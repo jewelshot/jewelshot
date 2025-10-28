@@ -20,7 +20,8 @@
  * ```
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { loadLastFilters, saveFilters } from '@/lib/filter-persistence';
 
 /**
  * Adjust tab filters - Basic light, tone, clarity controls
@@ -121,15 +122,43 @@ const DEFAULT_FILTER_EFFECTS: FilterEffects = {
 };
 
 export function useImageFilters(): ImageFiltersState {
-  const [adjustFilters, setAdjustFilters] = useState<AdjustFilters>(
-    DEFAULT_ADJUST_FILTERS
-  );
-  const [colorFilters, setColorFilters] = useState<ColorFilters>(
-    DEFAULT_COLOR_FILTERS
-  );
-  const [filterEffects, setFilterEffects] = useState<FilterEffects>(
-    DEFAULT_FILTER_EFFECTS
-  );
+  // Load last saved filters on mount
+  const [adjustFilters, setAdjustFilters] = useState<AdjustFilters>(() => {
+    const saved = loadLastFilters();
+    return saved?.adjust || DEFAULT_ADJUST_FILTERS;
+  });
+  const [colorFilters, setColorFilters] = useState<ColorFilters>(() => {
+    const saved = loadLastFilters();
+    return saved?.color || DEFAULT_COLOR_FILTERS;
+  });
+  const [filterEffects, setFilterEffects] = useState<FilterEffects>(() => {
+    const saved = loadLastFilters();
+    return saved?.effects || DEFAULT_FILTER_EFFECTS;
+  });
+
+  // Debounce save to avoid too many writes
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-save filters to localStorage on change (debounced)
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveFilters({
+        adjust: adjustFilters,
+        color: colorFilters,
+        effects: filterEffects,
+      });
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [adjustFilters, colorFilters, filterEffects]);
 
   /**
    * Reset all filters to default values

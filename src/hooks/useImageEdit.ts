@@ -4,6 +4,7 @@ import {
   type NanoBananaEditInput,
   type NanoBananaOutput,
 } from '@/lib/ai/fal-client';
+import { aiRateLimiter } from '@/lib/rate-limiter';
 
 interface UseImageEditOptions {
   onSuccess?: (result: NanoBananaOutput) => void;
@@ -18,12 +19,27 @@ export function useImageEdit(options?: UseImageEditOptions) {
 
   const edit = useCallback(
     async (input: NanoBananaEditInput) => {
+      // Check rate limit
+      if (!aiRateLimiter.canMakeRequest()) {
+        const waitTime = Math.ceil(aiRateLimiter.getTimeUntilReset() / 1000);
+        const error = new Error(
+          `Rate limit exceeded. Please wait ${waitTime} seconds before trying again.`
+        );
+        setError(error);
+        if (options?.onError) {
+          options.onError(error);
+        }
+        throw error;
+      }
+
       setIsEditing(true);
       setProgress('Initializing...');
       setError(null);
       setResult(null);
 
       try {
+        // Record the request
+        aiRateLimiter.recordRequest();
         const output = await editImage(input, (update) => {
           if (update.status === 'IN_QUEUE') {
             setProgress('In queue...');
