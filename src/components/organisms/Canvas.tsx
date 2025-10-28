@@ -264,14 +264,128 @@ export function Canvas() {
     console.log('Save image');
   };
 
-  const handleDownload = () => {
-    if (uploadedImage) {
-      const link = document.createElement('a');
-      link.href = uploadedImage;
-      link.download = fileName || 'image.jpg';
-      link.click();
+  const handleDownload = useCallback(async () => {
+    if (!uploadedImage) return;
+
+    try {
+      // Create a canvas to apply filters and transformations
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Set canvas size to image size
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        // Apply CSS filters to canvas context
+        const filters: string[] = [];
+
+        // Adjust filters
+        if (adjustFilters.brightness !== 0) {
+          filters.push(`brightness(${100 + adjustFilters.brightness}%)`);
+        }
+        if (adjustFilters.contrast !== 0) {
+          filters.push(`contrast(${100 + adjustFilters.contrast}%)`);
+        }
+        if (adjustFilters.exposure !== 0) {
+          filters.push(`brightness(${100 + adjustFilters.exposure * 1.5}%)`);
+        }
+        if (adjustFilters.sharpness !== 0) {
+          filters.push(`contrast(${100 + adjustFilters.sharpness * 0.5}%)`);
+        }
+
+        // Color filters
+        if (colorFilters.temperature !== 0) {
+          const hue = colorFilters.temperature * 0.5;
+          filters.push(`hue-rotate(${hue}deg)`);
+        }
+        if (colorFilters.tint !== 0) {
+          filters.push(`saturate(${100 + colorFilters.tint}%)`);
+        }
+
+        // Effect filters
+        if (filterEffects.blur > 0) {
+          filters.push(`blur(${filterEffects.blur}px)`);
+        }
+        if (filterEffects.grayscale > 0) {
+          filters.push(`grayscale(${filterEffects.grayscale}%)`);
+        }
+        if (filterEffects.sepia > 0) {
+          filters.push(`sepia(${filterEffects.sepia}%)`);
+        }
+        if (filterEffects.invert > 0) {
+          filters.push(`invert(${filterEffects.invert}%)`);
+        }
+
+        ctx.filter = filters.length > 0 ? filters.join(' ') : 'none';
+
+        // Apply transformations
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((transform.rotation * Math.PI) / 180);
+        ctx.scale(
+          transform.flipHorizontal ? -1 : 1,
+          transform.flipVertical ? -1 : 1
+        );
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
+        // Draw image
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        // Convert canvas to blob and download
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return;
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Generate filename with timestamp
+            const timestamp = new Date()
+              .toISOString()
+              .slice(0, 19)
+              .replace(/:/g, '-');
+            const baseName = fileName?.replace(/\.[^/.]+$/, '') || 'jewelshot';
+            link.download = `${baseName}_edited_${timestamp}.jpg`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up
+            URL.revokeObjectURL(url);
+
+            showToast('Image downloaded successfully!', 'success');
+          },
+          'image/jpeg',
+          0.95
+        );
+      };
+
+      img.onerror = () => {
+        showToast('Failed to download image', 'error');
+      };
+
+      img.src = uploadedImage;
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast('Failed to download image', 'error');
     }
-  };
+  }, [
+    uploadedImage,
+    fileName,
+    adjustFilters,
+    colorFilters,
+    filterEffects,
+    transform,
+    showToast,
+  ]);
 
   const handleToggleEditPanel = () => {
     setIsEditPanelOpen((prev) => !prev);
