@@ -38,6 +38,7 @@ export function CropModal({
   onCancel,
 }: CropModalProps) {
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [containerOffset, setContainerOffset] = useState({ x: 0, y: 0 });
   const [cropArea, setCropArea] = useState({
     x: 0,
     y: 0,
@@ -46,6 +47,7 @@ export function CropModal({
   });
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Load image and get dimensions
   useEffect(() => {
@@ -74,6 +76,22 @@ export function CropModal({
       setImageSize({ width, height });
     };
   }, [isOpen, imageSrc]);
+
+  // Update container offset when image size changes
+  useEffect(() => {
+    if (!containerRef.current || imageSize.width === 0) return;
+
+    const updateOffset = () => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        setContainerOffset({ x: rect.left, y: rect.top });
+      }
+    };
+
+    updateOffset();
+    window.addEventListener('resize', updateOffset);
+    return () => window.removeEventListener('resize', updateOffset);
+  }, [imageSize]);
 
   const handleApply = () => {
     if (!imageRef.current || !canvasRef.current) return;
@@ -128,6 +146,7 @@ export function CropModal({
 
       {/* Image container */}
       <div
+        ref={containerRef}
         className="relative"
         style={{ width: imageSize.width, height: imageSize.height }}
       >
@@ -146,6 +165,7 @@ export function CropModal({
           <CropFrame
             aspectRatio={aspectRatio}
             imageSize={imageSize}
+            containerOffset={containerOffset}
             onCropChange={setCropArea}
           />
         )}

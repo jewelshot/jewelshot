@@ -14,6 +14,10 @@ interface CropFrameProps {
    */
   imageSize: { width: number; height: number };
   /**
+   * Container offset (for mouse position calculation)
+   */
+  containerOffset: { x: number; y: number };
+  /**
    * Crop area change callback
    */
   onCropChange: (crop: {
@@ -30,6 +34,7 @@ interface CropFrameProps {
 export function CropFrame({
   aspectRatio,
   imageSize,
+  containerOffset,
   onCropChange,
 }: CropFrameProps) {
   const [crop, setCrop] = useState({
@@ -72,8 +77,8 @@ export function CropFrame({
   const handleFrameMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
+      x: e.clientX - containerOffset.x,
+      y: e.clientY - containerOffset.y,
       cropX: crop.x,
       cropY: crop.y,
     };
@@ -85,8 +90,8 @@ export function CropFrame({
     setIsResizing(true);
     resizePosition.current = position;
     dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
+      x: e.clientX - containerOffset.x,
+      y: e.clientY - containerOffset.y,
       cropX: crop.x,
       cropY: crop.y,
     };
@@ -96,8 +101,10 @@ export function CropFrame({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
-        const deltaX = e.clientX - dragStart.current.x;
-        const deltaY = e.clientY - dragStart.current.y;
+        const mouseX = e.clientX - containerOffset.x;
+        const mouseY = e.clientY - containerOffset.y;
+        const deltaX = mouseX - dragStart.current.x;
+        const deltaY = mouseY - dragStart.current.y;
 
         let newX = dragStart.current.cropX + deltaX;
         let newY = dragStart.current.cropY + deltaY;
@@ -110,8 +117,10 @@ export function CropFrame({
       }
 
       if (isResizing && resizePosition.current) {
-        const deltaX = e.clientX - dragStart.current.x;
-        const deltaY = e.clientY - dragStart.current.y;
+        const mouseX = e.clientX - containerOffset.x;
+        const mouseY = e.clientY - containerOffset.y;
+        const deltaX = mouseX - dragStart.current.x;
+        const deltaY = mouseY - dragStart.current.y;
         const pos = resizePosition.current;
 
         let newCrop = { ...crop };
@@ -170,7 +179,7 @@ export function CropFrame({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, isResizing, crop, imageSize, aspectRatio]);
+  }, [isDragging, isResizing, crop, imageSize, aspectRatio, containerOffset]);
 
   return (
     <div
