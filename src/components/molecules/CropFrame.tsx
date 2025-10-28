@@ -5,17 +5,8 @@ import ResizeHandle from '@/components/atoms/ResizeHandle';
 import CropGrid from '@/components/atoms/CropGrid';
 
 interface CropFrameProps {
-  /**
-   * Aspect ratio (width/height) - null for free crop
-   */
   aspectRatio: number | null;
-  /**
-   * Image dimensions
-   */
   imageSize: { width: number; height: number };
-  /**
-   * Crop area change callback - normalized 0-1 values
-   */
   onCropChange: (crop: {
     x: number;
     y: number;
@@ -24,10 +15,6 @@ interface CropFrameProps {
   }) => void;
 }
 
-/**
- * CropFrame - Draggable and resizable crop frame
- * Uses normalized coordinates (0-1) for resolution independence
- */
 export function CropFrame({
   aspectRatio,
   imageSize,
@@ -43,125 +30,133 @@ export function CropFrame({
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const resizePosition = useRef<string | null>(null);
-  const dragStart = useRef({ mouseX: 0, mouseY: 0, cropX: 0, cropY: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const dragData = useRef({
+    startX: 0,
+    startY: 0,
+    startCrop: { x: 0, y: 0, width: 0, height: 0 },
+    handle: '',
+  });
+
+  // Set container ref on mount
+  useEffect(() => {
+    if (frameRef.current) {
+      containerRef.current = frameRef.current.parentElement;
+    }
+  }, []);
 
   // Notify parent of crop changes
   useEffect(() => {
     onCropChange(crop);
   }, [crop, onCropChange]);
 
-  // Adjust crop to maintain aspect ratio (normalized)
-  const adjustForAspectRatio = (newCrop: typeof crop) => {
-    if (aspectRatio === null) return newCrop;
+  // Constrain crop to maintain aspect ratio
+  const constrainToAspectRatio = (
+    newCrop: typeof crop,
+    handle: string
+  ): typeof crop => {
+    if (!aspectRatio) return newCrop;
 
-    const currentRatio =
-      (newCrop.width * imageSize.width) / (newCrop.height * imageSize.height);
+    const pixelWidth = newCrop.width * imageSize.width;
+    const pixelHeight = newCrop.height * imageSize.height;
+    const currentRatio = pixelWidth / pixelHeight;
 
-    if (Math.abs(currentRatio - aspectRatio) > 0.01) {
-      if (currentRatio > aspectRatio) {
-        // Too wide, adjust width
-        newCrop.width =
-          (newCrop.height * imageSize.height * aspectRatio) / imageSize.width;
-      } else {
-        // Too tall, adjust height
-        newCrop.height =
-          (newCrop.width * imageSize.width) / (aspectRatio * imageSize.height);
-      }
+    if (Math.abs(currentRatio - aspectRatio) < 0.01) return newCrop;
+
+    // Adjust based on which handle is being dragged
+    if (handle.includes('t') || handle.includes('b')) {
+      // Height is changing, adjust width
+      newCrop.width =
+        (newCrop.height * imageSize.height * aspectRatio) / imageSize.width;
+    } else {
+      // Width is changing, adjust height
+      newCrop.height =
+        (newCrop.width * imageSize.width) / (aspectRatio * imageSize.height);
     }
 
     return newCrop;
   };
 
-  // Get mouse position relative to container
-  const getRelativeMousePos = (e: MouseEvent | React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return { x: 0, y: 0 };
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  };
-
-  // Handle frame drag
-  const handleFrameMouseDown = (e: React.MouseEvent) => {
-    const mousePos = getRelativeMousePos(e);
-    setIsDragging(true);
-    dragStart.current = {
-      mouseX: mousePos.x,
-      mouseY: mousePos.y,
-      cropX: crop.x,
-      cropY: crop.y,
-    };
-  };
-
-  // Handle resize
-  const handleResizeMouseDown = (e: React.MouseEvent, position: string) => {
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    const mousePos = getRelativeMousePos(e);
-    setIsResizing(true);
-    resizePosition.current = position;
-    dragStart.current = {
-      mouseX: mousePos.x,
-      mouseY: mousePos.y,
-      cropX: crop.x,
-      cropY: crop.y,
+
+    setIsDragging(true);
+    dragData.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startCrop: { ...crop },
+      handle: 'move',
     };
   };
 
-  // Global mouse move - normalized coordinates
+  const handleResizeStart = (e: React.MouseEvent, handle: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsResizing(true);
+    dragData.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startCrop: { ...crop },
+      handle,
+    };
+  };
+
+  // Global mouse handlers
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging && !isResizing) return;
+      if (!containerRef.current) return;
+
+      e.preventDefault();
+
+      const deltaX = e.clientX - dragData.current.startX;
+      const deltaY = e.clientY - dragData.current.startY;
+      const normDeltaX = deltaX / imageSize.width;
+      const normDeltaY = deltaY / imageSize.height;
+
       if (isDragging) {
-        const mousePos = getRelativeMousePos(e);
-        const deltaX =
-          (mousePos.x - dragStart.current.mouseX) / imageSize.width;
-        const deltaY =
-          (mousePos.y - dragStart.current.mouseY) / imageSize.height;
+        // Move the frame
+        const newCrop = {
+          ...dragData.current.startCrop,
+          x: dragData.current.startCrop.x + normDeltaX,
+          y: dragData.current.startCrop.y + normDeltaY,
+        };
 
-        let newX = dragStart.current.cropX + deltaX;
-        let newY = dragStart.current.cropY + deltaY;
+        // Constrain to bounds
+        newCrop.x = Math.max(0, Math.min(newCrop.x, 1 - newCrop.width));
+        newCrop.y = Math.max(0, Math.min(newCrop.y, 1 - newCrop.height));
 
-        // Constrain to bounds (0-1)
-        newX = Math.max(0, Math.min(newX, 1 - crop.width));
-        newY = Math.max(0, Math.min(newY, 1 - crop.height));
+        setCrop(newCrop);
+      } else if (isResizing) {
+        // Resize the frame
+        const handle = dragData.current.handle;
+        let newCrop = { ...dragData.current.startCrop };
 
-        setCrop((prev) => ({ ...prev, x: newX, y: newY }));
-      }
-
-      if (isResizing && resizePosition.current) {
-        const mousePos = getRelativeMousePos(e);
-        const deltaX =
-          (mousePos.x - dragStart.current.mouseX) / imageSize.width;
-        const deltaY =
-          (mousePos.y - dragStart.current.mouseY) / imageSize.height;
-        const pos = resizePosition.current;
-
-        let newCrop = { ...crop };
-
-        // Handle different resize positions
-        if (pos.includes('l')) {
-          newCrop.x = dragStart.current.cropX + deltaX;
-          newCrop.width = crop.width - deltaX;
+        if (handle.includes('l')) {
+          newCrop.x = dragData.current.startCrop.x + normDeltaX;
+          newCrop.width = dragData.current.startCrop.width - normDeltaX;
         }
-        if (pos.includes('r')) {
-          newCrop.width = crop.width + deltaX;
+        if (handle.includes('r')) {
+          newCrop.width = dragData.current.startCrop.width + normDeltaX;
         }
-        if (pos.includes('t')) {
-          newCrop.y = dragStart.current.cropY + deltaY;
-          newCrop.height = crop.height - deltaY;
+        if (handle.includes('t')) {
+          newCrop.y = dragData.current.startCrop.y + normDeltaY;
+          newCrop.height = dragData.current.startCrop.height - normDeltaY;
         }
-        if (pos.includes('b')) {
-          newCrop.height = crop.height + deltaY;
+        if (handle.includes('b')) {
+          newCrop.height = dragData.current.startCrop.height + normDeltaY;
         }
 
-        // Constrain minimum size (5% of image)
+        // Constrain minimum size (5%)
         newCrop.width = Math.max(0.05, newCrop.width);
         newCrop.height = Math.max(0.05, newCrop.height);
 
         // Apply aspect ratio
-        newCrop = adjustForAspectRatio(newCrop);
+        newCrop = constrainToAspectRatio(newCrop, handle);
 
         // Constrain to bounds
         newCrop.x = Math.max(0, Math.min(newCrop.x, 1 - newCrop.width));
@@ -176,21 +171,23 @@ export function CropFrame({
     const handleMouseUp = () => {
       setIsDragging(false);
       setIsResizing(false);
-      resizePosition.current = null;
     };
 
     if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      // Prevent default drag behavior
+      document.body.style.userSelect = 'none';
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
     };
-  }, [isDragging, isResizing, crop, imageSize, aspectRatio]);
+  }, [isDragging, isResizing, imageSize, aspectRatio]);
 
-  // Convert normalized to pixels for display
+  // Convert to pixels for rendering
   const pixelCrop = {
     x: crop.x * imageSize.width,
     y: crop.y * imageSize.height,
@@ -200,7 +197,7 @@ export function CropFrame({
 
   return (
     <div
-      ref={containerRef}
+      ref={frameRef}
       className="absolute border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
       style={{
         left: `${pixelCrop.x}px`,
@@ -209,19 +206,42 @@ export function CropFrame({
         height: `${pixelCrop.height}px`,
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
-      onMouseDown={handleFrameMouseDown}
+      onMouseDown={handleMouseDown}
     >
       <CropGrid />
 
-      {/* Resize handles */}
-      <ResizeHandle position="tl" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="tr" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="bl" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="br" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="t" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="r" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="b" onMouseDown={handleResizeMouseDown} />
-      <ResizeHandle position="l" onMouseDown={handleResizeMouseDown} />
+      <ResizeHandle
+        position="tl"
+        onMouseDown={(e) => handleResizeStart(e, 'tl')}
+      />
+      <ResizeHandle
+        position="tr"
+        onMouseDown={(e) => handleResizeStart(e, 'tr')}
+      />
+      <ResizeHandle
+        position="bl"
+        onMouseDown={(e) => handleResizeStart(e, 'bl')}
+      />
+      <ResizeHandle
+        position="br"
+        onMouseDown={(e) => handleResizeStart(e, 'br')}
+      />
+      <ResizeHandle
+        position="t"
+        onMouseDown={(e) => handleResizeStart(e, 't')}
+      />
+      <ResizeHandle
+        position="r"
+        onMouseDown={(e) => handleResizeStart(e, 'r')}
+      />
+      <ResizeHandle
+        position="b"
+        onMouseDown={(e) => handleResizeStart(e, 'b')}
+      />
+      <ResizeHandle
+        position="l"
+        onMouseDown={(e) => handleResizeStart(e, 'l')}
+      />
     </div>
   );
 }
