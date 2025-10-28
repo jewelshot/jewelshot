@@ -2,6 +2,8 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { X, GripVertical } from 'lucide-react';
+import TabList from '@/components/molecules/TabList';
+import CropPanel from '@/components/molecules/CropPanel';
 
 interface EditPanelProps {
   /**
@@ -16,7 +18,19 @@ interface EditPanelProps {
    * Initial position
    */
   initialPosition?: { x: number; y: number };
+  /**
+   * Crop ratio change handler
+   */
+  onCropRatioChange?: (ratio: number | null) => void;
 }
+
+const tabs = [
+  { id: 'crop', label: 'Crop' },
+  { id: 'transform', label: 'Transform' },
+  { id: 'adjust', label: 'Adjust' },
+  { id: 'colors', label: 'Colors' },
+  { id: 'filters', label: 'Filters' },
+];
 
 /**
  * EditPanel - Draggable edit tools panel
@@ -25,9 +39,11 @@ export function EditPanel({
   isOpen,
   onClose,
   initialPosition = { x: 100, y: 100 },
+  onCropRatioChange,
 }: EditPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
+  const [activeTab, setActiveTab] = useState('crop');
   const dragStartPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -99,9 +115,39 @@ export function EditPanel({
       </div>
 
       {/* Panel Content */}
-      <div className="p-4">
-        <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-white/20 text-sm text-white/50">
-          Edit tools will be added here
+      <div className="space-y-4 p-4">
+        {/* Tabs */}
+        <TabList tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Tab Content */}
+        <div className="max-h-[400px] overflow-y-auto">
+          {activeTab === 'crop' && (
+            <CropPanel onCropRatioChange={onCropRatioChange || (() => {})} />
+          )}
+
+          {activeTab === 'transform' && (
+            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
+              Transform tools coming soon
+            </div>
+          )}
+
+          {activeTab === 'adjust' && (
+            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
+              Adjust tools coming soon
+            </div>
+          )}
+
+          {activeTab === 'colors' && (
+            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
+              Color tools coming soon
+            </div>
+          )}
+
+          {activeTab === 'filters' && (
+            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
+              Filter tools coming soon
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -27,6 +27,7 @@ export function Canvas() {
     'none' | 'black' | 'gray' | 'white' | 'alpha'
   >('none');
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [cropRatio, setCropRatio] = useState<number | null>(null);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -103,6 +104,12 @@ export function Canvas() {
 
   const handleToggleEditPanel = () => {
     setIsEditPanelOpen((prev) => !prev);
+  };
+
+  const handleCropRatioChange = (ratio: number | null) => {
+    setCropRatio(ratio);
+    console.log('Crop ratio selected:', ratio);
+    // TODO: Implement actual crop functionality
   };
 
   // Listen for fullscreen changes
@@ -250,6 +257,7 @@ export function Canvas() {
               isOpen={isEditPanelOpen}
               onClose={() => setIsEditPanelOpen(false)}
               initialPosition={{ x: 100, y: 100 }}
+              onCropRatioChange={handleCropRatioChange}
             />
           </>
         )}
