@@ -22,6 +22,7 @@ import ImageViewer from '@/components/molecules/ImageViewer';
 import EditPanel from '@/components/organisms/EditPanel';
 import CropModal from '@/components/organisms/CropModal';
 import UIToggleButton from '@/components/atoms/UIToggleButton';
+import ViewModeSelector from '@/components/atoms/ViewModeSelector';
 
 export function Canvas() {
   const {
@@ -102,9 +103,11 @@ export function Canvas() {
   // Toast notifications
   const { showToast, hideToast, toastState } = useToast();
 
-  // AI Image Edit
+  // AI Image Edit & Comparison
   // Track AI image loading state
   const [isAIImageLoading, setIsAIImageLoading] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'normal' | 'side-by-side'>('normal');
 
   const {
     edit: editWithAI,
@@ -561,6 +564,9 @@ export function Canvas() {
     const handleAIEditGenerate = (event: CustomEvent) => {
       const { prompt, imageUrl } = event.detail;
       if (imageUrl) {
+        // Save original image before AI editing
+        setOriginalImage(imageUrl);
+
         editWithAI({
           prompt: prompt || '', // Allow empty prompt for random generation
           image_urls: [imageUrl],
@@ -630,24 +636,106 @@ export function Canvas() {
 
         {uploadedImage && (
           <>
-            <ImageViewer
-              key={uploadedImage}
-              src={uploadedImage}
-              alt="Uploaded"
-              scale={scale}
-              position={position}
-              onScaleChange={setScale}
-              onPositionChange={setPosition}
-              transform={transform}
-              adjustFilters={adjustFilters}
-              colorFilters={colorFilters}
-              filterEffects={filterEffects}
-              isAIProcessing={isAIEditing || isAIImageLoading}
-              aiProgress={aiProgress}
-              onImageLoad={handleAIImageLoad}
-              onImageError={handleAIImageError}
-              controlsVisible={canvasControlsVisible}
-            />
+            {/* Image Viewer - Normal or Side by Side */}
+            {viewMode === 'normal' ? (
+              <ImageViewer
+                key={uploadedImage}
+                src={uploadedImage}
+                alt="Uploaded"
+                scale={scale}
+                position={position}
+                onScaleChange={setScale}
+                onPositionChange={setPosition}
+                transform={transform}
+                adjustFilters={adjustFilters}
+                colorFilters={colorFilters}
+                filterEffects={filterEffects}
+                isAIProcessing={isAIEditing || isAIImageLoading}
+                aiProgress={aiProgress}
+                onImageLoad={handleAIImageLoad}
+                onImageError={handleAIImageError}
+                controlsVisible={canvasControlsVisible}
+              />
+            ) : (
+              /* Side by Side View */
+              <div className="flex h-full w-full items-center justify-center gap-4 p-4">
+                {/* Original Image */}
+                {originalImage && (
+                  <div className="flex h-full w-1/2 flex-col items-center justify-center gap-2">
+                    <span className="text-xs font-medium text-[rgba(196,181,253,0.8)]">
+                      Original
+                    </span>
+                    <div className="relative h-full w-full">
+                      <ImageViewer
+                        key={originalImage}
+                        src={originalImage}
+                        alt="Original"
+                        scale={scale}
+                        position={position}
+                        onScaleChange={setScale}
+                        onPositionChange={setPosition}
+                        transform={{
+                          rotation: 0,
+                          flipHorizontal: false,
+                          flipVertical: false,
+                        }}
+                        adjustFilters={{
+                          brightness: 0,
+                          contrast: 0,
+                          exposure: 0,
+                          highlights: 0,
+                          shadows: 0,
+                          whites: 0,
+                          blacks: 0,
+                          clarity: 0,
+                          sharpness: 0,
+                          dehaze: 0,
+                        }}
+                        colorFilters={{ temperature: 0, tint: 0 }}
+                        filterEffects={{
+                          blur: 0,
+                          grayscale: 0,
+                          sepia: 0,
+                          invert: 0,
+                        }}
+                        isAIProcessing={false}
+                        aiProgress=""
+                        onImageLoad={() => {}}
+                        onImageError={() => {}}
+                        controlsVisible={canvasControlsVisible}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Generated Image */}
+                <div className="flex h-full w-1/2 flex-col items-center justify-center gap-2">
+                  <span className="text-xs font-medium text-[rgba(196,181,253,0.8)]">
+                    AI Generated
+                  </span>
+                  <div className="relative h-full w-full">
+                    <ImageViewer
+                      key={uploadedImage}
+                      src={uploadedImage}
+                      alt="AI Generated"
+                      scale={scale}
+                      position={position}
+                      onScaleChange={setScale}
+                      onPositionChange={setPosition}
+                      transform={transform}
+                      adjustFilters={adjustFilters}
+                      colorFilters={colorFilters}
+                      filterEffects={filterEffects}
+                      isAIProcessing={isAIEditing || isAIImageLoading}
+                      aiProgress={aiProgress}
+                      onImageLoad={handleAIImageLoad}
+                      onImageError={handleAIImageError}
+                      controlsVisible={canvasControlsVisible}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Top Left Controls - File Info */}
             <div
@@ -683,6 +771,14 @@ export function Canvas() {
                 pointerEvents: canvasControlsVisible ? 'auto' : 'none',
               }}
             >
+              {/* View Mode Selector - only show if AI image exists */}
+              {originalImage && (
+                <ViewModeSelector
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  disabled={isAIEditing || isAIImageLoading}
+                />
+              )}
               <ZoomControls
                 scale={scale}
                 onZoomIn={handleZoomIn}
