@@ -96,6 +96,7 @@ export function Canvas() {
         setUploadedImage(event.target?.result as string);
         setScale(1.0);
         setPosition({ x: 0, y: 0 });
+        setIsEditPanelOpen(false); // Close EditPanel when new image is loaded
         setIsLoading(false);
       };
       reader.readAsDataURL(file);
@@ -138,6 +139,7 @@ export function Canvas() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    setIsEditPanelOpen(false); // Close EditPanel when image is closed
   };
 
   const handleZoomIn = () => {
