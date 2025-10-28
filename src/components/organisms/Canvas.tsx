@@ -173,11 +173,6 @@ export function Canvas() {
     setIsEditPanelOpen((prev) => !prev);
   };
 
-  // Close edit panel when image changes (new upload)
-  useEffect(() => {
-    setIsEditPanelOpen(false);
-  }, [uploadedImage]);
-
   // Auto-collapse/restore bars when edit panel opens/closes
   useEffect(() => {
     // Only run this effect when image is uploaded (prevents flash during image change)
@@ -386,8 +381,8 @@ export function Canvas() {
               />
             </div>
 
-            {/* Edit Panel - Only render when image is uploaded and not loading */}
-            {uploadedImage && !isLoading && (
+            {/* Edit Panel - Only render when explicitly opened by user */}
+            {uploadedImage && !isLoading && isEditPanelOpen && (
               <EditPanel
                 isOpen={isEditPanelOpen}
                 onClose={() => setIsEditPanelOpen(false)}
