@@ -134,7 +134,10 @@ export function ImageCard({
 
       {/* Date Badge */}
       {createdAt && (
-        <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
+        <div
+          className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm"
+          suppressHydrationWarning
+        >
           {createdAt.toLocaleDateString()}
         </div>
       )}
