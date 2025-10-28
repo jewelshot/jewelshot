@@ -52,7 +52,7 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           <div
             className="absolute inset-0 rounded-xl bg-purple-500/30"
             style={{
-              animation: 'slowPulse 4s ease-in-out infinite',
+              animation: 'slowPulse 2.5s ease-in-out infinite',
               filter: 'blur(12px)',
               transform: 'scale(1.1)',
             }}
