@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 
 interface ImageCardProps {
   id: string;
@@ -33,15 +32,12 @@ export function ImageCard({
     >
       {/* Image */}
       {!imageError ? (
-        <div className="relative h-full w-full">
-          <Image
-            src={src}
-            alt={alt}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={() => setImageError(true)}
-          />
-        </div>
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={() => setImageError(true)}
+        />
       ) : (
         <div className="flex h-full w-full items-center justify-center">
           <svg
