@@ -45,7 +45,7 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           className="relative inline-block"
           style={{
             animation:
-              'welcomeZoomIn 1.6s ease-out 0.45s forwards, floatButton 3s ease-in-out 2.5s infinite',
+              'welcomeZoomIn 1.6s ease-out 0.45s forwards, floatButton 3s ease-in-out 2.05s infinite',
             opacity: 0,
           }}
         >
@@ -54,7 +54,7 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
             className="absolute inset-0 rounded-xl bg-purple-500"
             style={{
               animation:
-                'glowFadeIn 1.6s ease-out 0.45s forwards, slowPulse 2.5s ease-in-out 2.05s infinite',
+                'glowFadeIn 1.6s ease-out 0.45s forwards, slowPulse 3s ease-in-out 2.05s infinite',
               filter: 'blur(12px)',
               transform: 'scale(1.1)',
               opacity: 0, // Start invisible, fade in with button
