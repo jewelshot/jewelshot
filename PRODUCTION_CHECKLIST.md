@@ -476,9 +476,58 @@ const handleDownload = (
 - File type validation
 - File size limits
 
+### ⚠️ **Critical for Production**:
+
+1. **FAL.AI API Proxy** (HIGH PRIORITY)
+
+**Current Issue**: API key exposed in browser (`NEXT_PUBLIC_FAL_KEY`)
+
+**Solution**: Create Next.js API Route as proxy
+
+```typescript
+// app/api/ai/edit/route.ts
+import { NextRequest } from 'next/server';
+import { editImage } from '@/lib/ai/fal-client';
+
+export async function POST(request: NextRequest) {
+  // Server-side only - API key never exposed
+  const { prompt, imageUrls, aspectRatio } = await request.json();
+
+  // Optional: Add rate limiting here
+  // Optional: Add authentication
+
+  try {
+    const result = await editImage({
+      prompt,
+      image_urls: imageUrls,
+      aspect_ratio: aspectRatio,
+    });
+
+    return Response.json(result);
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
+```
+
+Then update client to use proxy:
+
+```typescript
+// Instead of calling editImage directly
+const response = await fetch('/api/ai/edit', {
+  method: 'POST',
+  body: JSON.stringify({ prompt, imageUrls, aspectRatio }),
+});
+const result = await response.json();
+```
+
+**Priority**: 🔴 **HIGH** (before production launch)
+
+---
+
 ### ⚠️ **Consider Adding**:
 
-1. **Content Security Policy (CSP)**
+2. **Content Security Policy (CSP)**
 
 ```typescript
 // next.config.ts

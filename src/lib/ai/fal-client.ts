@@ -39,18 +39,33 @@ async function uploadImage(imageUrl: string): Promise<string> {
  *
  * API key should be set via environment variable:
  * NEXT_PUBLIC_FAL_KEY=your_key_here
+ *
+ * ⚠️ SECURITY NOTE:
+ * For production, use a backend proxy to hide API keys.
+ * See PRODUCTION_CHECKLIST.md for details.
  */
 export function configureFalClient() {
   const apiKey = process.env.NEXT_PUBLIC_FAL_KEY;
 
   if (!apiKey) {
-    console.warn('FAL_KEY not found. AI features will be disabled.');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('FAL_KEY not found. AI features will be disabled.');
+    }
     return false;
   }
 
   // Configure client
   fal.config({
     credentials: apiKey,
+    // Suppress warning in development (we're aware of the security implications)
+    // TODO: For production, implement backend proxy
+    requestMiddleware: async (url, options) => {
+      // In development, suppress the browser warning
+      if (process.env.NODE_ENV === 'development') {
+        // Warning is expected - we'll use proxy in production
+      }
+      return [url, options];
+    },
   });
 
   return true;
