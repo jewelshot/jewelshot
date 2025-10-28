@@ -245,42 +245,70 @@ export function Canvas() {
     const imageName = searchParams.get('imageName');
 
     if (imageUrl && !uploadedImage) {
-      // Fetch image and load into canvas
-      setIsLoading(true);
+      try {
+        // Check if it's a base64 data URL (from localStorage gallery)
+        if (imageUrl.startsWith('data:')) {
+          // Direct base64 - no need to fetch
+          setUploadedImage(imageUrl);
+          setFileName(imageName || 'gallery-image.jpg');
 
-      fetch(imageUrl)
-        .then((response) => response.blob())
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            if (e.target?.result) {
-              setUploadedImage(e.target.result as string);
-              setFileName(imageName || 'gallery-image.jpg');
-              setFileSize(blob.size);
-              setIsLoading(false);
+          // Estimate file size from base64 length
+          const base64Data = imageUrl.split(',')[1] || '';
+          const estimatedSize = (base64Data.length * 3) / 4; // Base64 to bytes
+          setFileSize(estimatedSize);
 
-              // Reset transformations and filters for fresh start
-              resetTransform();
-              resetFilters();
+          // Reset transformations and filters for fresh start
+          resetTransform();
+          resetFilters();
 
-              showToast('Image loaded from gallery!', 'success');
+          showToast('Image loaded from gallery!', 'success');
 
-              // Clear query params
-              router.replace('/studio', { scroll: false });
-            }
-          };
-          reader.onerror = () => {
-            setIsLoading(false);
-            showToast('Failed to load image from gallery', 'error');
-            router.replace('/studio', { scroll: false });
-          };
-          reader.readAsDataURL(blob);
-        })
-        .catch(() => {
-          setIsLoading(false);
-          showToast('Failed to fetch image from gallery', 'error');
+          // Clear query params
           router.replace('/studio', { scroll: false });
-        });
+        } else {
+          // External URL - fetch it
+          setIsLoading(true);
+
+          fetch(imageUrl)
+            .then((response) => response.blob())
+            .then((blob) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                if (e.target?.result) {
+                  setUploadedImage(e.target.result as string);
+                  setFileName(imageName || 'gallery-image.jpg');
+                  setFileSize(blob.size);
+                  setIsLoading(false);
+
+                  // Reset transformations and filters for fresh start
+                  resetTransform();
+                  resetFilters();
+
+                  showToast('Image loaded from gallery!', 'success');
+
+                  // Clear query params
+                  router.replace('/studio', { scroll: false });
+                }
+              };
+              reader.onerror = () => {
+                setIsLoading(false);
+                showToast('Failed to load image from gallery', 'error');
+                router.replace('/studio', { scroll: false });
+              };
+              reader.readAsDataURL(blob);
+            })
+            .catch(() => {
+              setIsLoading(false);
+              showToast('Failed to fetch image from gallery', 'error');
+              router.replace('/studio', { scroll: false });
+            });
+        }
+      } catch (error) {
+        console.error('Failed to load image from gallery:', error);
+        showToast('Failed to load image from gallery', 'error');
+        setIsLoading(false);
+        router.replace('/studio', { scroll: false });
+      }
     }
   }, [
     searchParams,
