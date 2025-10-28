@@ -148,16 +148,22 @@ export function CropFrame({
         const startCrop = dragData.current.startCrop;
 
         // Anchor point (opposite corner/edge that stays fixed)
+        // For aspect ratio mode, edge handles use center anchor
+        // For free mode, edge handles use opposite edge anchor
         const anchorX = handle.includes('l')
           ? startCrop.x + startCrop.width
           : handle.includes('r')
             ? startCrop.x
-            : startCrop.x + startCrop.width / 2;
+            : aspectRatio
+              ? startCrop.x + startCrop.width / 2 // Center for aspect ratio
+              : startCrop.x; // Left edge for free mode
         const anchorY = handle.includes('t')
           ? startCrop.y + startCrop.height
           : handle.includes('b')
             ? startCrop.y
-            : startCrop.y + startCrop.height / 2;
+            : aspectRatio
+              ? startCrop.y + startCrop.height / 2 // Center for aspect ratio
+              : startCrop.y; // Top edge for free mode
 
         // Calculate target dimensions
         let targetWidth = startCrop.width;
@@ -207,20 +213,34 @@ export function CropFrame({
         }
 
         // Calculate initial position from anchor
-        let targetX = anchorX - targetWidth;
-        let targetY = anchorY - targetHeight;
+        let targetX: number;
+        let targetY: number;
 
-        // Adjust for right/bottom anchored handles
-        if (handle.includes('r')) targetX = anchorX;
-        if (handle.includes('b')) targetY = anchorY;
-        // Edge handles keep center
-        if (handle === 't' || handle === 'b')
-          targetX = anchorX - targetWidth / 2;
-        if (handle === 'l' || handle === 'r')
-          targetY = anchorY - targetHeight / 2;
-
-        // CHECK IF FITS - if aspect ratio is active and frame exceeds bounds, scale down proportionally
         if (aspectRatio) {
+          // ASPECT RATIO MODE: anchor point determines position (with center alignment for edges)
+          targetX = anchorX - targetWidth;
+          targetY = anchorY - targetHeight;
+
+          // Adjust for right/bottom anchored handles
+          if (handle.includes('r')) targetX = anchorX;
+          if (handle.includes('b')) targetY = anchorY;
+          // Edge handles keep center
+          if (handle === 't' || handle === 'b')
+            targetX = anchorX - targetWidth / 2;
+          if (handle === 'l' || handle === 'r')
+            targetY = anchorY - targetHeight / 2;
+        } else {
+          // FREE MODE: only move the dragged edge, keep others fixed
+          targetX = anchorX; // Default: keep left edge (for t/b/r handles)
+          targetY = anchorY; // Default: keep top edge (for l/r/b handles)
+
+          if (handle.includes('l')) targetX = anchorX - targetWidth; // Move left edge
+          if (handle.includes('t')) targetY = anchorY - targetHeight; // Move top edge
+        }
+
+        // Boundary constraints
+        if (aspectRatio) {
+          // ASPECT RATIO MODE: scale proportionally to fit within bounds
           // First, ensure dimensions don't exceed canvas size
           if (targetWidth > 1 || targetHeight > 1) {
             const scaleForSize = Math.min(1 / targetWidth, 1 / targetHeight);
@@ -247,21 +267,13 @@ export function CropFrame({
             // Calculate required scale to fit within bounds
             let scale = 1;
 
-            if (targetX < 0) {
-              // Need to shrink to fit left boundary
-              scale = Math.min(scale, anchorX / targetWidth);
-            }
-            if (targetY < 0) {
-              // Need to shrink to fit top boundary
-              scale = Math.min(scale, anchorY / targetHeight);
-            }
+            if (targetX < 0) scale = Math.min(scale, anchorX / targetWidth);
+            if (targetY < 0) scale = Math.min(scale, anchorY / targetHeight);
             if (targetX + targetWidth > 1) {
-              // Need to shrink to fit right boundary
               const availableWidth = 1 - anchorX;
               scale = Math.min(scale, availableWidth / targetWidth);
             }
             if (targetY + targetHeight > 1) {
-              // Need to shrink to fit bottom boundary
               const availableHeight = 1 - anchorY;
               scale = Math.min(scale, availableHeight / targetHeight);
             }
@@ -281,19 +293,31 @@ export function CropFrame({
               else targetY = anchorY - targetHeight / 2;
             }
           }
-        }
 
-        // Final safety clamp (position only - dimensions already scaled to fit)
-        if (aspectRatio) {
-          // For aspect ratio mode, only clamp position to ensure frame stays in bounds
+          // Final position clamp
           targetX = Math.max(0, Math.min(targetX, 1 - targetWidth));
           targetY = Math.max(0, Math.min(targetY, 1 - targetHeight));
         } else {
-          // For free mode, clamp everything
-          targetX = Math.max(0, Math.min(targetX, 1 - targetWidth));
-          targetY = Math.max(0, Math.min(targetY, 1 - targetHeight));
-          targetWidth = Math.min(targetWidth, 1);
-          targetHeight = Math.min(targetHeight, 1);
+          // FREE MODE: simple boundary clamp (no scaling)
+          // Clamp position and dimensions independently
+          if (targetX < 0) {
+            targetWidth += targetX;
+            targetX = 0;
+          }
+          if (targetY < 0) {
+            targetHeight += targetY;
+            targetY = 0;
+          }
+          if (targetX + targetWidth > 1) {
+            targetWidth = 1 - targetX;
+          }
+          if (targetY + targetHeight > 1) {
+            targetHeight = 1 - targetY;
+          }
+
+          // Ensure minimum size
+          targetWidth = Math.max(0.02, Math.min(targetWidth, 1));
+          targetHeight = Math.max(0.02, Math.min(targetHeight, 1));
         }
 
         setCrop({
