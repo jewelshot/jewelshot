@@ -139,12 +139,12 @@ export function CropFrame({
 
         setCrop(newCrop);
       } else if (isResizing) {
-        // Resize the frame with proper anchor point
+        // Simplified resize with proper aspect ratio handling
         const handle = dragData.current.handle;
         const startCrop = dragData.current.startCrop;
-        const newCrop = { ...startCrop };
+        let newCrop = { ...startCrop };
 
-        // Calculate anchor point (opposite corner/edge)
+        // Determine anchor point (opposite corner/edge that stays fixed)
         const anchorX = handle.includes('l')
           ? startCrop.x + startCrop.width
           : startCrop.x;
@@ -152,150 +152,148 @@ export function CropFrame({
           ? startCrop.y + startCrop.height
           : startCrop.y;
 
-        // Apply deltas based on handle
+        // Calculate new dimensions based on mouse delta
+        let newX = newCrop.x;
+        let newY = newCrop.y;
+        let newWidth = newCrop.width;
+        let newHeight = newCrop.height;
+
         if (handle.includes('l')) {
-          const newLeft = Math.max(
-            0,
-            Math.min(startCrop.x + normDeltaX, anchorX - 0.05)
-          );
-          newCrop.x = newLeft;
-          newCrop.width = anchorX - newLeft;
+          newX = startCrop.x + normDeltaX;
+          newWidth = anchorX - newX;
+        } else if (handle.includes('r')) {
+          newWidth = startCrop.width + normDeltaX;
         }
-        if (handle.includes('r')) {
-          const newRight = Math.max(
-            anchorX + 0.05,
-            Math.min(1, anchorX + normDeltaX)
-          );
-          newCrop.width = newRight - anchorX;
-        }
+
         if (handle.includes('t')) {
-          const newTop = Math.max(
-            0,
-            Math.min(startCrop.y + normDeltaY, anchorY - 0.05)
-          );
-          newCrop.y = newTop;
-          newCrop.height = anchorY - newTop;
-        }
-        if (handle.includes('b')) {
-          const newBottom = Math.max(
-            anchorY + 0.05,
-            Math.min(1, anchorY + normDeltaY)
-          );
-          newCrop.height = newBottom - anchorY;
+          newY = startCrop.y + normDeltaY;
+          newHeight = anchorY - newY;
+        } else if (handle.includes('b')) {
+          newHeight = startCrop.height + normDeltaY;
         }
 
-        // Apply aspect ratio constraint
+        // Ensure minimum size
+        if (newWidth < 0.05) {
+          newWidth = 0.05;
+          if (handle.includes('l')) newX = anchorX - 0.05;
+        }
+        if (newHeight < 0.05) {
+          newHeight = 0.05;
+          if (handle.includes('t')) newY = anchorY - 0.05;
+        }
+
+        // Apply aspect ratio if needed
         if (aspectRatio) {
-          const oldWidth = newCrop.width;
-          const oldHeight = newCrop.height;
+          const currentPixelWidth = newWidth * imageSize.width;
+          const currentPixelHeight = newHeight * imageSize.height;
+          const currentRatio = currentPixelWidth / currentPixelHeight;
 
-          if (handle.includes('t') || handle.includes('b')) {
-            // Vertical resize - adjust width to maintain ratio
-            const targetWidth =
-              (newCrop.height * imageSize.height * aspectRatio) /
-              imageSize.width;
+          // Determine which dimension to base the resize on
+          const resizingWidth = handle === 'l' || handle === 'r';
+          const resizingHeight = handle === 't' || handle === 'b';
 
-            // Check if new width fits
+          if (resizingHeight && !resizingWidth) {
+            // Only height is changing - calculate width
+            newWidth =
+              (newHeight * imageSize.height * aspectRatio) / imageSize.width;
+
+            // Adjust position to keep anchor point
             if (handle.includes('l')) {
-              // Anchor is on right, expand/shrink left
-              const newLeft = anchorX - targetWidth;
-              if (newLeft >= 0) {
-                newCrop.width = targetWidth;
-                newCrop.x = newLeft;
-              } else {
-                // Hit left bound, constrain by width
-                newCrop.x = 0;
-                newCrop.width = anchorX;
-                newCrop.height =
-                  (newCrop.width * imageSize.width) /
-                  (aspectRatio * imageSize.height);
-                if (handle.includes('t')) {
-                  newCrop.y = anchorY - newCrop.height;
-                }
-              }
+              newX = anchorX - newWidth;
             } else if (handle.includes('r')) {
-              // Anchor is on left, expand/shrink right
-              if (anchorX + targetWidth <= 1) {
-                newCrop.width = targetWidth;
-              } else {
-                // Hit right bound, constrain by width
-                newCrop.width = 1 - anchorX;
-                newCrop.height =
-                  (newCrop.width * imageSize.width) /
-                  (aspectRatio * imageSize.height);
-                if (handle.includes('t')) {
-                  newCrop.y = anchorY - newCrop.height;
-                }
-              }
+              newX = anchorX;
             } else {
-              // Top or bottom only - center horizontally
-              newCrop.width = targetWidth;
-              newCrop.x = Math.max(
-                0,
-                Math.min(
-                  startCrop.x - (targetWidth - oldWidth) / 2,
-                  1 - targetWidth
-                )
-              );
+              // Center horizontally
+              newX = anchorX - newWidth / 2;
+            }
+          } else if (resizingWidth && !resizingHeight) {
+            // Only width is changing - calculate height
+            newHeight =
+              (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+
+            // Adjust position to keep anchor point
+            if (handle.includes('t')) {
+              newY = anchorY - newHeight;
+            } else if (handle.includes('b')) {
+              newY = anchorY;
+            } else {
+              // Center vertically
+              newY = anchorY - newHeight / 2;
             }
           } else {
-            // Horizontal resize - adjust height to maintain ratio
-            const targetHeight =
-              (newCrop.width * imageSize.width) /
-              (aspectRatio * imageSize.height);
+            // Corner - maintain ratio, prefer the dimension that changed more
+            const widthChange = Math.abs(normDeltaX);
+            const heightChange = Math.abs(normDeltaY);
 
-            // Check if new height fits
-            if (handle.includes('t')) {
-              // Anchor is on bottom, expand/shrink top
-              const newTop = anchorY - targetHeight;
-              if (newTop >= 0) {
-                newCrop.height = targetHeight;
-                newCrop.y = newTop;
-              } else {
-                // Hit top bound, constrain by height
-                newCrop.y = 0;
-                newCrop.height = anchorY;
-                newCrop.width =
-                  (newCrop.height * imageSize.height * aspectRatio) /
-                  imageSize.width;
-                if (handle.includes('l')) {
-                  newCrop.x = anchorX - newCrop.width;
-                }
-              }
-            } else if (handle.includes('b')) {
-              // Anchor is on top, expand/shrink bottom
-              if (anchorY + targetHeight <= 1) {
-                newCrop.height = targetHeight;
-              } else {
-                // Hit bottom bound, constrain by height
-                newCrop.height = 1 - anchorY;
-                newCrop.width =
-                  (newCrop.height * imageSize.height * aspectRatio) /
-                  imageSize.width;
-                if (handle.includes('l')) {
-                  newCrop.x = anchorX - newCrop.width;
-                }
+            if (widthChange > heightChange) {
+              // Width changed more - adjust height
+              newHeight =
+                (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+              if (handle.includes('t')) {
+                newY = anchorY - newHeight;
               }
             } else {
-              // Left or right only - center vertically
-              newCrop.height = targetHeight;
-              newCrop.y = Math.max(
-                0,
-                Math.min(
-                  startCrop.y - (targetHeight - oldHeight) / 2,
-                  1 - targetHeight
-                )
-              );
+              // Height changed more - adjust width
+              newWidth =
+                (newHeight * imageSize.height * aspectRatio) / imageSize.width;
+              if (handle.includes('l')) {
+                newX = anchorX - newWidth;
+              }
             }
           }
         }
 
-        // Final bounds check
-        newCrop.x = Math.max(0, Math.min(newCrop.x, 1 - newCrop.width));
-        newCrop.y = Math.max(0, Math.min(newCrop.y, 1 - newCrop.height));
-        newCrop.width = Math.min(newCrop.width, 1 - newCrop.x);
-        newCrop.height = Math.min(newCrop.height, 1 - newCrop.y);
+        // Constrain to bounds
+        if (newX < 0) {
+          newWidth += newX;
+          newX = 0;
+          if (aspectRatio) {
+            newHeight =
+              (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+            if (handle.includes('t')) {
+              newY = anchorY - newHeight;
+            }
+          }
+        }
+        if (newY < 0) {
+          newHeight += newY;
+          newY = 0;
+          if (aspectRatio) {
+            newWidth =
+              (newHeight * imageSize.height * aspectRatio) / imageSize.width;
+            if (handle.includes('l')) {
+              newX = anchorX - newWidth;
+            }
+          }
+        }
+        if (newX + newWidth > 1) {
+          newWidth = 1 - newX;
+          if (aspectRatio) {
+            newHeight =
+              (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+            if (handle.includes('t')) {
+              newY = anchorY - newHeight;
+            }
+          }
+        }
+        if (newY + newHeight > 1) {
+          newHeight = 1 - newY;
+          if (aspectRatio) {
+            newWidth =
+              (newHeight * imageSize.height * aspectRatio) / imageSize.width;
+            if (handle.includes('l')) {
+              newX = anchorX - newWidth;
+            }
+          }
+        }
 
+        // Final check - ensure we're still in bounds after aspect ratio adjustments
+        newX = Math.max(0, Math.min(newX, 1 - newWidth));
+        newY = Math.max(0, Math.min(newY, 1 - newHeight));
+        newWidth = Math.min(newWidth, 1 - newX);
+        newHeight = Math.min(newHeight, 1 - newY);
+
+        newCrop = { x: newX, y: newY, width: newWidth, height: newHeight };
         setCrop(newCrop);
       }
     };
