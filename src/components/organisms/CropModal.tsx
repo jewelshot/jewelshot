@@ -121,7 +121,7 @@ export function CropModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm">
+    <div className="bg-black/97 fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md">
       {/* Hidden canvas for cropping */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -131,7 +131,7 @@ export function CropModal({
         style={{
           width: imageSize.width,
           height: imageSize.height,
-          filter: 'drop-shadow(0 0 40px rgba(139, 92, 246, 0.15))',
+          filter: 'drop-shadow(0 0 60px rgba(139, 92, 246, 0.08))',
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}

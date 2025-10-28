@@ -20,19 +20,15 @@ export function ResizeHandle({ position, onMouseDown }: ResizeHandleProps) {
   const isCorner = ['tl', 'tr', 'bl', 'br'].includes(position);
 
   const getPositionStyles = () => {
-    const cornerSize = 'h-2 w-2';
-    const edgeSize =
-      position === 't' || position === 'b' ? 'h-[3px] w-6' : 'h-6 w-[3px]';
-
     const positions = {
-      tl: `top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize ${cornerSize}`,
-      tr: `top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize ${cornerSize}`,
-      bl: `bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize ${cornerSize}`,
-      br: `bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize ${cornerSize}`,
-      t: `top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize ${edgeSize}`,
-      r: `top-1/2 right-0 translate-x-1/2 -translate-y-1/2 cursor-ew-resize ${edgeSize}`,
-      b: `bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 cursor-ns-resize ${edgeSize}`,
-      l: `top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize ${edgeSize}`,
+      tl: 'top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize',
+      tr: 'top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize',
+      bl: 'bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize',
+      br: 'bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize',
+      t: 'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize',
+      r: 'top-1/2 right-0 translate-x-1/2 -translate-y-1/2 cursor-ew-resize',
+      b: 'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 cursor-ns-resize',
+      l: 'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize',
     };
 
     return positions[position];
@@ -40,21 +36,38 @@ export function ResizeHandle({ position, onMouseDown }: ResizeHandleProps) {
 
   return (
     <div
-      className={`group absolute z-10 bg-white hover:scale-[2] active:scale-150 ${
-        isCorner
-          ? 'rounded-full shadow-[0_0_8px_rgba(139,92,246,0.4),0_0_2px_rgba(255,255,255,0.6)] hover:shadow-[0_0_16px_rgba(139,92,246,0.7),0_0_6px_rgba(255,255,255,0.9)]'
-          : 'rounded-full shadow-[0_0_6px_rgba(139,92,246,0.3),0_0_2px_rgba(255,255,255,0.5)] hover:shadow-[0_0_12px_rgba(139,92,246,0.6),0_0_4px_rgba(255,255,255,0.8)]'
-      } ${getPositionStyles()}`}
+      className={`group absolute z-10 ${getPositionStyles()}`}
       style={{
-        willChange: 'transform',
-        transform: 'translateZ(0)', // GPU acceleration
-        touchAction: 'none', // Precise touch handling
-        // Extended hit area with pseudo-element
+        touchAction: 'none',
+        // Hit area (invisible but clickable)
         padding: '8px',
-        margin: '-8px',
       }}
       onMouseDown={(e) => onMouseDown(e, position)}
-    />
+    >
+      {/* Visible handle */}
+      <div
+        className={`bg-white/80 hover:bg-white group-hover:scale-125 group-active:scale-105 ${
+          isCorner
+            ? 'rounded-sm shadow-[0_0_4px_rgba(139,92,246,0.3),0_0_1px_rgba(255,255,255,0.4)] group-hover:shadow-[0_0_8px_rgba(139,92,246,0.5),0_0_2px_rgba(255,255,255,0.6)]'
+            : 'rounded-[1px] shadow-[0_0_3px_rgba(139,92,246,0.25),0_0_1px_rgba(255,255,255,0.3)] group-hover:shadow-[0_0_6px_rgba(139,92,246,0.4),0_0_2px_rgba(255,255,255,0.5)]'
+        }`}
+        style={{
+          width: isCorner
+            ? '7px'
+            : position === 't' || position === 'b'
+              ? '14px'
+              : '3px',
+          height: isCorner
+            ? '7px'
+            : position === 't' || position === 'b'
+              ? '3px'
+              : '14px',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
   );
 }
 
