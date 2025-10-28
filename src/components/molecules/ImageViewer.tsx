@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useImageSharpening } from '@/hooks/useImageSharpening';
+import { useSelectiveTone } from '@/hooks/useSelectiveTone';
 
 interface ImageViewerProps {
   src: string;
@@ -46,9 +47,20 @@ export function ImageViewer({
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0 });
 
-  // Apply professional sharpening using Unsharp Mask algorithm
-  const { processedSrc } = useImageSharpening({
+  // Processing pipeline (order matters):
+  // 1. Selective tone adjustment (highlights & shadows)
+  const { processedSrc: toneMappedSrc } = useSelectiveTone({
     originalSrc: src,
+    highlights: adjustFilters.highlights || 0,
+    shadows: adjustFilters.shadows || 0,
+    enabled:
+      (adjustFilters.highlights || 0) !== 0 ||
+      (adjustFilters.shadows || 0) !== 0,
+  });
+
+  // 2. Sharpening (applied after tone mapping)
+  const { processedSrc: finalProcessedSrc } = useImageSharpening({
+    originalSrc: toneMappedSrc,
     sharpness: adjustFilters.sharpness || 0,
     enabled: (adjustFilters.sharpness || 0) !== 0,
   });
@@ -149,109 +161,11 @@ export function ImageViewer({
       }
     }
 
-    // Highlights: Selective tonal adjustment for bright areas
-    // CSS filter limitation: Cannot truly isolate highlights, so we simulate
-    // the effect using brightness + contrast combination
-    // -100 → Recover blown highlights, 0 → Normal, +100 → Brighten highlights
-    if (
-      adjustFilters.highlights !== undefined &&
-      adjustFilters.highlights !== 0
-    ) {
-      // Scale factor for smooth transitions
-      const scaleFactor = Math.abs(adjustFilters.highlights) / 100;
+    // Highlights: Now handled by professional luminance-based algorithm via Canvas API
+    // Uses parametric curves and color preservation for Photoshop-quality results
 
-      if (adjustFilters.highlights < 0) {
-        // NEGATIVE: Recover/Pull down highlights
-        // Strategy: Reduce brightness in upper tones, increase contrast
-
-        // Brightness reduction (subtle, 1.0 to 0.85)
-        // At -50: 0.925, At -100: 0.85
-        const brightnessReduction = 1 - scaleFactor * 0.15;
-        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
-
-        // Contrast increase to compress highlights while preserving mids
-        // At -50: 1.10, At -100: 1.20
-        const contrastIncrease = 1 + scaleFactor * 0.2;
-        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
-
-        // Subtle saturation boost to maintain color in recovered highlights
-        // At -50: 1.025, At -100: 1.05
-        if (Math.abs(adjustFilters.highlights) > 30) {
-          const saturationBoost = 1 + scaleFactor * 0.05;
-          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
-        }
-      } else {
-        // POSITIVE: Brighten/Blow out highlights
-        // Strategy: Increase brightness in upper tones, reduce contrast
-
-        // Brightness increase (selective simulation, 1.0 to 1.25)
-        // At +50: 1.125, At +100: 1.25
-        const brightnessIncrease = 1 + scaleFactor * 0.25;
-        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
-
-        // Contrast reduction to allow highlights to blow out naturally
-        // At +50: 0.90, At +100: 0.80
-        const contrastReduction = 1 - scaleFactor * 0.2;
-        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
-
-        // Subtle saturation reduction in bright areas
-        // At +50: 0.975, At +100: 0.95
-        if (adjustFilters.highlights > 30) {
-          const saturationReduction = 1 - scaleFactor * 0.05;
-          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
-        }
-      }
-    }
-
-    // Shadows: Selective tonal adjustment for dark areas
-    // Opposite of highlights - affects lower tonal range
-    // -100 → Deepen/Crush shadows, 0 → Normal, +100 → Lift/Open shadows
-    if (adjustFilters.shadows !== undefined && adjustFilters.shadows !== 0) {
-      // Scale factor for smooth transitions
-      const scaleFactor = Math.abs(adjustFilters.shadows) / 100;
-
-      if (adjustFilters.shadows < 0) {
-        // NEGATIVE: Deepen/Crush shadows (darker blacks)
-        // Strategy: Reduce brightness in lower tones, increase contrast
-
-        // Brightness reduction targeted at shadows (1.0 to 0.80)
-        // At -50: 0.90, At -100: 0.80
-        const brightnessReduction = 1 - scaleFactor * 0.2;
-        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
-
-        // Contrast increase to push shadows deeper
-        // At -50: 1.15, At -100: 1.30
-        const contrastIncrease = 1 + scaleFactor * 0.3;
-        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
-
-        // Saturation reduction in deep shadows (crush effect)
-        // At -50: 0.95, At -100: 0.90
-        if (Math.abs(adjustFilters.shadows) > 30) {
-          const saturationReduction = 1 - scaleFactor * 0.1;
-          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
-        }
-      } else {
-        // POSITIVE: Lift/Open shadows (reveal shadow detail)
-        // Strategy: Increase brightness in lower tones, reduce contrast
-
-        // Brightness increase targeted at shadows (1.0 to 1.35)
-        // At +50: 1.175, At +100: 1.35
-        const brightnessIncrease = 1 + scaleFactor * 0.35;
-        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
-
-        // Contrast reduction to open up shadow areas
-        // At +50: 0.85, At +100: 0.70
-        const contrastReduction = 1 - scaleFactor * 0.3;
-        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
-
-        // Saturation boost to maintain color in lifted shadows
-        // At +50: 1.05, At +100: 1.10
-        if (adjustFilters.shadows > 30) {
-          const saturationBoost = 1 + scaleFactor * 0.1;
-          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
-        }
-      }
-    }
+    // Shadows: Now handled by professional luminance-based algorithm via Canvas API
+    // Uses parametric curves and color preservation for Photoshop-quality results
 
     // Whites: Extreme tonal adjustment for brightest areas (near-white tones)
     // More aggressive than highlights - targets the top 10% of tonal range
@@ -524,7 +438,7 @@ export function ImageViewer({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={processedSrc}
+        src={finalProcessedSrc}
         alt={alt}
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
