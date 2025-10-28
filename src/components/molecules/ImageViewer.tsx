@@ -7,6 +7,7 @@ import { useClarity } from '@/hooks/useClarity';
 import { useDehaze } from '@/hooks/useDehaze';
 import { useVignette } from '@/hooks/useVignette';
 import { useGrain } from '@/hooks/useGrain';
+import AILoadingOverlay from '@/components/atoms/AILoadingOverlay';
 
 interface ImageViewerProps {
   src: string;
@@ -48,6 +49,10 @@ interface ImageViewerProps {
     grainSize?: number;
     fadeAmount?: number;
   };
+  isAIProcessing?: boolean;
+  aiProgress?: string;
+  onImageLoad?: () => void;
+  onImageError?: () => void;
 }
 
 export function ImageViewer({
@@ -61,6 +66,10 @@ export function ImageViewer({
   adjustFilters = {},
   colorFilters = {},
   filterEffects = {},
+  isAIProcessing = false,
+  aiProgress = 'AI Processing...',
+  onImageLoad,
+  onImageError,
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -602,6 +611,8 @@ export function ImageViewer({
       <img
         src={finalProcessedSrc}
         alt={alt}
+        onLoad={onImageLoad}
+        onError={onImageError}
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
@@ -615,15 +626,25 @@ export function ImageViewer({
         draggable={false}
       />
 
+      {/* AI Loading Overlay */}
+      {isAIProcessing && <AILoadingOverlay progress={aiProgress} />}
+
       <style jsx>{`
         @keyframes scaleIn {
-          from {
+          0% {
             opacity: 0;
-            transform: translate(${position.x}px, ${position.y}px) scale(0.9);
+            transform: translate(${position.x}px, ${position.y}px) scale(0.85)
+              translateY(30px);
           }
-          to {
+          50% {
+            opacity: 0.7;
+            transform: translate(${position.x}px, ${position.y}px) scale(0.95)
+              translateY(10px);
+          }
+          100% {
             opacity: 1;
-            transform: translate(${position.x}px, ${position.y}px) scale(1);
+            transform: translate(${position.x}px, ${position.y}px) scale(1)
+              translateY(0);
           }
         }
       `}</style>

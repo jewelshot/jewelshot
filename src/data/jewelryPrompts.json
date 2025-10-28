@@ -1,0 +1,30 @@
+[
+  {
+    "id": "enhance-sparkle",
+    "label": "Enhance Sparkle",
+    "prompt": "Enhance diamond sparkle and gemstone brilliance with professional jewelry photography lighting. Boost crystal clarity, increase shine on metal surfaces, and bring out the natural fire and scintillation of precious stones. Studio-quality enhancement with perfect white balance and sharp macro details.",
+    "icon": "sparkles",
+    "category": "enhancement"
+  },
+  {
+    "id": "white-background",
+    "label": "Clean White Background",
+    "prompt": "Transform to professional jewelry catalog photography with pure white background. Remove all distractions, create clean seamless backdrop, maintain perfect product shadows for depth. High-end e-commerce ready with consistent lighting and premium presentation quality.",
+    "icon": "square",
+    "category": "background"
+  },
+  {
+    "id": "studio-lighting",
+    "label": "Studio Lighting",
+    "prompt": "Apply professional studio lighting setup for luxury jewelry photography. Multi-point lighting with soft diffusion, eliminate harsh shadows, create dimensional depth with subtle highlights. Perfect exposure with dramatic yet elegant illumination that showcases every facet and detail.",
+    "icon": "zap",
+    "category": "lighting"
+  },
+  {
+    "id": "luxury-editorial",
+    "label": "Luxury Editorial",
+    "prompt": "Transform into high-end magazine editorial jewelry photography. Cinematic color grading with rich tones, sophisticated atmosphere, and artistic composition. Premium fashion catalog quality with dramatic contrast, elegant styling, and luxurious presentation that tells a story.",
+    "icon": "gem",
+    "category": "style"
+  }
+]

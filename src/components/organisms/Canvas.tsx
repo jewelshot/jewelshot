@@ -8,7 +8,9 @@ import { useImageFilters } from '@/hooks/useImageFilters';
 import { useCanvasUI } from '@/hooks/useCanvasUI';
 import { useToast } from '@/hooks/useToast';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useImageEdit } from '@/hooks/useImageEdit';
 import Toast from '@/components/atoms/Toast';
+import AIEditControl from '@/components/molecules/AIEditControl';
 import ZoomControls from '@/components/molecules/ZoomControls';
 import ActionControls from '@/components/molecules/ActionControls';
 import TopLeftControls from '@/components/molecules/TopLeftControls';
@@ -19,6 +21,7 @@ import LoadingState from '@/components/atoms/LoadingState';
 import ImageViewer from '@/components/molecules/ImageViewer';
 import EditPanel from '@/components/organisms/EditPanel';
 import CropModal from '@/components/organisms/CropModal';
+import UIToggleButton from '@/components/atoms/UIToggleButton';
 
 export function Canvas() {
   const {
@@ -94,9 +97,43 @@ export function Canvas() {
     top: false,
     bottom: false,
   });
+  const [canvasControlsVisible, setCanvasControlsVisible] = useState(true);
 
   // Toast notifications
   const { showToast, hideToast, toastState } = useToast();
+
+  // AI Image Edit
+  // Track AI image loading state
+  const [isAIImageLoading, setIsAIImageLoading] = useState(false);
+
+  const {
+    edit: editWithAI,
+    isEditing: isAIEditing,
+    progress: aiProgress,
+  } = useImageEdit({
+    onSuccess: (result) => {
+      if (result.images && result.images.length > 0) {
+        setIsAIImageLoading(true); // Start loading overlay
+        setUploadedImage(result.images[0].url);
+        showToast('Image edited successfully!', 'success');
+      }
+    },
+    onError: (error) => {
+      setIsAIImageLoading(false); // Clear loading state on error
+      showToast(error.message || 'Failed to edit image', 'error');
+    },
+  });
+
+  // Handle AI image load complete
+  const handleAIImageLoad = useCallback(() => {
+    setIsAIImageLoading(false);
+  }, []);
+
+  // Handle AI image load error
+  const handleAIImageError = useCallback(() => {
+    setIsAIImageLoading(false);
+    showToast('Failed to load generated image', 'error');
+  }, [showToast]);
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -405,6 +442,31 @@ export function Canvas() {
     },
   ]);
 
+  // Listen for AI edit generation events from AIEditControl
+  useEffect(() => {
+    const handleAIEditGenerate = (event: CustomEvent) => {
+      const { prompt, imageUrl } = event.detail;
+      if (imageUrl) {
+        editWithAI({
+          prompt: prompt || '', // Allow empty prompt for random generation
+          image_urls: [imageUrl],
+          num_images: 1,
+        });
+      }
+    };
+
+    window.addEventListener(
+      'ai-edit-generate',
+      handleAIEditGenerate as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        'ai-edit-generate',
+        handleAIEditGenerate as EventListener
+      );
+    };
+  }, [editWithAI]);
+
   const allBarsOpen = leftOpen && rightOpen && topOpen && bottomOpen;
 
   const leftPos = leftOpen ? 260 : 0;
@@ -454,6 +516,7 @@ export function Canvas() {
         {uploadedImage && (
           <>
             <ImageViewer
+              key={uploadedImage}
               src={uploadedImage}
               alt="Uploaded"
               scale={scale}
@@ -464,6 +527,10 @@ export function Canvas() {
               adjustFilters={adjustFilters}
               colorFilters={colorFilters}
               filterEffects={filterEffects}
+              isAIProcessing={isAIEditing || isAIImageLoading}
+              aiProgress={aiProgress}
+              onImageLoad={handleAIImageLoad}
+              onImageError={handleAIImageError}
             />
 
             {/* Top Left Controls - File Info */}
@@ -472,6 +539,11 @@ export function Canvas() {
               style={{
                 top: topOpen ? '80px' : '16px',
                 left: leftOpen ? '276px' : '16px',
+                opacity: canvasControlsVisible ? 1 : 0,
+                transform: canvasControlsVisible
+                  ? 'translateX(0)'
+                  : 'translateX(-30px)',
+                pointerEvents: canvasControlsVisible ? 'auto' : 'none',
               }}
             >
               <TopLeftControls
@@ -488,6 +560,11 @@ export function Canvas() {
               style={{
                 top: topOpen ? '80px' : '16px',
                 right: rightOpen ? '276px' : '16px',
+                opacity: canvasControlsVisible ? 1 : 0,
+                transform: canvasControlsVisible
+                  ? 'translateX(0)'
+                  : 'translateX(30px)',
+                pointerEvents: canvasControlsVisible ? 'auto' : 'none',
               }}
             >
               <ZoomControls
@@ -504,20 +581,60 @@ export function Canvas() {
               />
             </div>
 
-            {/* Bottom Left Controls - Background Selector */}
+            {/* Bottom Left Controls - Background Selector & UI Toggle */}
             <div
-              className="fixed z-20 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              className="fixed z-20 flex items-center gap-2 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
               style={{
                 bottom: bottomOpen ? '56px' : '16px',
                 left: leftOpen ? '276px' : '16px',
               }}
             >
-              <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-2 backdrop-blur-[16px]">
-                <BackgroundSelector
-                  background={background}
-                  onBackgroundChange={setBackground}
-                />
+              <div
+                className="transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                style={{
+                  opacity: canvasControlsVisible ? 1 : 0,
+                  transform: canvasControlsVisible
+                    ? 'translateX(0) scale(1)'
+                    : 'translateX(-20px) scale(0.95)',
+                  pointerEvents: canvasControlsVisible ? 'auto' : 'none',
+                }}
+              >
+                <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-2 backdrop-blur-[16px]">
+                  <BackgroundSelector
+                    background={background}
+                    onBackgroundChange={setBackground}
+                  />
+                </div>
               </div>
+              <UIToggleButton
+                controlsVisible={canvasControlsVisible}
+                onToggle={() =>
+                  setCanvasControlsVisible(!canvasControlsVisible)
+                }
+              />
+            </div>
+
+            {/* Bottom Center - AI Edit Control */}
+            <div
+              className="fixed z-20 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              style={{
+                bottom: bottomOpen ? '56px' : '16px',
+                left: '50%',
+                transform: canvasControlsVisible
+                  ? 'translateX(-50%) translateY(0)'
+                  : 'translateX(-50%) translateY(30px)',
+                opacity: canvasControlsVisible ? 1 : 0,
+                pointerEvents: canvasControlsVisible ? 'auto' : 'none',
+              }}
+            >
+              <AIEditControl
+                currentImageUrl={uploadedImage || ''}
+                onImageEdited={(url) => setUploadedImage(url)}
+                onError={(error) => showToast(error.message, 'error')}
+                isEditing={isAIEditing}
+                progress={aiProgress}
+                visible={!!uploadedImage}
+              />
             </div>
 
             {/* Bottom Right Controls */}
@@ -526,6 +643,11 @@ export function Canvas() {
               style={{
                 bottom: bottomOpen ? '56px' : '16px',
                 right: rightOpen ? '276px' : '16px',
+                opacity: canvasControlsVisible ? 1 : 0,
+                transform: canvasControlsVisible
+                  ? 'translateX(0) scale(1)'
+                  : 'translateX(30px) scale(0.95)',
+                pointerEvents: canvasControlsVisible ? 'auto' : 'none',
               }}
             >
               <BottomRightControls

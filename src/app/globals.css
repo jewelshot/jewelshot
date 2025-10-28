@@ -69,6 +69,16 @@ body {
   background: rgba(139, 92, 246, 0.4);
 }
 
+/* No Scrollbar (for horizontal scroll areas) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Animations */
 @keyframes fadeInSlide {
   from {

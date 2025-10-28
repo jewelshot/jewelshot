@@ -19,6 +19,7 @@ module.exports = {
       },
       animation: {
         fadeInSlide: 'fadeInSlide 500ms ease-out forwards',
+        shimmer: 'shimmer 2s infinite',
       },
       keyframes: {
         fadeInSlide: {
@@ -29,6 +30,14 @@ module.exports = {
           to: {
             opacity: '1',
             transform: 'translateX(0)',
+          },
+        },
+        shimmer: {
+          '0%': {
+            transform: 'translateX(-100%)',
+          },
+          '100%': {
+            transform: 'translateX(100%)',
           },
         },
       },
