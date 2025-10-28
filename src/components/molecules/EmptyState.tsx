@@ -40,19 +40,20 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           Upload an image to start editing
         </p>
 
-        {/* Button - Last to appear with pulse effect */}
+        {/* Button - Last to appear with pulse + floating effect */}
         <div
           className="relative inline-block"
           style={{
-            animation: 'welcomeZoomIn 1.6s ease-out 0.45s forwards',
+            animation:
+              'welcomeZoomIn 1.6s ease-out 0.45s forwards, floatButton 3s ease-in-out 2.5s infinite',
             opacity: 0,
           }}
         >
-          {/* Slow motion pulse glow behind button */}
+          {/* Pulse glow behind button */}
           <div
             className="absolute inset-0 rounded-xl bg-purple-500/30"
             style={{
-              animation: 'slowPulse 2.5s ease-in-out infinite',
+              animation: 'slowPulse 2.5s ease-in-out infinite 2.5s',
               filter: 'blur(12px)',
               transform: 'scale(1.1)',
             }}
@@ -96,6 +97,16 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           50% {
             opacity: 0.5;
             transform: scale(1.2);
+          }
+        }
+
+        @keyframes floatButton {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-5px);
           }
         }
       `}</style>
