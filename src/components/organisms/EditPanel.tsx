@@ -41,10 +41,13 @@ export function EditPanel({
     const handleMouseDown = (e: MouseEvent) => {
       isDraggingRef.current = true;
       setIsDragging(true);
-      startPosRef.current = {
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      };
+      setPosition((currentPos) => {
+        startPosRef.current = {
+          x: e.clientX - currentPos.x,
+          y: e.clientY - currentPos.y,
+        };
+        return currentPos;
+      });
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -70,7 +73,7 @@ export function EditPanel({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [position]);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -96,6 +99,7 @@ export function EditPanel({
         </div>
         <button
           onClick={onClose}
+          onMouseDown={(e) => e.stopPropagation()}
           className="flex h-6 w-6 items-center justify-center rounded-md text-white/60 transition-all hover:bg-white/10 hover:text-white"
           aria-label="Close"
         >
