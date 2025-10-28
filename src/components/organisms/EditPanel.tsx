@@ -84,7 +84,7 @@ export function EditPanel({
 
   return (
     <div
-      className="fixed z-50 w-80 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.95)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px]"
+      className="fixed z-50 w-96 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.95)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px]"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,

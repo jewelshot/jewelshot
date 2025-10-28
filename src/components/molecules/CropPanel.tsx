@@ -44,8 +44,8 @@ export function CropPanel({ onCropRatioChange }: CropPanelProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="mb-3 text-xs font-medium text-white/80">Aspect Ratio</h4>
-        <div className="grid grid-cols-4 gap-2">
+        <h4 className="mb-3 text-sm font-medium text-white">Aspect Ratio</h4>
+        <div className="grid grid-cols-3 gap-3">
           {cropRatios.map((item) => (
             <CropRatioButton
               key={item.label}
@@ -59,14 +59,11 @@ export function CropPanel({ onCropRatioChange }: CropPanelProps) {
       </div>
 
       {selectedRatio !== null && (
-        <div className="rounded-md border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] p-3">
-          <p className="text-xs text-white/60">
-            Selected ratio:{' '}
-            <span className="font-medium text-white">
-              {cropRatios.find((r) => r.ratio === selectedRatio)?.label}
-            </span>
+        <div className="rounded-lg border border-[rgba(139,92,246,0.3)] bg-gradient-to-br from-[rgba(139,92,246,0.1)] to-[rgba(139,92,246,0.05)] p-3">
+          <p className="text-xs font-medium text-white">
+            {cropRatios.find((r) => r.ratio === selectedRatio)?.label} Selected
           </p>
-          <p className="mt-1 text-xs text-white/50">
+          <p className="mt-1 text-xs text-white/60">
             Click and drag on the image to crop with this ratio
           </p>
         </div>
