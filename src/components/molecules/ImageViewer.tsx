@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import { useImageSharpening } from '@/hooks/useImageSharpening';
 
 interface ImageViewerProps {
   src: string;
@@ -16,6 +17,18 @@ interface ImageViewerProps {
     flipHorizontal: boolean;
     flipVertical: boolean;
   };
+  adjustFilters?: {
+    brightness?: number;
+    contrast?: number;
+    exposure?: number;
+    highlights?: number;
+    shadows?: number;
+    whites?: number;
+    blacks?: number;
+    clarity?: number;
+    sharpness?: number;
+    dehaze?: number;
+  };
 }
 
 export function ImageViewer({
@@ -26,11 +39,428 @@ export function ImageViewer({
   onScaleChange,
   onPositionChange,
   transform = { rotation: 0, flipHorizontal: false, flipVertical: false },
+  adjustFilters = {},
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0 });
+
+  // Apply professional sharpening using Unsharp Mask algorithm
+  const { processedSrc } = useImageSharpening({
+    originalSrc: src,
+    sharpness: adjustFilters.sharpness || 0,
+    enabled: (adjustFilters.sharpness || 0) !== 0,
+  });
+
+  // Build CSS filter string from adjust values
+  const buildFilterString = () => {
+    const filters: string[] = [];
+
+    // Brightness: Linear transformation
+    // -100 → 0 (completely dark), 0 → 1 (normal), +100 → 2 (double brightness)
+    if (
+      adjustFilters.brightness !== undefined &&
+      adjustFilters.brightness !== 0
+    ) {
+      const brightness = (adjustFilters.brightness + 100) / 100;
+      filters.push(`brightness(${brightness.toFixed(3)})`);
+    }
+
+    // Contrast: Exponential curve for more natural feel
+    // -100 → 0 (flat gray), 0 → 1 (normal), +100 → 2.5 (high contrast)
+    if (adjustFilters.contrast !== undefined && adjustFilters.contrast !== 0) {
+      let contrast: number;
+
+      if (adjustFilters.contrast < 0) {
+        // Negative: Smooth reduction (0 to 1)
+        // At -100: 0 (completely flat)
+        // At -50: 0.5 (half contrast)
+        // At 0: 1 (normal)
+        contrast = 1 + adjustFilters.contrast / 100;
+      } else {
+        // Positive: Exponential increase (1 to 2.5)
+        // At 0: 1 (normal)
+        // At 50: 1.5 (moderate boost)
+        // At 100: 2.5 (strong boost)
+        // Using power curve: 1 + (value^1.2 / 100) * 1.5
+        const normalized = adjustFilters.contrast / 100; // 0 to 1
+        contrast = 1 + Math.pow(normalized, 1.2) * 1.5;
+      }
+
+      filters.push(`contrast(${contrast.toFixed(3)})`);
+    }
+
+    // Exposure: Camera EV stops simulation
+    // Mimics real camera exposure behavior with tonal preservation
+    // -100 → -2 EV stops (underexposed), 0 → 0 EV (normal), +100 → +2 EV (overexposed)
+    if (adjustFilters.exposure !== undefined && adjustFilters.exposure !== 0) {
+      // Convert -100/+100 range to EV stops (-2 to +2)
+      const evStops = (adjustFilters.exposure / 100) * 2;
+
+      // Calculate exposure multiplier using 2^EV formula
+      // Each stop doubles (positive) or halves (negative) the light
+      const exposureMultiplier = Math.pow(2, evStops);
+
+      // Apply as brightness filter
+      filters.push(`brightness(${exposureMultiplier.toFixed(3)})`);
+
+      // Add subtle contrast compensation for more natural look
+      // High exposure: slightly reduce contrast to prevent blown highlights
+      // Low exposure: slightly increase contrast to maintain shadow detail
+      if (Math.abs(adjustFilters.exposure) > 30) {
+        let contrastCompensation: number;
+
+        if (adjustFilters.exposure > 0) {
+          // Positive exposure: reduce contrast slightly (0.95 to 0.85)
+          // At +50: 0.92, At +100: 0.85
+          const factor = Math.min(adjustFilters.exposure / 100, 1);
+          contrastCompensation = 1 - factor * 0.15;
+        } else {
+          // Negative exposure: increase contrast slightly (1.0 to 1.15)
+          // At -50: 1.075, At -100: 1.15
+          const factor = Math.min(Math.abs(adjustFilters.exposure) / 100, 1);
+          contrastCompensation = 1 + factor * 0.15;
+        }
+
+        filters.push(`contrast(${contrastCompensation.toFixed(3)})`);
+      }
+
+      // Add subtle saturation preservation
+      // Extreme exposure changes can wash out or over-saturate colors
+      // This helps maintain natural color intensity
+      if (Math.abs(adjustFilters.exposure) > 50) {
+        let saturationCompensation: number;
+
+        if (adjustFilters.exposure > 0) {
+          // High exposure: slightly reduce saturation (0.95 to 0.90)
+          const factor = Math.min((adjustFilters.exposure - 50) / 50, 1);
+          saturationCompensation = 1 - factor * 0.1;
+        } else {
+          // Low exposure: slightly increase saturation (1.0 to 1.10)
+          const factor = Math.min(
+            (Math.abs(adjustFilters.exposure) - 50) / 50,
+            1
+          );
+          saturationCompensation = 1 + factor * 0.1;
+        }
+
+        filters.push(`saturate(${saturationCompensation.toFixed(3)})`);
+      }
+    }
+
+    // Highlights: Selective tonal adjustment for bright areas
+    // CSS filter limitation: Cannot truly isolate highlights, so we simulate
+    // the effect using brightness + contrast combination
+    // -100 → Recover blown highlights, 0 → Normal, +100 → Brighten highlights
+    if (
+      adjustFilters.highlights !== undefined &&
+      adjustFilters.highlights !== 0
+    ) {
+      // Scale factor for smooth transitions
+      const scaleFactor = Math.abs(adjustFilters.highlights) / 100;
+
+      if (adjustFilters.highlights < 0) {
+        // NEGATIVE: Recover/Pull down highlights
+        // Strategy: Reduce brightness in upper tones, increase contrast
+
+        // Brightness reduction (subtle, 1.0 to 0.85)
+        // At -50: 0.925, At -100: 0.85
+        const brightnessReduction = 1 - scaleFactor * 0.15;
+        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+
+        // Contrast increase to compress highlights while preserving mids
+        // At -50: 1.10, At -100: 1.20
+        const contrastIncrease = 1 + scaleFactor * 0.2;
+        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+
+        // Subtle saturation boost to maintain color in recovered highlights
+        // At -50: 1.025, At -100: 1.05
+        if (Math.abs(adjustFilters.highlights) > 30) {
+          const saturationBoost = 1 + scaleFactor * 0.05;
+          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+        }
+      } else {
+        // POSITIVE: Brighten/Blow out highlights
+        // Strategy: Increase brightness in upper tones, reduce contrast
+
+        // Brightness increase (selective simulation, 1.0 to 1.25)
+        // At +50: 1.125, At +100: 1.25
+        const brightnessIncrease = 1 + scaleFactor * 0.25;
+        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+
+        // Contrast reduction to allow highlights to blow out naturally
+        // At +50: 0.90, At +100: 0.80
+        const contrastReduction = 1 - scaleFactor * 0.2;
+        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+        // Subtle saturation reduction in bright areas
+        // At +50: 0.975, At +100: 0.95
+        if (adjustFilters.highlights > 30) {
+          const saturationReduction = 1 - scaleFactor * 0.05;
+          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+        }
+      }
+    }
+
+    // Shadows: Selective tonal adjustment for dark areas
+    // Opposite of highlights - affects lower tonal range
+    // -100 → Deepen/Crush shadows, 0 → Normal, +100 → Lift/Open shadows
+    if (adjustFilters.shadows !== undefined && adjustFilters.shadows !== 0) {
+      // Scale factor for smooth transitions
+      const scaleFactor = Math.abs(adjustFilters.shadows) / 100;
+
+      if (adjustFilters.shadows < 0) {
+        // NEGATIVE: Deepen/Crush shadows (darker blacks)
+        // Strategy: Reduce brightness in lower tones, increase contrast
+
+        // Brightness reduction targeted at shadows (1.0 to 0.80)
+        // At -50: 0.90, At -100: 0.80
+        const brightnessReduction = 1 - scaleFactor * 0.2;
+        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+
+        // Contrast increase to push shadows deeper
+        // At -50: 1.15, At -100: 1.30
+        const contrastIncrease = 1 + scaleFactor * 0.3;
+        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+
+        // Saturation reduction in deep shadows (crush effect)
+        // At -50: 0.95, At -100: 0.90
+        if (Math.abs(adjustFilters.shadows) > 30) {
+          const saturationReduction = 1 - scaleFactor * 0.1;
+          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+        }
+      } else {
+        // POSITIVE: Lift/Open shadows (reveal shadow detail)
+        // Strategy: Increase brightness in lower tones, reduce contrast
+
+        // Brightness increase targeted at shadows (1.0 to 1.35)
+        // At +50: 1.175, At +100: 1.35
+        const brightnessIncrease = 1 + scaleFactor * 0.35;
+        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+
+        // Contrast reduction to open up shadow areas
+        // At +50: 0.85, At +100: 0.70
+        const contrastReduction = 1 - scaleFactor * 0.3;
+        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+        // Saturation boost to maintain color in lifted shadows
+        // At +50: 1.05, At +100: 1.10
+        if (adjustFilters.shadows > 30) {
+          const saturationBoost = 1 + scaleFactor * 0.1;
+          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+        }
+      }
+    }
+
+    // Whites: Extreme tonal adjustment for brightest areas (near-white tones)
+    // More aggressive than highlights - targets the top 10% of tonal range
+    // -100 → Strongly pull down whites (prevent clipping), 0 → Normal, +100 → Blow out whites
+    if (adjustFilters.whites !== undefined && adjustFilters.whites !== 0) {
+      // Scale factor for smooth transitions
+      const scaleFactor = Math.abs(adjustFilters.whites) / 100;
+
+      if (adjustFilters.whites < 0) {
+        // NEGATIVE: Pull down/Compress whites (recover extreme highlights)
+        // Strategy: Aggressive brightness reduction + strong contrast increase
+
+        // Strong brightness reduction for whites (1.0 to 0.75)
+        // At -50: 0.875, At -100: 0.75
+        const brightnessReduction = 1 - scaleFactor * 0.25;
+        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+
+        // Strong contrast increase to compress white point
+        // At -50: 1.25, At -100: 1.50
+        const contrastIncrease = 1 + scaleFactor * 0.5;
+        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+
+        // Saturation boost to restore color in recovered whites
+        // At -50: 1.075, At -100: 1.15
+        if (Math.abs(adjustFilters.whites) > 20) {
+          const saturationBoost = 1 + scaleFactor * 0.15;
+          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+        }
+      } else {
+        // POSITIVE: Push/Blow out whites (create bright, airy effect)
+        // Strategy: Strong brightness increase + contrast reduction
+
+        // Strong brightness increase for whites (1.0 to 1.40)
+        // At +50: 1.20, At +100: 1.40
+        const brightnessIncrease = 1 + scaleFactor * 0.4;
+        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+
+        // Contrast reduction to allow whites to bloom
+        // At +50: 0.75, At +100: 0.50
+        const contrastReduction = 1 - scaleFactor * 0.5;
+        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+        // Strong saturation reduction for blown-out white effect
+        // At +50: 0.90, At +100: 0.80
+        if (adjustFilters.whites > 20) {
+          const saturationReduction = 1 - scaleFactor * 0.2;
+          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+        }
+      }
+    }
+
+    // Blacks: Extreme tonal adjustment for darkest areas (near-black tones)
+    // More aggressive than shadows - targets the bottom 10% of tonal range
+    // -100 → Strongly lift blacks (prevent crushing), 0 → Normal, +100 → Crush blacks
+    if (adjustFilters.blacks !== undefined && adjustFilters.blacks !== 0) {
+      // Scale factor for smooth transitions
+      const scaleFactor = Math.abs(adjustFilters.blacks) / 100;
+
+      if (adjustFilters.blacks < 0) {
+        // NEGATIVE: Lift/Open blacks (reveal extreme shadow detail)
+        // Strategy: Strong brightness increase + aggressive contrast reduction
+
+        // Strong brightness increase for blacks (1.0 to 1.45)
+        // At -50: 1.225, At -100: 1.45
+        const brightnessIncrease = 1 + scaleFactor * 0.45;
+        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+
+        // Aggressive contrast reduction to lift black point
+        // At -50: 0.70, At -100: 0.40
+        const contrastReduction = 1 - scaleFactor * 0.6;
+        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+        // Strong saturation boost to maintain color in lifted blacks
+        // At -50: 1.10, At -100: 1.20
+        if (Math.abs(adjustFilters.blacks) > 20) {
+          const saturationBoost = 1 + scaleFactor * 0.2;
+          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+        }
+      } else {
+        // POSITIVE: Crush/Deepen blacks (create rich, deep blacks)
+        // Strategy: Strong brightness reduction + strong contrast increase
+
+        // Strong brightness reduction for blacks (1.0 to 0.70)
+        // At +50: 0.85, At +100: 0.70
+        const brightnessReduction = 1 - scaleFactor * 0.3;
+        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+
+        // Strong contrast increase to crush black point
+        // At +50: 1.30, At +100: 1.60
+        const contrastIncrease = 1 + scaleFactor * 0.6;
+        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+
+        // Strong saturation reduction for crushed black effect
+        // At +50: 0.925, At +100: 0.85
+        if (adjustFilters.blacks > 20) {
+          const saturationReduction = 1 - scaleFactor * 0.15;
+          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+        }
+      }
+    }
+
+    // Clarity: Mid-tone contrast enhancement (micro-contrast)
+    // Increases local contrast in mid-tones without affecting shadows/highlights aggressively
+    // -100 → Soften/Flatten mid-tones, 0 → Normal, +100 → Crisp/Enhanced mid-tones
+    if (adjustFilters.clarity !== undefined && adjustFilters.clarity !== 0) {
+      // Scale factor for smooth transitions
+      const scaleFactor = Math.abs(adjustFilters.clarity) / 100;
+
+      if (adjustFilters.clarity < 0) {
+        // NEGATIVE: Reduce clarity (dreamy, soft look)
+        // Strategy: Reduce contrast and slightly increase brightness for softness
+
+        // Moderate contrast reduction (1.0 to 0.70)
+        // At -50: 0.85, At -100: 0.70
+        const contrastReduction = 1 - scaleFactor * 0.3;
+        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+        // Slight brightness increase for soft glow (1.0 to 1.10)
+        // At -50: 1.05, At -100: 1.10
+        const brightnessIncrease = 1 + scaleFactor * 0.1;
+        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+
+        // Subtle saturation reduction for muted effect
+        // At -50: 0.95, At -100: 0.90
+        if (Math.abs(adjustFilters.clarity) > 30) {
+          const saturationReduction = 1 - scaleFactor * 0.1;
+          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+        }
+      } else {
+        // POSITIVE: Increase clarity (crisp, detailed look)
+        // Strategy: Increase contrast in mid-tones, slight brightness reduction
+
+        // Strong contrast increase for mid-tone pop (1.0 to 1.50)
+        // At +50: 1.25, At +100: 1.50
+        const contrastIncrease = 1 + scaleFactor * 0.5;
+        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+
+        // Very slight brightness reduction to prevent over-brightness (1.0 to 0.95)
+        // At +50: 0.975, At +100: 0.95
+        const brightnessReduction = 1 - scaleFactor * 0.05;
+        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+
+        // Saturation boost for enhanced color separation in mid-tones
+        // At +50: 1.075, At +100: 1.15
+        if (adjustFilters.clarity > 30) {
+          const saturationBoost = 1 + scaleFactor * 0.15;
+          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+        }
+      }
+    }
+
+    // Sharpness: Now handled by professional Unsharp Mask algorithm via Canvas API
+    // No CSS filter needed - processed image is used instead
+
+    // Dehaze: Atmospheric haze removal (clarity + contrast + exposure)
+    // Removes fog, mist, and atmospheric perspective effects
+    // -100 → Add haze/fog, 0 → Normal, +100 → Remove haze/enhance clarity
+    if (adjustFilters.dehaze !== undefined && adjustFilters.dehaze !== 0) {
+      // Scale factor for smooth transitions
+      const scaleFactor = Math.abs(adjustFilters.dehaze) / 100;
+
+      if (adjustFilters.dehaze < 0) {
+        // NEGATIVE: Add haze/fog effect (dreamy, atmospheric)
+        // Strategy: Reduce contrast, increase brightness, desaturate
+
+        // Strong contrast reduction for hazy look (1.0 to 0.60)
+        // At -50: 0.80, At -100: 0.60
+        const contrastReduction = 1 - scaleFactor * 0.4;
+        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+        // Brightness increase for foggy glow (1.0 to 1.25)
+        // At -50: 1.125, At -100: 1.25
+        const brightnessIncrease = 1 + scaleFactor * 0.25;
+        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+
+        // Strong desaturation for washed-out hazy effect (1.0 to 0.60)
+        // At -50: 0.80, At -100: 0.60
+        const saturationReduction = 1 - scaleFactor * 0.4;
+        filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+      } else {
+        // POSITIVE: Remove haze (crisp, clear, vibrant)
+        // Strategy: Increase contrast, reduce brightness, boost saturation
+
+        // Very strong contrast increase for haze cutting (1.0 to 1.70)
+        // At +50: 1.35, At +100: 1.70
+        const contrastIncrease = 1 + scaleFactor * 0.7;
+        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+
+        // Slight brightness reduction to counter contrast boost (1.0 to 0.88)
+        // At +50: 0.94, At +100: 0.88
+        const brightnessReduction = 1 - scaleFactor * 0.12;
+        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+
+        // Strong saturation boost for color recovery (1.0 to 1.35)
+        // At +50: 1.175, At +100: 1.35
+        const saturationBoost = 1 + scaleFactor * 0.35;
+        filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+
+        // Subtle exposure adjustment for depth perception
+        // At +50: 1.05, At +100: 1.10
+        if (adjustFilters.dehaze > 40) {
+          const exposureBoost = 1 + scaleFactor * 0.1;
+          filters.push(`brightness(${exposureBoost.toFixed(3)})`);
+        }
+      }
+    }
+
+    return filters.length > 0 ? filters.join(' ') : 'none';
+  };
 
   // Mouse drag
   useEffect(() => {
@@ -94,11 +524,12 @@ export function ImageViewer({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={processedSrc}
         alt={alt}
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
+          filter: buildFilterString(),
           animation: 'scaleIn 700ms ease-in-out',
         }}
         draggable={false}

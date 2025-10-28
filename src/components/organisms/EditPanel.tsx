@@ -5,6 +5,7 @@ import { X, GripVertical } from 'lucide-react';
 import TabList from '@/components/molecules/TabList';
 import CropPanel from '@/components/molecules/CropPanel';
 import TransformPanel from '@/components/molecules/TransformPanel';
+import AdjustPanel from '@/components/molecules/AdjustPanel';
 
 interface EditPanelProps {
   /**
@@ -31,6 +32,21 @@ interface EditPanelProps {
     flipHorizontal: boolean;
     flipVertical: boolean;
   }) => void;
+  /**
+   * Adjust change handler
+   */
+  onAdjustChange?: (adjust: {
+    brightness: number;
+    contrast: number;
+    exposure: number;
+    highlights: number;
+    shadows: number;
+    whites: number;
+    blacks: number;
+    clarity: number;
+    sharpness: number;
+    dehaze: number;
+  }) => void;
 }
 
 const tabs = [
@@ -50,6 +66,7 @@ export function EditPanel({
   initialPosition = { x: 100, y: 100 },
   onCropRatioChange,
   onTransformChange,
+  onAdjustChange,
 }: EditPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -140,9 +157,24 @@ export function EditPanel({
           )}
 
           {activeTab === 'adjust' && (
-            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
-              Adjust tools coming soon
-            </div>
+            <AdjustPanel
+              onAdjustChange={(adjust) => {
+                if (onAdjustChange) {
+                  onAdjustChange({
+                    brightness: adjust.brightness,
+                    contrast: adjust.contrast,
+                    exposure: adjust.exposure,
+                    highlights: adjust.highlights,
+                    shadows: adjust.shadows,
+                    whites: adjust.whites,
+                    blacks: adjust.blacks,
+                    clarity: adjust.clarity,
+                    sharpness: adjust.sharpness,
+                    dehaze: adjust.dehaze,
+                  });
+                }
+              }}
+            />
           )}
 
           {activeTab === 'colors' && (

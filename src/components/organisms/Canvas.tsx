@@ -35,6 +35,18 @@ export function Canvas() {
     flipHorizontal: false,
     flipVertical: false,
   });
+  const [adjustFilters, setAdjustFilters] = useState({
+    brightness: 0,
+    contrast: 0,
+    exposure: 0,
+    highlights: 0,
+    shadows: 0,
+    whites: 0,
+    blacks: 0,
+    clarity: 0,
+    sharpness: 0,
+    dehaze: 0,
+  });
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -64,6 +76,18 @@ export function Canvas() {
     setScale(1.0);
     setPosition({ x: 0, y: 0 });
     setTransform({ rotation: 0, flipHorizontal: false, flipVertical: false });
+    setAdjustFilters({
+      brightness: 0,
+      contrast: 0,
+      exposure: 0,
+      highlights: 0,
+      shadows: 0,
+      whites: 0,
+      blacks: 0,
+      clarity: 0,
+      sharpness: 0,
+      dehaze: 0,
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -200,6 +224,7 @@ export function Canvas() {
               onScaleChange={setScale}
               onPositionChange={setPosition}
               transform={transform}
+              adjustFilters={adjustFilters}
             />
 
             {/* Top Left Controls - File Info */}
@@ -284,6 +309,20 @@ export function Canvas() {
                   rotation: transformData.rotation,
                   flipHorizontal: transformData.flipHorizontal,
                   flipVertical: transformData.flipVertical,
+                });
+              }}
+              onAdjustChange={(adjustData) => {
+                setAdjustFilters({
+                  brightness: adjustData.brightness,
+                  contrast: adjustData.contrast,
+                  exposure: adjustData.exposure,
+                  highlights: adjustData.highlights,
+                  shadows: adjustData.shadows,
+                  whites: adjustData.whites,
+                  blacks: adjustData.blacks,
+                  clarity: adjustData.clarity,
+                  sharpness: adjustData.sharpness,
+                  dehaze: adjustData.dehaze,
                 });
               }}
             />
