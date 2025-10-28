@@ -26,69 +26,58 @@ export function EditPanel({
   onClose,
   initialPosition = { x: 100, y: 100 },
 }: EditPanelProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const isDraggingRef = useRef(false);
-  const startPosRef = useRef({ x: 0, y: 0 });
   const [position, setPosition] = useState(initialPosition);
+  const dragStartPos = useRef({ x: 0, y: 0 });
 
-  // Drag functionality
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-
-    const handleMouseDown = (e: MouseEvent) => {
-      isDraggingRef.current = true;
-      setIsDragging(true);
-      setPosition((currentPos) => {
-        startPosRef.current = {
-          x: e.clientX - currentPos.x,
-          y: e.clientY - currentPos.y,
-        };
-        return currentPos;
-      });
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragStartPos.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
     };
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  // Global mouse move and up handlers
+  useEffect(() => {
+    if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current) return;
-      e.preventDefault();
       setPosition({
-        x: e.clientX - startPosRef.current.x,
-        y: e.clientY - startPosRef.current.y,
+        x: e.clientX - dragStartPos.current.x,
+        y: e.clientY - dragStartPos.current.y,
       });
     };
 
     const handleMouseUp = () => {
-      isDraggingRef.current = false;
       setIsDragging(false);
     };
 
-    header.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      header.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [isDragging]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      ref={panelRef}
       className="fixed z-50 w-80 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.95)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px]"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Draggable Header */}
       <div
-        ref={headerRef}
+        onMouseDown={handleMouseDown}
         className={`flex select-none items-center justify-between rounded-t-lg border-b border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] px-4 py-3 ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
@@ -98,8 +87,10 @@ export function EditPanel({
           <h3 className="text-sm font-medium text-white">Edit Tools</h3>
         </div>
         <button
-          onClick={onClose}
-          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="pointer-events-auto flex h-6 w-6 items-center justify-center rounded-md text-white/60 transition-all hover:bg-white/10 hover:text-white"
           aria-label="Close"
         >
