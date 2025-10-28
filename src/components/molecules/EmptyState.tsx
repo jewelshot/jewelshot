@@ -53,10 +53,11 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           <div
             className="absolute inset-0 rounded-xl bg-purple-500"
             style={{
-              animation: 'slowPulse 2.5s ease-in-out infinite 2.5s',
+              animation:
+                'glowFadeIn 1.6s ease-out 0.45s forwards, slowPulse 2.5s ease-in-out 2.05s infinite',
               filter: 'blur(12px)',
               transform: 'scale(1.1)',
-              opacity: 0, // Start invisible, animation will handle opacity
+              opacity: 0, // Start invisible, fade in with button
             }}
           />
 
@@ -86,6 +87,15 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
             opacity: 1;
             transform: scale(1) translateY(0);
             filter: blur(0);
+          }
+        }
+
+        @keyframes glowFadeIn {
+          0% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 0.2;
           }
         }
 
