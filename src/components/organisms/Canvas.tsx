@@ -99,13 +99,12 @@ export function Canvas() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsEditPanelOpen(false); // Close EditPanel immediately when new file selected
       setIsLoading(true);
       setFileName(file.name);
       setFileSize(file.size);
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
+        setUploadedImage(event.target?.result as string); // This will trigger useEffect to close EditPanel
         resetTransform(); // Reset scale, position, transform
         setIsLoading(false);
       };
@@ -173,6 +172,11 @@ export function Canvas() {
   const handleToggleEditPanel = () => {
     setIsEditPanelOpen((prev) => !prev);
   };
+
+  // Close edit panel when image changes (new upload)
+  useEffect(() => {
+    setIsEditPanelOpen(false);
+  }, [uploadedImage]);
 
   // Auto-collapse/restore bars when edit panel opens/closes
   useEffect(() => {
