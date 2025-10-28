@@ -5,6 +5,8 @@
  * Uses dynamic imports for better code splitting.
  */
 
+'use client';
+
 import dynamic from 'next/dynamic';
 import AuroraBackground from '@/components/atoms/AuroraBackground';
 import ErrorBoundary from '@/components/organisms/ErrorBoundary';
