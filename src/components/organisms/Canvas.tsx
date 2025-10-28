@@ -99,6 +99,7 @@ export function Canvas() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsEditPanelOpen(false); // Close EditPanel immediately when new file selected
       setIsLoading(true);
       setFileName(file.name);
       setFileSize(file.size);
@@ -106,7 +107,6 @@ export function Canvas() {
       reader.onload = (event) => {
         setUploadedImage(event.target?.result as string);
         resetTransform(); // Reset scale, position, transform
-        setIsEditPanelOpen(false); // Close EditPanel when new image is loaded
         setIsLoading(false);
       };
       reader.readAsDataURL(file);
