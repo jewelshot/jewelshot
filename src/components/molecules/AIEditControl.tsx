@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import AIPromptInput from '@/components/atoms/AIPromptInput';
 import AIGenerateButton from '@/components/atoms/AIGenerateButton';
 import AIToggleButton from '@/components/atoms/AIToggleButton';
-import AIProgressBar from '@/components/atoms/AIProgressBar';
 import QuickPromptButton from '@/components/atoms/QuickPromptButton';
 import jewelryPrompts from '@/data/jewelryPrompts.json';
 
@@ -19,14 +18,14 @@ interface AIEditControlProps {
 
 export function AIEditControl({
   currentImageUrl,
-  onImageEdited,
-  onError,
   isEditing = false,
-  progress = '',
   visible = true,
 }: AIEditControlProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [prompt, setPrompt] = useState('');
+
+  // Auto-collapse expanded area when AI starts processing
+  const shouldShowExpanded = isExpanded && !isEditing;
 
   const handleGenerate = () => {
     if (isEditing) return;
@@ -54,7 +53,7 @@ export function AIEditControl({
       {/* Expanded Prompt Area */}
       <div
         className={`w-full max-w-xl origin-bottom transition-all duration-300 ease-out ${
-          isExpanded
+          shouldShowExpanded
             ? 'translate-y-0 scale-100 opacity-100'
             : 'pointer-events-none -translate-y-2 scale-95 opacity-0'
         }`}
@@ -80,20 +79,6 @@ export function AIEditControl({
               />
             ))}
           </div>
-
-          {/* Progress Bar */}
-          {isEditing && (
-            <AIProgressBar
-              progress={progress}
-              status={
-                progress.toLowerCase().includes('upload')
-                  ? 'uploading'
-                  : progress.toLowerCase().includes('complet')
-                    ? 'completing'
-                    : 'processing'
-              }
-            />
-          )}
         </div>
       </div>
 
