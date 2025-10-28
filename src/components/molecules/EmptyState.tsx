@@ -51,11 +51,12 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
         >
           {/* Pulse glow behind button */}
           <div
-            className="absolute inset-0 rounded-xl bg-purple-500/30"
+            className="absolute inset-0 rounded-xl bg-purple-500"
             style={{
               animation: 'slowPulse 2.5s ease-in-out infinite 2.5s',
               filter: 'blur(12px)',
               transform: 'scale(1.1)',
+              opacity: 0, // Start invisible, animation will handle opacity
             }}
           />
 
