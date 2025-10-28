@@ -53,6 +53,7 @@ interface ImageViewerProps {
   aiProgress?: string;
   onImageLoad?: () => void;
   onImageError?: () => void;
+  controlsVisible?: boolean;
 }
 
 export function ImageViewer({
@@ -70,6 +71,7 @@ export function ImageViewer({
   aiProgress = 'AI Processing...',
   onImageLoad,
   onImageError,
+  controlsVisible = true,
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -604,8 +606,11 @@ export function ImageViewer({
   return (
     <div
       ref={containerRef}
-      className="flex h-full items-center justify-center p-8"
-      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      className="flex h-full items-center justify-center transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+      style={{
+        cursor: isDragging ? 'grabbing' : 'grab',
+        padding: controlsVisible ? '2rem' : '1rem',
+      }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -617,7 +622,7 @@ export function ImageViewer({
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
           filter: filterString,
-          animation: 'scaleIn 700ms ease-in-out',
+          animation: 'scaleIn 400ms ease-out',
           transition:
             isDragging || isZooming
               ? 'none'
@@ -633,18 +638,11 @@ export function ImageViewer({
         @keyframes scaleIn {
           0% {
             opacity: 0;
-            transform: translate(${position.x}px, ${position.y}px) scale(0.85)
-              translateY(30px);
-          }
-          50% {
-            opacity: 0.7;
-            transform: translate(${position.x}px, ${position.y}px) scale(0.95)
-              translateY(10px);
+            transform: translate(${position.x}px, ${position.y}px) scale(1.05);
           }
           100% {
             opacity: 1;
-            transform: translate(${position.x}px, ${position.y}px) scale(1)
-              translateY(0);
+            transform: translate(${position.x}px, ${position.y}px) scale(1);
           }
         }
       `}</style>

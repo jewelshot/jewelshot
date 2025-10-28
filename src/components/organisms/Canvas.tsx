@@ -531,6 +531,7 @@ export function Canvas() {
               aiProgress={aiProgress}
               onImageLoad={handleAIImageLoad}
               onImageError={handleAIImageError}
+              controlsVisible={canvasControlsVisible}
             />
 
             {/* Top Left Controls - File Info */}
