@@ -11,6 +11,7 @@ import EmptyState from '@/components/molecules/EmptyState';
 import LoadingState from '@/components/atoms/LoadingState';
 import ImageViewer from '@/components/molecules/ImageViewer';
 import EditPanel from '@/components/organisms/EditPanel';
+import CropModal from '@/components/organisms/CropModal';
 
 export function Canvas() {
   const { leftOpen, rightOpen, topOpen, bottomOpen, toggleAll } =
@@ -110,8 +111,19 @@ export function Canvas() {
   const handleCropRatioChange = (ratio: number | null) => {
     setCropRatio(ratio);
     setIsCropMode(true);
-    console.log('Crop mode activated with ratio:', ratio);
-    // TODO: Implement actual crop functionality with overlay
+  };
+
+  const handleCropApply = (croppedImage: string) => {
+    setUploadedImage(croppedImage);
+    setIsCropMode(false);
+    setCropRatio(null);
+    setScale(1.0);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleCropCancel = () => {
+    setIsCropMode(false);
+    setCropRatio(null);
   };
 
   // Listen for fullscreen changes
@@ -182,41 +194,6 @@ export function Canvas() {
               onScaleChange={setScale}
               onPositionChange={setPosition}
             />
-
-            {/* Crop Mode Indicator */}
-            {isCropMode && (
-              <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
-                <div className="rounded-lg border-2 border-dashed border-white/50 bg-white/5 p-8 backdrop-blur-sm">
-                  <p className="text-center text-sm font-medium text-white">
-                    Crop Mode Active
-                  </p>
-                  <p className="mt-2 text-center text-xs text-white/70">
-                    {cropRatio === null
-                      ? 'Free crop'
-                      : `Ratio: ${
-                          [
-                            { ratio: null, label: 'Free' },
-                            { ratio: 1, label: '1:1' },
-                            { ratio: 4 / 3, label: '4:3' },
-                            { ratio: 3 / 4, label: '3:4' },
-                            { ratio: 16 / 9, label: '16:9' },
-                            { ratio: 9 / 16, label: '9:16' },
-                          ].find((r) => r.ratio === cropRatio)?.label ||
-                          'Unknown'
-                        }`}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setIsCropMode(false);
-                      setCropRatio(null);
-                    }}
-                    className="pointer-events-auto mt-4 w-full rounded-md border border-[rgba(139,92,246,0.5)] bg-[rgba(139,92,246,0.15)] px-4 py-2 text-xs font-medium text-white transition-all hover:bg-[rgba(139,92,246,0.25)]"
-                  >
-                    Cancel Crop
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Top Left Controls - File Info */}
             <div
@@ -297,6 +274,17 @@ export function Canvas() {
               onCropRatioChange={handleCropRatioChange}
             />
           </>
+        )}
+
+        {/* Crop Modal */}
+        {uploadedImage && isCropMode && (
+          <CropModal
+            isOpen={isCropMode}
+            imageSrc={uploadedImage}
+            aspectRatio={cropRatio}
+            onApply={handleCropApply}
+            onCancel={handleCropCancel}
+          />
         )}
       </div>
     </>
