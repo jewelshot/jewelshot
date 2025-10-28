@@ -14,6 +14,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { useSidebarStore } from '@/store/sidebarStore';
 import SidebarLogo from '@/components/molecules/SidebarLogo';
 import NavigationItem from '@/components/molecules/NavigationItem';
@@ -39,14 +40,13 @@ const mainNavItems = [
     icon: Palette,
     label: 'Studio',
     href: '/studio',
-    active: true,
     badge: { variant: 'new' as const },
   },
   {
     icon: Image,
     label: 'Gallery',
     href: '/gallery',
-    badge: { variant: 'count' as const, count: 24 },
+    badge: { variant: 'count' as const, count: 6 },
   },
   {
     icon: FolderOpen,
@@ -92,6 +92,7 @@ const settingsItems = [
 
 export function Sidebar() {
   const { leftOpen } = useSidebarStore();
+  const pathname = usePathname();
 
   return (
     <aside
@@ -113,7 +114,7 @@ export function Sidebar() {
               icon={item.icon}
               label={item.label}
               href={item.href}
-              active={item.active}
+              active={pathname === item.href}
               badge={item.badge}
               shortcut={item.shortcut}
               animationDelay={100 + index * 50}
