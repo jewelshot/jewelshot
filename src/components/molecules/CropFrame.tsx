@@ -20,13 +20,41 @@ export function CropFrame({
   imageSize,
   onCropChange,
 }: CropFrameProps) {
-  // Normalized crop (0-1 range)
-  const [crop, setCrop] = useState({
-    x: 0.1,
-    y: 0.1,
-    width: 0.8,
-    height: 0.8,
-  });
+  // Calculate initial crop based on aspect ratio
+  const getInitialCrop = () => {
+    if (!aspectRatio) {
+      // Free crop - 80% of image, centered
+      return { x: 0.1, y: 0.1, width: 0.8, height: 0.8 };
+    }
+
+    // Calculate maximum crop area that fits aspect ratio
+    const imageAspectRatio = imageSize.width / imageSize.height;
+
+    if (aspectRatio > imageAspectRatio) {
+      // Crop is wider than image - constrain by width
+      const width = 0.9;
+      const height =
+        (width * imageSize.width) / (aspectRatio * imageSize.height);
+      return {
+        x: 0.05,
+        y: (1 - height) / 2,
+        width,
+        height,
+      };
+    } else {
+      // Crop is taller than image - constrain by height
+      const height = 0.9;
+      const width = (height * imageSize.height * aspectRatio) / imageSize.width;
+      return {
+        x: (1 - width) / 2,
+        y: 0.05,
+        width,
+        height,
+      };
+    }
+  };
+
+  const [crop, setCrop] = useState(getInitialCrop());
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -45,6 +73,12 @@ export function CropFrame({
       containerRef.current = frameRef.current.parentElement;
     }
   }, []);
+
+  // Reset crop when aspect ratio changes
+  useEffect(() => {
+    setCrop(getInitialCrop());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aspectRatio]);
 
   // Notify parent of crop changes
   useEffect(() => {

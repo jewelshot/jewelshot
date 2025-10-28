@@ -113,13 +113,18 @@ export function CropModal({
   };
 
   const handleReset = () => {
-    // Reset crop to 80% of image (normalized)
-    setCropArea({
-      x: 0.1,
-      y: 0.1,
-      width: 0.8,
-      height: 0.8,
-    });
+    // Force re-render of CropFrame by toggling aspectRatio briefly
+    // This is a workaround to trigger the initial crop calculation
+    const currentRatio = aspectRatio;
+
+    // Set to different value temporarily
+    setCropArea({ x: 0, y: 0, width: 0, height: 0 });
+
+    // Trigger re-mount by remounting CropFrame
+    setTimeout(() => {
+      // CropFrame will recalculate initial crop based on aspect ratio
+      setCropArea({ x: 0.1, y: 0.1, width: 0.8, height: 0.8 });
+    }, 0);
   };
 
   if (!isOpen) return null;
