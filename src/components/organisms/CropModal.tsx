@@ -38,7 +38,6 @@ export function CropModal({
   onCancel,
 }: CropModalProps) {
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [containerOffset, setContainerOffset] = useState({ x: 0, y: 0 });
   const [cropArea, setCropArea] = useState({
     x: 0,
     y: 0,
@@ -47,7 +46,6 @@ export function CropModal({
   });
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Load image and get dimensions
   useEffect(() => {
@@ -77,22 +75,6 @@ export function CropModal({
     };
   }, [isOpen, imageSrc]);
 
-  // Update container offset when image size changes
-  useEffect(() => {
-    if (!containerRef.current || imageSize.width === 0) return;
-
-    const updateOffset = () => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (rect) {
-        setContainerOffset({ x: rect.left, y: rect.top });
-      }
-    };
-
-    updateOffset();
-    window.addEventListener('resize', updateOffset);
-    return () => window.removeEventListener('resize', updateOffset);
-  }, [imageSize]);
-
   const handleApply = () => {
     if (!imageRef.current || !canvasRef.current) return;
 
@@ -101,25 +83,28 @@ export function CropModal({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Calculate scale ratio
-    const scaleX = img.naturalWidth / imageSize.width;
-    const scaleY = img.naturalHeight / imageSize.height;
+    // Crop uses normalized coordinates (0-1)
+    // Convert to actual image pixels
+    const srcX = cropArea.x * img.naturalWidth;
+    const srcY = cropArea.y * img.naturalHeight;
+    const srcWidth = cropArea.width * img.naturalWidth;
+    const srcHeight = cropArea.height * img.naturalHeight;
 
     // Set canvas size to crop area
-    canvas.width = cropArea.width * scaleX;
-    canvas.height = cropArea.height * scaleY;
+    canvas.width = srcWidth;
+    canvas.height = srcHeight;
 
     // Draw cropped image
     ctx.drawImage(
       img,
-      cropArea.x * scaleX,
-      cropArea.y * scaleY,
-      cropArea.width * scaleX,
-      cropArea.height * scaleY,
+      srcX,
+      srcY,
+      srcWidth,
+      srcHeight,
       0,
       0,
-      canvas.width,
-      canvas.height
+      srcWidth,
+      srcHeight
     );
 
     // Get cropped image as base64
@@ -128,12 +113,12 @@ export function CropModal({
   };
 
   const handleReset = () => {
-    // Reset crop to 80% of image
+    // Reset crop to 80% of image (normalized)
     setCropArea({
-      x: imageSize.width * 0.1,
-      y: imageSize.height * 0.1,
-      width: imageSize.width * 0.8,
-      height: imageSize.height * 0.8,
+      x: 0.1,
+      y: 0.1,
+      width: 0.8,
+      height: 0.8,
     });
   };
 
@@ -146,7 +131,6 @@ export function CropModal({
 
       {/* Image container */}
       <div
-        ref={containerRef}
         className="relative"
         style={{ width: imageSize.width, height: imageSize.height }}
       >
@@ -165,7 +149,6 @@ export function CropModal({
           <CropFrame
             aspectRatio={aspectRatio}
             imageSize={imageSize}
-            containerOffset={containerOffset}
             onCropChange={setCropArea}
           />
         )}
