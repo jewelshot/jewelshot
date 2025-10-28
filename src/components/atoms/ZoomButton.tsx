@@ -21,6 +21,7 @@ export function ZoomButton({
       disabled={disabled}
       className="flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] text-white/80 transition-all hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(139,92,246,0.15)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
       title={title}
+      aria-label={title}
     >
       {icon}
     </button>

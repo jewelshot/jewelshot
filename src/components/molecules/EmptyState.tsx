@@ -65,8 +65,10 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           <button
             onClick={onUploadClick}
             className="relative inline-flex items-center gap-2 rounded-xl border border-[rgba(139,92,246,0.4)] bg-gradient-to-br from-[rgba(139,92,246,0.15)] to-[rgba(99,102,241,0.1)] px-6 py-3 font-semibold text-white transition-all hover:scale-105 hover:border-[rgba(139,92,246,0.6)] hover:shadow-[0_4px_16px_rgba(139,92,246,0.3)]"
+            title="Upload Image (Ctrl+O)"
+            aria-label="Upload Image"
           >
-            <Upload className="h-5 w-5" />
+            <Upload className="h-5 w-5" aria-hidden="true" />
             Upload Image
           </button>
         </div>
@@ -125,4 +127,5 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
   );
 }
 
-export default EmptyState;
+// Memoize since EmptyState rarely changes
+export default React.memo(EmptyState);

@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useImageState } from '@/hooks/useImageState';
 import { useImageTransform } from '@/hooks/useImageTransform';
 import { useImageFilters } from '@/hooks/useImageFilters';
 import { useCanvasUI } from '@/hooks/useCanvasUI';
+import { useToast } from '@/hooks/useToast';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import Toast from '@/components/atoms/Toast';
 import ZoomControls from '@/components/molecules/ZoomControls';
 import ActionControls from '@/components/molecules/ActionControls';
 import TopLeftControls from '@/components/molecules/TopLeftControls';
@@ -92,27 +95,91 @@ export function Canvas() {
     bottom: false,
   });
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
+  // Toast notifications
+  const { showToast, hideToast, toastState } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleUploadClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showToast('Please upload an image file (JPG, PNG, GIF, WebP)', 'error');
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+      if (file.size > MAX_FILE_SIZE) {
+        showToast('File is too large. Maximum size is 10MB.', 'error');
+        return;
+      }
+
       setIsLoading(true);
       setFileName(file.name);
       setFileSize(file.size);
+
       const reader = new FileReader();
+
+      // Success handler
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string); // This will trigger useEffect to close EditPanel
-        resetTransform(); // Reset scale, position, transform
+        try {
+          const result = event.target?.result;
+          if (typeof result === 'string') {
+            setUploadedImage(result);
+            resetTransform();
+          } else {
+            throw new Error('Failed to read image file');
+          }
+        } catch (error) {
+          console.error('Error processing image:', error);
+          showToast('Failed to load image. Please try again.', 'error');
+          resetImageState();
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      // Error handler
+      reader.onerror = () => {
+        console.error('FileReader error:', reader.error);
+        showToast('Failed to read file. The file may be corrupted.', 'error');
+        setIsLoading(false);
+        resetImageState();
+      };
+
+      // Abort handler
+      reader.onabort = () => {
+        console.log('File reading was aborted');
         setIsLoading(false);
       };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const handleCloseImage = () => {
+      try {
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error reading file:', error);
+        showToast('Failed to read file. Please try again.', 'error');
+        setIsLoading(false);
+        resetImageState();
+      }
+    },
+    [
+      showToast,
+      setUploadedImage,
+      setFileName,
+      setFileSize,
+      setIsLoading,
+      resetTransform,
+      resetImageState,
+    ]
+  );
+
+  const handleCloseImage = useCallback(() => {
     // Reset image state (uploadedImage, fileName, fileSize, isLoading)
     resetImageState();
 
@@ -126,20 +193,20 @@ export function Canvas() {
       fileInputRef.current.value = '';
     }
     setIsEditPanelOpen(false); // Close EditPanel when image is closed
-  };
+  }, [resetImageState, resetTransform, resetFilters]);
 
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     setScale((prev) => Math.min(prev + 0.1, 3.0));
-  };
+  }, [setScale]);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     setScale((prev) => Math.max(prev - 0.1, 0.1));
-  };
+  }, [setScale]);
 
-  const handleFitScreen = () => {
+  const handleFitScreen = useCallback(() => {
     setScale(1.0);
     setPosition({ x: 0, y: 0 });
-  };
+  }, [setScale, setPosition]);
 
   const handleToggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -247,7 +314,96 @@ export function Canvas() {
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, []);
+  }, [setIsFullscreen]);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    // Ctrl+O: Open file
+    {
+      key: 'o',
+      ctrl: true,
+      handler: () => {
+        if (!isLoading) {
+          handleUploadClick();
+        }
+      },
+      preventDefault: true,
+    },
+    // Ctrl+S: Save/Download
+    {
+      key: 's',
+      ctrl: true,
+      handler: () => {
+        if (uploadedImage) {
+          handleDownload();
+        }
+      },
+      preventDefault: true,
+    },
+    // + or =: Zoom in
+    {
+      key: '+',
+      handler: () => {
+        if (uploadedImage) {
+          handleZoomIn();
+        }
+      },
+    },
+    {
+      key: '=',
+      handler: () => {
+        if (uploadedImage) {
+          handleZoomIn();
+        }
+      },
+    },
+    // -: Zoom out
+    {
+      key: '-',
+      handler: () => {
+        if (uploadedImage) {
+          handleZoomOut();
+        }
+      },
+    },
+    // 0: Fit to screen
+    {
+      key: '0',
+      handler: () => {
+        if (uploadedImage) {
+          handleFitScreen();
+        }
+      },
+    },
+    // Escape: Close edit panel or crop modal
+    {
+      key: 'Escape',
+      handler: () => {
+        if (isCropMode) {
+          handleCropCancel();
+        } else if (isEditPanelOpen) {
+          setIsEditPanelOpen(false);
+        }
+      },
+    },
+    // Delete/Backspace: Close image
+    {
+      key: 'Delete',
+      handler: () => {
+        if (uploadedImage && !isCropMode) {
+          handleCloseImage();
+        }
+      },
+    },
+    {
+      key: 'Backspace',
+      handler: () => {
+        if (uploadedImage && !isCropMode) {
+          handleCloseImage();
+        }
+      },
+    },
+  ]);
 
   const allBarsOpen = leftOpen && rightOpen && topOpen && bottomOpen;
 
@@ -445,6 +601,15 @@ export function Canvas() {
             aspectRatio={cropRatio}
             onApply={handleCropApply}
             onCancel={handleCropCancel}
+          />
+        )}
+
+        {/* Toast Notifications */}
+        {toastState.visible && (
+          <Toast
+            message={toastState.message}
+            type={toastState.type}
+            onClose={hideToast}
           />
         )}
       </div>

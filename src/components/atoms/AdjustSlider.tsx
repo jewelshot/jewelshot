@@ -65,6 +65,7 @@ export function AdjustSlider({
               onClick={handleReset}
               className="text-[10px] text-white/40 hover:text-white/60"
               title="Reset"
+              aria-label={`Reset ${label}`}
             >
               ↺
             </button>

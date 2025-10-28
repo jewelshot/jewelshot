@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useImageSharpening } from '@/hooks/useImageSharpening';
 import { useSelectiveTone } from '@/hooks/useSelectiveTone';
 import { useClarity } from '@/hooks/useClarity';
@@ -120,8 +120,8 @@ export function ImageViewer({
     enabled: (filterEffects.grainAmount || 0) > 0,
   });
 
-  // Build CSS filter string from adjust values
-  const buildFilterString = () => {
+  // Build CSS filter string from adjust values (memoized for performance)
+  const filterString = useMemo(() => {
     const filters: string[] = [];
 
     // Brightness: Linear transformation
@@ -516,7 +516,7 @@ export function ImageViewer({
     // Adds realistic film grain texture with adjustable size and intensity
 
     return filters.length > 0 ? filters.join(' ') : 'none';
-  };
+  }, [adjustFilters, colorFilters, filterEffects]);
 
   // Mouse drag
   useEffect(() => {
@@ -605,7 +605,7 @@ export function ImageViewer({
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
-          filter: buildFilterString(),
+          filter: filterString,
           animation: 'scaleIn 700ms ease-in-out',
           transition:
             isDragging || isZooming
@@ -631,4 +631,6 @@ export function ImageViewer({
   );
 }
 
-export default ImageViewer;
+// Memoize component to prevent unnecessary re-renders
+// Only re-render when props actually change
+export default React.memo(ImageViewer);

@@ -14,6 +14,7 @@ import TopBarToggle from '@/components/atoms/TopBarToggle';
 import BottomBar from '@/components/organisms/BottomBar';
 import BottomBarToggle from '@/components/atoms/BottomBarToggle';
 import Canvas from '@/components/organisms/Canvas';
+import ErrorBoundary from '@/components/organisms/ErrorBoundary';
 
 export default function StudioPage() {
   return (
@@ -37,8 +38,10 @@ export default function StudioPage() {
       <BottomBar />
       <BottomBarToggle />
 
-      {/* Canvas Area */}
-      <Canvas />
+      {/* Canvas Area - Wrapped in Error Boundary */}
+      <ErrorBoundary>
+        <Canvas />
+      </ErrorBoundary>
     </>
   );
 }

@@ -357,4 +357,5 @@ export function EditPanel({
   );
 }
 
-export default EditPanel;
+// Memoize to prevent re-renders during parent Canvas updates
+export default React.memo(EditPanel);
