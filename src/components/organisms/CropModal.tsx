@@ -121,14 +121,18 @@ export function CropModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm">
       {/* Hidden canvas for cropping */}
       <canvas ref={canvasRef} className="hidden" />
 
       {/* Image container */}
       <div
         className="relative"
-        style={{ width: imageSize.width, height: imageSize.height }}
+        style={{
+          width: imageSize.width,
+          height: imageSize.height,
+          filter: 'drop-shadow(0 0 40px rgba(139, 92, 246, 0.15))',
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -136,7 +140,11 @@ export function CropModal({
           src={imageSrc}
           alt="Crop preview"
           className="block select-none"
-          style={{ width: imageSize.width, height: imageSize.height }}
+          style={{
+            width: imageSize.width,
+            height: imageSize.height,
+            imageRendering: '-webkit-optimize-contrast', // Sharper rendering
+          }}
           draggable={false}
         />
 
