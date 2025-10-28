@@ -13,7 +13,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSidebarStore } from '@/store/sidebarStore';
 import SidebarLogo from '@/components/molecules/SidebarLogo';
@@ -32,29 +32,6 @@ import {
   Settings,
   CreditCard,
 } from 'lucide-react';
-
-// Main navigation items
-const mainNavItems = [
-  { icon: Home, label: 'Home', href: '/', shortcut: '⌘H' },
-  {
-    icon: Palette,
-    label: 'Studio',
-    href: '/studio',
-    badge: { variant: 'new' as const },
-  },
-  {
-    icon: Image,
-    label: 'Gallery',
-    href: '/gallery',
-    badge: { variant: 'count' as const, count: 6 },
-  },
-  {
-    icon: FolderOpen,
-    label: 'Projects',
-    href: '/projects',
-    badge: { variant: 'count' as const, count: 3 },
-  },
-];
 
 // Tools section
 const toolsItems = [
@@ -93,6 +70,64 @@ const settingsItems = [
 export function Sidebar() {
   const { leftOpen } = useSidebarStore();
   const pathname = usePathname();
+  const [galleryCount, setGalleryCount] = useState(0);
+
+  // Update gallery count
+  useEffect(() => {
+    const updateCount = () => {
+      if (typeof window !== 'undefined') {
+        import('@/lib/gallery-storage').then(({ getGalleryImageCount }) => {
+          setGalleryCount(getGalleryImageCount());
+        });
+      }
+    };
+
+    updateCount();
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'jewelshot_gallery_images') {
+        updateCount();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom event when saving from current tab
+    const handleGallerySave = () => updateCount();
+    window.addEventListener('gallery-updated', handleGallerySave);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('gallery-updated', handleGallerySave);
+    };
+  }, []);
+
+  // Main navigation items (dynamic)
+  const mainNavItems = [
+    { icon: Home, label: 'Home', href: '/', shortcut: '⌘H' },
+    {
+      icon: Palette,
+      label: 'Studio',
+      href: '/studio',
+      badge: { variant: 'new' as const },
+    },
+    {
+      icon: Image,
+      label: 'Gallery',
+      href: '/gallery',
+      badge:
+        galleryCount > 0
+          ? { variant: 'count' as const, count: galleryCount }
+          : undefined,
+    },
+    {
+      icon: FolderOpen,
+      label: 'Projects',
+      href: '/projects',
+      badge: { variant: 'count' as const, count: 3 },
+    },
+  ];
 
   return (
     <aside

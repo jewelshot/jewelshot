@@ -1,56 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import GalleryToolbar from '@/components/molecules/GalleryToolbar';
 import GalleryGrid, { GalleryImage } from '@/components/molecules/GalleryGrid';
 import { SortOption } from '@/components/atoms/SortButton';
-
-// Mock data for demonstration - in production, this would come from a database
-const mockImages: GalleryImage[] = [
-  {
-    id: '1',
-    src: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500',
-    alt: 'Diamond ring',
-    createdAt: new Date('2024-10-28'),
-    type: 'ai-edited',
-  },
-  {
-    id: '2',
-    src: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500',
-    alt: 'Gold necklace',
-    createdAt: new Date('2024-10-27'),
-    type: 'manual',
-  },
-  {
-    id: '3',
-    src: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=500',
-    alt: 'Pearl earrings',
-    createdAt: new Date('2024-10-26'),
-    type: 'ai-edited',
-  },
-  {
-    id: '4',
-    src: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500',
-    alt: 'Silver bracelet',
-    createdAt: new Date('2024-10-25'),
-    type: 'manual',
-  },
-  {
-    id: '5',
-    src: 'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=500',
-    alt: 'Emerald ring',
-    createdAt: new Date('2024-10-24'),
-    type: 'ai-edited',
-  },
-  {
-    id: '6',
-    src: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500',
-    alt: 'Ruby pendant',
-    createdAt: new Date('2024-10-23'),
-    type: 'ai-edited',
-  },
-];
+import { getSavedImages, deleteImageFromGallery } from '@/lib/gallery-storage';
 
 export function GalleryContent() {
   const router = useRouter();
@@ -59,10 +14,32 @@ export function GalleryContent() {
     'all' | 'ai-edited' | 'manual'
   >('all');
   const [sortValue, setSortValue] = useState<SortOption>('newest');
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Load images from localStorage
+  useEffect(() => {
+    const loadImages = () => {
+      const saved = getSavedImages();
+      setImages(saved);
+    };
+
+    loadImages();
+
+    // Listen for storage changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'jewelshot_gallery_images') {
+        loadImages();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshKey]);
 
   // Filter and sort images
   const filteredAndSortedImages = useMemo(() => {
-    let filtered = mockImages;
+    let filtered = images;
 
     // Apply filter
     if (activeFilter !== 'all') {
@@ -93,7 +70,7 @@ export function GalleryContent() {
     });
 
     return sorted;
-  }, [searchValue, activeFilter, sortValue]);
+  }, [images, searchValue, activeFilter, sortValue]);
 
   const handleOpenInStudio = (image: GalleryImage) => {
     // Pass image URL via query param to studio page
@@ -116,8 +93,14 @@ export function GalleryContent() {
 
   const handleDelete = (image: GalleryImage) => {
     if (confirm(`Are you sure you want to delete "${image.alt}"?`)) {
-      // TODO: In production, make API call to delete image
-      console.log('Delete image:', image.id);
+      try {
+        deleteImageFromGallery(image.id);
+        // Refresh the list
+        setRefreshKey((prev) => prev + 1);
+      } catch (error) {
+        console.error('Failed to delete image:', error);
+        alert('Failed to delete image. Please try again.');
+      }
     }
   };
 

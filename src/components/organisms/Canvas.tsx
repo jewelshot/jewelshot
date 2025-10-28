@@ -322,10 +322,28 @@ export function Canvas() {
     }
   };
 
-  const handleSave = () => {
-    // TODO: Implement save to database/storage
-    console.log('Save image');
-  };
+  const handleSave = useCallback(() => {
+    if (!uploadedImage) return;
+
+    try {
+      // Import dynamically to avoid SSR issues
+      import('@/lib/gallery-storage').then(({ saveImageToGallery }) => {
+        // Determine if this is an AI-edited image
+        const type = originalImage ? 'ai-edited' : 'manual';
+
+        // Save to gallery
+        saveImageToGallery(uploadedImage, fileName || 'edited-image', type);
+
+        // Dispatch custom event to update sidebar count
+        window.dispatchEvent(new Event('gallery-updated'));
+
+        showToast('Image saved to gallery!', 'success');
+      });
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      showToast('Failed to save image to gallery', 'error');
+    }
+  }, [uploadedImage, fileName, originalImage, showToast]);
 
   const handleDownload = useCallback(async () => {
     if (!uploadedImage) return;
