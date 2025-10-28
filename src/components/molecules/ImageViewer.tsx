@@ -11,6 +11,11 @@ interface ImageViewerProps {
   onPositionChange: React.Dispatch<
     React.SetStateAction<{ x: number; y: number }>
   >;
+  transform?: {
+    rotation: number;
+    flipHorizontal: boolean;
+    flipVertical: boolean;
+  };
 }
 
 export function ImageViewer({
@@ -20,6 +25,7 @@ export function ImageViewer({
   position,
   onScaleChange,
   onPositionChange,
+  transform = { rotation: 0, flipHorizontal: false, flipVertical: false },
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -92,7 +98,7 @@ export function ImageViewer({
         alt={alt}
         className="max-h-full max-w-full select-none object-contain shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         style={{
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
           animation: 'scaleIn 700ms ease-in-out',
         }}
         draggable={false}

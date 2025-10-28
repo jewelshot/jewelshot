@@ -30,6 +30,11 @@ export function Canvas() {
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [cropRatio, setCropRatio] = useState<number | null>(null);
   const [isCropMode, setIsCropMode] = useState(false);
+  const [transform, setTransform] = useState({
+    rotation: 0,
+    flipHorizontal: false,
+    flipVertical: false,
+  });
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -58,6 +63,7 @@ export function Canvas() {
     setFileSize(0);
     setScale(1.0);
     setPosition({ x: 0, y: 0 });
+    setTransform({ rotation: 0, flipHorizontal: false, flipVertical: false });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -193,6 +199,7 @@ export function Canvas() {
               position={position}
               onScaleChange={setScale}
               onPositionChange={setPosition}
+              transform={transform}
             />
 
             {/* Top Left Controls - File Info */}
@@ -272,6 +279,13 @@ export function Canvas() {
               onClose={() => setIsEditPanelOpen(false)}
               initialPosition={{ x: 100, y: 100 }}
               onCropRatioChange={handleCropRatioChange}
+              onTransformChange={(transformData) => {
+                setTransform({
+                  rotation: transformData.rotation,
+                  flipHorizontal: transformData.flipHorizontal,
+                  flipVertical: transformData.flipVertical,
+                });
+              }}
             />
           </>
         )}

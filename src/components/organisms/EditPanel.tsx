@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { X, GripVertical } from 'lucide-react';
 import TabList from '@/components/molecules/TabList';
 import CropPanel from '@/components/molecules/CropPanel';
+import TransformPanel from '@/components/molecules/TransformPanel';
 
 interface EditPanelProps {
   /**
@@ -22,6 +23,14 @@ interface EditPanelProps {
    * Crop ratio change handler
    */
   onCropRatioChange?: (ratio: number | null) => void;
+  /**
+   * Transform change handler
+   */
+  onTransformChange?: (transform: {
+    rotation: number;
+    flipHorizontal: boolean;
+    flipVertical: boolean;
+  }) => void;
 }
 
 const tabs = [
@@ -40,6 +49,7 @@ export function EditPanel({
   onClose,
   initialPosition = { x: 100, y: 100 },
   onCropRatioChange,
+  onTransformChange,
 }: EditPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -120,15 +130,13 @@ export function EditPanel({
         <TabList tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Tab Content */}
-        <div className="max-h-[400px] overflow-y-auto">
+        <div className="max-h-[500px] overflow-y-auto">
           {activeTab === 'crop' && (
             <CropPanel onCropRatioChange={onCropRatioChange || (() => {})} />
           )}
 
           {activeTab === 'transform' && (
-            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
-              Transform tools coming soon
-            </div>
+            <TransformPanel onTransformChange={onTransformChange} />
           )}
 
           {activeTab === 'adjust' && (
