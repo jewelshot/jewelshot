@@ -47,6 +47,20 @@ export function Canvas() {
     sharpness: 0,
     dehaze: 0,
   });
+  const [colorFilters, setColorFilters] = useState({
+    temperature: 0,
+    tint: 0,
+    saturation: 0,
+    vibrance: 0,
+  });
+  const [filterEffects, setFilterEffects] = useState({
+    vignetteAmount: 0,
+    vignetteSize: 50,
+    vignetteFeather: 50,
+    grainAmount: 0,
+    grainSize: 50,
+    fadeAmount: 0,
+  });
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -87,6 +101,20 @@ export function Canvas() {
       clarity: 0,
       sharpness: 0,
       dehaze: 0,
+    });
+    setColorFilters({
+      temperature: 0,
+      tint: 0,
+      saturation: 0,
+      vibrance: 0,
+    });
+    setFilterEffects({
+      vignetteAmount: 0,
+      vignetteSize: 50,
+      vignetteFeather: 50,
+      grainAmount: 0,
+      grainSize: 50,
+      fadeAmount: 0,
     });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -225,6 +253,8 @@ export function Canvas() {
               onPositionChange={setPosition}
               transform={transform}
               adjustFilters={adjustFilters}
+              colorFilters={colorFilters}
+              filterEffects={filterEffects}
             />
 
             {/* Top Left Controls - File Info */}
@@ -323,6 +353,24 @@ export function Canvas() {
                   clarity: adjustData.clarity,
                   sharpness: adjustData.sharpness,
                   dehaze: adjustData.dehaze,
+                });
+              }}
+              onColorChange={(colorData) => {
+                setColorFilters({
+                  temperature: colorData.temperature || 0,
+                  tint: colorData.tint || 0,
+                  saturation: colorData.saturation || 0,
+                  vibrance: colorData.vibrance || 0,
+                });
+              }}
+              onFilterChange={(filterData) => {
+                setFilterEffects({
+                  vignetteAmount: filterData.vignetteAmount || 0,
+                  vignetteSize: filterData.vignetteSize || 50,
+                  vignetteFeather: filterData.vignetteFeather || 50,
+                  grainAmount: filterData.grainAmount || 0,
+                  grainSize: filterData.grainSize || 50,
+                  fadeAmount: filterData.fadeAmount || 0,
                 });
               }}
             />

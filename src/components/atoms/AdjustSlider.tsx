@@ -80,6 +80,8 @@ export function AdjustSlider({
           step={step}
           value={value}
           onChange={handleChange}
+          title={`${label}: ${value}`}
+          aria-label={`${label} adjustment`}
           className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/10"
           style={{
             background: `linear-gradient(to right, rgba(139,92,246,0.3) 0%, rgba(139,92,246,0.3) ${percentage}%, rgba(255,255,255,0.1) ${percentage}%, rgba(255,255,255,0.1) 100%)`,

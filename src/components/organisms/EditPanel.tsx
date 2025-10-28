@@ -6,6 +6,10 @@ import TabList from '@/components/molecules/TabList';
 import CropPanel from '@/components/molecules/CropPanel';
 import TransformPanel from '@/components/molecules/TransformPanel';
 import AdjustPanel from '@/components/molecules/AdjustPanel';
+import ColorsPanel, { ColorFilters } from '@/components/molecules/ColorsPanel';
+import FiltersPanel, {
+  FilterEffects,
+} from '@/components/molecules/FiltersPanel';
 
 interface EditPanelProps {
   /**
@@ -47,6 +51,14 @@ interface EditPanelProps {
     sharpness: number;
     dehaze: number;
   }) => void;
+  /**
+   * Color change handler
+   */
+  onColorChange?: (colors: ColorFilters) => void;
+  /**
+   * Filter change handler
+   */
+  onFilterChange?: (filters: FilterEffects) => void;
 }
 
 const tabs = [
@@ -67,6 +79,8 @@ export function EditPanel({
   onCropRatioChange,
   onTransformChange,
   onAdjustChange,
+  onColorChange,
+  onFilterChange,
 }: EditPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -178,15 +192,11 @@ export function EditPanel({
           )}
 
           {activeTab === 'colors' && (
-            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
-              Color tools coming soon
-            </div>
+            <ColorsPanel onColorChange={onColorChange} />
           )}
 
           {activeTab === 'filters' && (
-            <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-white/20 text-xs text-white/50">
-              Filter tools coming soon
-            </div>
+            <FiltersPanel onFilterChange={onFilterChange} />
           )}
         </div>
       </div>

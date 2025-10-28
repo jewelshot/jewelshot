@@ -3,6 +3,26 @@
  * Professional selective tone adjustment algorithms
  */
 
-export * from './luminance';
-export * from './toneCurves';
-export * from './selectiveTone';
+// Export from luminance
+export {
+  calculateLuminance,
+  calculateNormalizedLuminance,
+  rgbToHsl,
+  hslToRgb,
+  preserveColorWithLuminance,
+} from './luminance';
+
+// Export from toneCurves
+export {
+  calculateTonalMask,
+  parametricCurve,
+  applySelectiveToneAdjustment,
+  applyDualToneAdjustment,
+} from './toneCurves';
+
+// Export from selectiveTone
+export {
+  applySelectiveTone,
+  applyDualSelectiveTone,
+  calculateOptimalFeather,
+} from './selectiveTone';

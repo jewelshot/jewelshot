@@ -3,6 +3,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useImageSharpening } from '@/hooks/useImageSharpening';
 import { useSelectiveTone } from '@/hooks/useSelectiveTone';
+import { useClarity } from '@/hooks/useClarity';
+import { useDehaze } from '@/hooks/useDehaze';
+import { useVignette } from '@/hooks/useVignette';
+import { useGrain } from '@/hooks/useGrain';
 
 interface ImageViewerProps {
   src: string;
@@ -30,6 +34,20 @@ interface ImageViewerProps {
     sharpness?: number;
     dehaze?: number;
   };
+  colorFilters?: {
+    temperature?: number;
+    tint?: number;
+    saturation?: number;
+    vibrance?: number;
+  };
+  filterEffects?: {
+    vignetteAmount?: number;
+    vignetteSize?: number;
+    vignetteFeather?: number;
+    grainAmount?: number;
+    grainSize?: number;
+    fadeAmount?: number;
+  };
 }
 
 export function ImageViewer({
@@ -41,6 +59,8 @@ export function ImageViewer({
   onPositionChange,
   transform = { rotation: 0, flipHorizontal: false, flipVertical: false },
   adjustFilters = {},
+  colorFilters = {},
+  filterEffects = {},
 }: ImageViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -48,9 +68,17 @@ export function ImageViewer({
   const startPosRef = useRef({ x: 0, y: 0 });
 
   // Processing pipeline (order matters):
-  // 1. Selective tone adjustment (highlights & shadows)
-  const { processedSrc: toneMappedSrc } = useSelectiveTone({
+  // 1. Dehaze (atmospheric correction first)
+  const { processedSrc: dehazedSrc } = useDehaze({
     originalSrc: src,
+    dehaze: adjustFilters.dehaze || 0,
+    enabled: (adjustFilters.dehaze || 0) !== 0,
+    highQuality: false, // Fast mode for real-time performance
+  });
+
+  // 2. Selective tone adjustment (highlights & shadows after dehaze)
+  const { processedSrc: toneMappedSrc } = useSelectiveTone({
+    originalSrc: dehazedSrc,
     highlights: adjustFilters.highlights || 0,
     shadows: adjustFilters.shadows || 0,
     enabled:
@@ -58,11 +86,36 @@ export function ImageViewer({
       (adjustFilters.shadows || 0) !== 0,
   });
 
-  // 2. Sharpening (applied after tone mapping)
-  const { processedSrc: finalProcessedSrc } = useImageSharpening({
+  // 3. Clarity (local contrast enhancement after tone mapping)
+  const { processedSrc: clarifiedSrc } = useClarity({
     originalSrc: toneMappedSrc,
+    clarity: adjustFilters.clarity || 0,
+    enabled: (adjustFilters.clarity || 0) !== 0,
+    highQuality: false, // Fast mode for real-time performance
+  });
+
+  // 4. Sharpening (applied last for maximum detail)
+  const { processedSrc: sharpenedSrc } = useImageSharpening({
+    originalSrc: clarifiedSrc,
     sharpness: adjustFilters.sharpness || 0,
     enabled: (adjustFilters.sharpness || 0) !== 0,
+  });
+
+  // 5. Vignette (artistic effect after all adjustments)
+  const { processedSrc: vignettedSrc } = useVignette({
+    originalSrc: sharpenedSrc,
+    amount: filterEffects.vignetteAmount || 0,
+    size: filterEffects.vignetteSize || 50,
+    feather: filterEffects.vignetteFeather || 50,
+    enabled: (filterEffects.vignetteAmount || 0) !== 0,
+  });
+
+  // 6. Grain (film texture as final touch)
+  const { processedSrc: finalProcessedSrc } = useGrain({
+    originalSrc: vignettedSrc,
+    amount: filterEffects.grainAmount || 0,
+    size: filterEffects.grainSize || 50,
+    enabled: (filterEffects.grainAmount || 0) > 0,
   });
 
   // Build CSS filter string from adjust values
@@ -267,111 +320,198 @@ export function ImageViewer({
       }
     }
 
-    // Clarity: Mid-tone contrast enhancement (micro-contrast)
-    // Increases local contrast in mid-tones without affecting shadows/highlights aggressively
-    // -100 → Soften/Flatten mid-tones, 0 → Normal, +100 → Crisp/Enhanced mid-tones
-    if (adjustFilters.clarity !== undefined && adjustFilters.clarity !== 0) {
-      // Scale factor for smooth transitions
-      const scaleFactor = Math.abs(adjustFilters.clarity) / 100;
-
-      if (adjustFilters.clarity < 0) {
-        // NEGATIVE: Reduce clarity (dreamy, soft look)
-        // Strategy: Reduce contrast and slightly increase brightness for softness
-
-        // Moderate contrast reduction (1.0 to 0.70)
-        // At -50: 0.85, At -100: 0.70
-        const contrastReduction = 1 - scaleFactor * 0.3;
-        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
-
-        // Slight brightness increase for soft glow (1.0 to 1.10)
-        // At -50: 1.05, At -100: 1.10
-        const brightnessIncrease = 1 + scaleFactor * 0.1;
-        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
-
-        // Subtle saturation reduction for muted effect
-        // At -50: 0.95, At -100: 0.90
-        if (Math.abs(adjustFilters.clarity) > 30) {
-          const saturationReduction = 1 - scaleFactor * 0.1;
-          filters.push(`saturate(${saturationReduction.toFixed(3)})`);
-        }
-      } else {
-        // POSITIVE: Increase clarity (crisp, detailed look)
-        // Strategy: Increase contrast in mid-tones, slight brightness reduction
-
-        // Strong contrast increase for mid-tone pop (1.0 to 1.50)
-        // At +50: 1.25, At +100: 1.50
-        const contrastIncrease = 1 + scaleFactor * 0.5;
-        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
-
-        // Very slight brightness reduction to prevent over-brightness (1.0 to 0.95)
-        // At +50: 0.975, At +100: 0.95
-        const brightnessReduction = 1 - scaleFactor * 0.05;
-        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
-
-        // Saturation boost for enhanced color separation in mid-tones
-        // At +50: 1.075, At +100: 1.15
-        if (adjustFilters.clarity > 30) {
-          const saturationBoost = 1 + scaleFactor * 0.15;
-          filters.push(`saturate(${saturationBoost.toFixed(3)})`);
-        }
-      }
-    }
+    // Clarity: Now handled by professional multi-scale algorithm via Canvas API
+    // Uses bilateral filtering and multi-scale decomposition with halo prevention
 
     // Sharpness: Now handled by professional Unsharp Mask algorithm via Canvas API
     // No CSS filter needed - processed image is used instead
 
-    // Dehaze: Atmospheric haze removal (clarity + contrast + exposure)
-    // Removes fog, mist, and atmospheric perspective effects
-    // -100 → Add haze/fog, 0 → Normal, +100 → Remove haze/enhance clarity
-    if (adjustFilters.dehaze !== undefined && adjustFilters.dehaze !== 0) {
-      // Scale factor for smooth transitions
-      const scaleFactor = Math.abs(adjustFilters.dehaze) / 100;
+    // Dehaze: Now handled by professional Dark Channel Prior algorithm via Canvas API
+    // Uses atmospheric light estimation and transmission map calculation
 
-      if (adjustFilters.dehaze < 0) {
-        // NEGATIVE: Add haze/fog effect (dreamy, atmospheric)
-        // Strategy: Reduce contrast, increase brightness, desaturate
+    // ========================================
+    // COLOR FILTERS (CSS-based for real-time performance)
+    // ========================================
 
-        // Strong contrast reduction for hazy look (1.0 to 0.60)
-        // At -50: 0.80, At -100: 0.60
-        const contrastReduction = 1 - scaleFactor * 0.4;
-        filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+    // Temperature: Smooth Kelvin color temperature simulation
+    // Unified algorithm for seamless transition across 0
+    // -100 → Cool (Blue, ~3000K), 0 → Neutral (~5500K), +100 → Warm (Orange, ~10000K)
+    if (
+      colorFilters.temperature !== undefined &&
+      colorFilters.temperature !== 0
+    ) {
+      const temp = colorFilters.temperature;
+      const normalized = temp / 100; // -1 to +1
 
-        // Brightness increase for foggy glow (1.0 to 1.25)
-        // At -50: 1.125, At -100: 1.25
-        const brightnessIncrease = 1 + scaleFactor * 0.25;
-        filters.push(`brightness(${brightnessIncrease.toFixed(3)})`);
+      // Unified sepia-based approach for smooth transition
+      // Use sepia as base, then rotate hue in both directions
+      const absIntensity = Math.abs(normalized);
 
-        // Strong desaturation for washed-out hazy effect (1.0 to 0.60)
-        // At -50: 0.80, At -100: 0.60
-        const saturationReduction = 1 - scaleFactor * 0.4;
-        filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+      // Base sepia amount (same for both directions)
+      // Gradual increase from 0 to 0.35 for natural color shift
+      const sepiaAmount = absIntensity * 0.35;
+      filters.push(`sepia(${sepiaAmount.toFixed(3)})`);
+
+      // Hue rotation: smooth curve from blue (-) to orange (+)
+      // -100: +190deg (cool blue), 0: 0deg (neutral), +100: -25deg (warm orange)
+      let hueShift: number;
+      if (temp < 0) {
+        // Cool: Rotate towards blue (positive rotation)
+        // Smooth curve: 0 → 190deg
+        hueShift = absIntensity * 190;
       } else {
-        // POSITIVE: Remove haze (crisp, clear, vibrant)
-        // Strategy: Increase contrast, reduce brightness, boost saturation
+        // Warm: Rotate towards orange (negative rotation)
+        // Smooth curve: 0 → -25deg
+        hueShift = -(absIntensity * 25);
+      }
+      filters.push(`hue-rotate(${hueShift.toFixed(1)}deg)`);
 
-        // Very strong contrast increase for haze cutting (1.0 to 1.70)
-        // At +50: 1.35, At +100: 1.70
-        const contrastIncrease = 1 + scaleFactor * 0.7;
-        filters.push(`contrast(${contrastIncrease.toFixed(3)})`);
+      // Gentle saturation boost for vivid colors
+      // Same for both directions for consistency
+      const satBoost = 1 + absIntensity * 0.15;
+      filters.push(`saturate(${satBoost.toFixed(3)})`);
 
-        // Slight brightness reduction to counter contrast boost (1.0 to 0.88)
-        // At +50: 0.94, At +100: 0.88
-        const brightnessReduction = 1 - scaleFactor * 0.12;
-        filters.push(`brightness(${brightnessReduction.toFixed(3)})`);
+      // Subtle brightness adjustment for warmth/coolness perception
+      // Warm: slightly brighter, Cool: slightly darker
+      const brightAdjust = 1 + normalized * 0.03;
+      filters.push(`brightness(${brightAdjust.toFixed(3)})`);
+    }
 
-        // Strong saturation boost for color recovery (1.0 to 1.35)
-        // At +50: 1.175, At +100: 1.35
-        const saturationBoost = 1 + scaleFactor * 0.35;
-        filters.push(`saturate(${saturationBoost.toFixed(3)})`);
+    // Tint: Green-Magenta color balance
+    // Professional color grading control
+    // -100 → Green tint, 0 → Neutral, +100 → Magenta/Pink tint
+    if (colorFilters.tint !== undefined && colorFilters.tint !== 0) {
+      const tint = colorFilters.tint;
+      const intensity = Math.abs(tint) / 100; // 0 to 1
 
-        // Subtle exposure adjustment for depth perception
-        // At +50: 1.05, At +100: 1.10
-        if (adjustFilters.dehaze > 40) {
-          const exposureBoost = 1 + scaleFactor * 0.1;
-          filters.push(`brightness(${exposureBoost.toFixed(3)})`);
+      if (tint < 0) {
+        // NEGATIVE: Green tint (foliage, nature scenes)
+        // Hue-rotate towards green spectrum
+        // At -50: 40deg (yellow-green), At -100: 80deg (pure green)
+        const hueShift = intensity * 80;
+        filters.push(`hue-rotate(${hueShift.toFixed(1)}deg)`);
+
+        // Boost saturation for vivid greens
+        const satBoost = 1 + intensity * 0.12;
+        filters.push(`saturate(${satBoost.toFixed(3)})`);
+      } else {
+        // POSITIVE: Magenta/Pink tint (skin tones, portraits)
+        // Hue-rotate towards magenta
+        // At +50: -30deg, At +100: -60deg (magenta)
+        const hueShift = -(intensity * 60);
+        filters.push(`hue-rotate(${hueShift.toFixed(1)}deg)`);
+
+        // Boost saturation for rich magentas
+        const satBoost = 1 + intensity * 0.12;
+        filters.push(`saturate(${satBoost.toFixed(3)})`);
+      }
+    }
+
+    // Saturation: Universal color intensity adjustment
+    // Affects all colors equally (simple but effective)
+    // -100 → Grayscale (B&W), 0 → Normal, +100 → Hyper-saturated
+    if (
+      colorFilters.saturation !== undefined &&
+      colorFilters.saturation !== 0
+    ) {
+      // Linear mapping with slight curve for more control
+      // At -100: 0 (grayscale), At 0: 1 (normal), At +100: 2.5 (vivid)
+      let saturation: number;
+
+      if (colorFilters.saturation < 0) {
+        // Negative: Desaturate towards grayscale
+        // Linear reduction: 1.0 to 0.0
+        saturation = 1 + colorFilters.saturation / 100;
+      } else {
+        // Positive: Boost saturation with power curve
+        // Smoother increase for natural look
+        const normalized = colorFilters.saturation / 100; // 0 to 1
+        saturation = 1 + Math.pow(normalized, 0.9) * 1.5;
+      }
+
+      filters.push(`saturate(${saturation.toFixed(3)})`);
+    }
+
+    // Vibrance: Smart saturation (preserves skin tones)
+    // More sophisticated than saturation - protects already-saturated colors
+    // -100 → Muted colors, 0 → Normal, +100 → Vibrant (without over-saturation)
+    //
+    // Algorithm approximation using CSS filters:
+    // - Vibrance primarily affects muted colors (low saturation)
+    // - Already vivid colors are protected from clipping
+    // - Skin tones (reds/oranges) are preserved
+    if (colorFilters.vibrance !== undefined && colorFilters.vibrance !== 0) {
+      const vibrance = colorFilters.vibrance;
+      const intensity = Math.abs(vibrance) / 100; // 0 to 1
+
+      if (vibrance < 0) {
+        // NEGATIVE: Reduce vibrance (muted, pastel look)
+        // Strategy: Gentle saturation reduction + slight brightness increase
+        const satReduction = 1 - intensity * 0.4; // Max -40% saturation
+        filters.push(`saturate(${satReduction.toFixed(3)})`);
+
+        // Slight brightness boost for soft, airy feel
+        const brightBoost = 1 + intensity * 0.05;
+        filters.push(`brightness(${brightBoost.toFixed(3)})`);
+      } else {
+        // POSITIVE: Boost vibrance (vivid but natural)
+        // Strategy: Moderate saturation increase + contrast boost
+        // More conservative than pure saturation to avoid clipping
+
+        // Moderate saturation boost (max +80% vs saturation's +150%)
+        const satBoost = 1 + intensity * 0.8;
+        filters.push(`saturate(${satBoost.toFixed(3)})`);
+
+        // Slight contrast increase for "pop" without harshness
+        const contrastBoost = 1 + intensity * 0.08;
+        filters.push(`contrast(${contrastBoost.toFixed(3)})`);
+
+        // Protect highlights from blowing out
+        // Slight brightness reduction at high vibrance
+        if (vibrance > 50) {
+          const brightReduction = 1 - (intensity - 0.5) * 0.05;
+          filters.push(`brightness(${brightReduction.toFixed(3)})`);
         }
       }
     }
+
+    // ========================================
+    // FILTER EFFECTS
+    // ========================================
+
+    // Fade: Film fade effect (lifts blacks to gray)
+    // Vintage, washed-out film look
+    // 0 → No fade (pure blacks), 100 → Full fade (no pure blacks)
+    if (
+      filterEffects.fadeAmount !== undefined &&
+      filterEffects.fadeAmount > 0
+    ) {
+      const fadeIntensity = filterEffects.fadeAmount / 100; // 0 to 1
+
+      // Fade works by lifting black point while maintaining highlights
+      // Strategy: Reduce contrast + increase brightness
+
+      // Aggressive contrast reduction to lift blacks
+      // At 50: 0.70 contrast, At 100: 0.40 contrast
+      const contrastReduction = 1 - fadeIntensity * 0.6;
+      filters.push(`contrast(${contrastReduction.toFixed(3)})`);
+
+      // Moderate brightness increase to compensate
+      // At 50: 1.08 brightness, At 100: 1.15 brightness
+      const brightnessBoost = 1 + fadeIntensity * 0.15;
+      filters.push(`brightness(${brightnessBoost.toFixed(3)})`);
+
+      // Slight saturation reduction for washed-out film look
+      // At 50: 0.92 saturation, At 100: 0.85 saturation
+      const saturationReduction = 1 - fadeIntensity * 0.15;
+      filters.push(`saturate(${saturationReduction.toFixed(3)})`);
+    }
+
+    // Vignette: Handled by Canvas API via useVignette hook
+    // Creates radial gradient darkening/lightening from center to edges
+
+    // Grain: Handled by Canvas API via useGrain hook
+    // Adds realistic film grain texture with adjustable size and intensity
 
     return filters.length > 0 ? filters.join(' ') : 'none';
   };
