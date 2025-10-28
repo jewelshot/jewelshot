@@ -44,6 +44,7 @@ export function CropModal({
     width: 0,
     height: 0,
   });
+  const [resetKey, setResetKey] = useState(0);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -113,18 +114,8 @@ export function CropModal({
   };
 
   const handleReset = () => {
-    // Force re-render of CropFrame by toggling aspectRatio briefly
-    // This is a workaround to trigger the initial crop calculation
-    const currentRatio = aspectRatio;
-
-    // Set to different value temporarily
-    setCropArea({ x: 0, y: 0, width: 0, height: 0 });
-
-    // Trigger re-mount by remounting CropFrame
-    setTimeout(() => {
-      // CropFrame will recalculate initial crop based on aspect ratio
-      setCropArea({ x: 0.1, y: 0.1, width: 0.8, height: 0.8 });
-    }, 0);
+    // Force remount of CropFrame by changing key
+    setResetKey((prev) => prev + 1);
   };
 
   if (!isOpen) return null;
@@ -152,6 +143,7 @@ export function CropModal({
         {/* Crop frame */}
         {imageSize.width > 0 && (
           <CropFrame
+            key={resetKey}
             aspectRatio={aspectRatio}
             imageSize={imageSize}
             onCropChange={setCropArea}

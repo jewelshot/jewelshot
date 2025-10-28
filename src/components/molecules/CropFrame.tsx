@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ResizeHandle from '@/components/atoms/ResizeHandle';
 import CropGrid from '@/components/atoms/CropGrid';
 
@@ -55,17 +55,24 @@ export function CropFrame({
   };
 
   const [crop, setCrop] = useState(getInitialCrop());
+  const cropRef = useRef(crop);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
   const dragData = useRef({
     startX: 0,
     startY: 0,
     startCrop: { x: 0, y: 0, width: 0, height: 0 },
     handle: '',
   });
+
+  // Keep cropRef in sync with crop state
+  useEffect(() => {
+    cropRef.current = crop;
+  }, [crop]);
 
   // Set container ref on mount
   useEffect(() => {
@@ -76,14 +83,20 @@ export function CropFrame({
 
   // Reset crop when aspect ratio changes
   useEffect(() => {
-    setCrop(getInitialCrop());
+    const newCrop = getInitialCrop();
+    setCrop(newCrop);
+    onCropChange(newCrop);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aspectRatio]);
 
-  // Notify parent of crop changes
+  // Cleanup RAF on unmount
   useEffect(() => {
-    onCropChange(crop);
-  }, [crop, onCropChange]);
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -120,185 +133,200 @@ export function CropFrame({
 
       e.preventDefault();
 
+      // Calculate delta immediately (not in RAF to avoid stale values)
       const deltaX = e.clientX - dragData.current.startX;
       const deltaY = e.clientY - dragData.current.startY;
       const normDeltaX = deltaX / imageSize.width;
       const normDeltaY = deltaY / imageSize.height;
 
-      if (isDragging) {
-        // Move the frame
-        const newCrop = {
-          ...dragData.current.startCrop,
-          x: dragData.current.startCrop.x + normDeltaX,
-          y: dragData.current.startCrop.y + normDeltaY,
-        };
+      // Cancel previous RAF if exists
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
 
-        // Constrain to bounds
-        newCrop.x = Math.max(0, Math.min(newCrop.x, 1 - newCrop.width));
-        newCrop.y = Math.max(0, Math.min(newCrop.y, 1 - newCrop.height));
+      // Use RAF to throttle DOM updates only
+      rafRef.current = requestAnimationFrame(() => {
+        if (isDragging) {
+          // Move the frame
+          const newCrop = {
+            ...dragData.current.startCrop,
+            x: dragData.current.startCrop.x + normDeltaX,
+            y: dragData.current.startCrop.y + normDeltaY,
+          };
 
-        setCrop(newCrop);
-      } else if (isResizing) {
-        // Simplified resize with proper aspect ratio handling
-        const handle = dragData.current.handle;
-        const startCrop = dragData.current.startCrop;
-        let newCrop = { ...startCrop };
+          // Constrain to bounds
+          newCrop.x = Math.max(0, Math.min(newCrop.x, 1 - newCrop.width));
+          newCrop.y = Math.max(0, Math.min(newCrop.y, 1 - newCrop.height));
 
-        // Determine anchor point (opposite corner/edge that stays fixed)
-        const anchorX = handle.includes('l')
-          ? startCrop.x + startCrop.width
-          : startCrop.x;
-        const anchorY = handle.includes('t')
-          ? startCrop.y + startCrop.height
-          : startCrop.y;
+          setCrop(newCrop);
+        } else if (isResizing) {
+          // Simplified resize with proper aspect ratio handling
+          const handle = dragData.current.handle;
+          const startCrop = dragData.current.startCrop;
+          let newCrop = { ...startCrop };
 
-        // Calculate new dimensions based on mouse delta
-        let newX = newCrop.x;
-        let newY = newCrop.y;
-        let newWidth = newCrop.width;
-        let newHeight = newCrop.height;
+          // Determine anchor point (opposite corner/edge that stays fixed)
+          // For edge handles (t, b, l, r), anchor is the center of opposite edge
+          // For corner handles (tl, tr, bl, br), anchor is the opposite corner
+          const anchorX = handle.includes('l')
+            ? startCrop.x + startCrop.width
+            : handle.includes('r')
+              ? startCrop.x
+              : startCrop.x + startCrop.width / 2; // Center for top/bottom edges
+          const anchorY = handle.includes('t')
+            ? startCrop.y + startCrop.height
+            : handle.includes('b')
+              ? startCrop.y
+              : startCrop.y + startCrop.height / 2; // Center for left/right edges
 
-        if (handle.includes('l')) {
-          newX = startCrop.x + normDeltaX;
-          newWidth = anchorX - newX;
-        } else if (handle.includes('r')) {
-          newWidth = startCrop.width + normDeltaX;
-        }
+          // Calculate new dimensions based on mouse delta
+          let newX = newCrop.x;
+          let newY = newCrop.y;
+          let newWidth = newCrop.width;
+          let newHeight = newCrop.height;
 
-        if (handle.includes('t')) {
-          newY = startCrop.y + normDeltaY;
-          newHeight = anchorY - newY;
-        } else if (handle.includes('b')) {
-          newHeight = startCrop.height + normDeltaY;
-        }
+          if (handle.includes('l')) {
+            newX = startCrop.x + normDeltaX;
+            newWidth = anchorX - newX;
+          } else if (handle.includes('r')) {
+            newWidth = startCrop.width + normDeltaX;
+          }
 
-        // Ensure minimum size
-        if (newWidth < 0.05) {
-          newWidth = 0.05;
-          if (handle.includes('l')) newX = anchorX - 0.05;
-        }
-        if (newHeight < 0.05) {
-          newHeight = 0.05;
-          if (handle.includes('t')) newY = anchorY - 0.05;
-        }
+          if (handle.includes('t')) {
+            newY = startCrop.y + normDeltaY;
+            newHeight = anchorY - newY;
+          } else if (handle.includes('b')) {
+            newHeight = startCrop.height + normDeltaY;
+          }
 
-        // Apply aspect ratio if needed
-        if (aspectRatio) {
-          const currentPixelWidth = newWidth * imageSize.width;
-          const currentPixelHeight = newHeight * imageSize.height;
-          const currentRatio = currentPixelWidth / currentPixelHeight;
+          // Ensure minimum size
+          if (newWidth < 0.05) {
+            newWidth = 0.05;
+            if (handle.includes('l')) newX = anchorX - 0.05;
+          }
+          if (newHeight < 0.05) {
+            newHeight = 0.05;
+            if (handle.includes('t')) newY = anchorY - 0.05;
+          }
 
-          // Determine which dimension to base the resize on
-          const resizingWidth = handle === 'l' || handle === 'r';
-          const resizingHeight = handle === 't' || handle === 'b';
+          // Apply aspect ratio if needed
+          if (aspectRatio) {
+            // Determine which dimension to base the resize on
+            const resizingWidth = handle === 'l' || handle === 'r';
+            const resizingHeight = handle === 't' || handle === 'b';
 
-          if (resizingHeight && !resizingWidth) {
-            // Only height is changing - calculate width
-            newWidth =
-              (newHeight * imageSize.height * aspectRatio) / imageSize.width;
-
-            // Adjust position to keep anchor point
-            if (handle.includes('l')) {
-              newX = anchorX - newWidth;
-            } else if (handle.includes('r')) {
-              newX = anchorX;
-            } else {
-              // Center horizontally
-              newX = anchorX - newWidth / 2;
-            }
-          } else if (resizingWidth && !resizingHeight) {
-            // Only width is changing - calculate height
-            newHeight =
-              (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
-
-            // Adjust position to keep anchor point
-            if (handle.includes('t')) {
-              newY = anchorY - newHeight;
-            } else if (handle.includes('b')) {
-              newY = anchorY;
-            } else {
-              // Center vertically
-              newY = anchorY - newHeight / 2;
-            }
-          } else {
-            // Corner - maintain ratio, prefer the dimension that changed more
-            const widthChange = Math.abs(normDeltaX);
-            const heightChange = Math.abs(normDeltaY);
-
-            if (widthChange > heightChange) {
-              // Width changed more - adjust height
-              newHeight =
-                (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
-              if (handle.includes('t')) {
-                newY = anchorY - newHeight;
-              }
-            } else {
-              // Height changed more - adjust width
+            if (resizingHeight && !resizingWidth) {
+              // Top or Bottom edge - height is changing, calculate width from height
               newWidth =
                 (newHeight * imageSize.height * aspectRatio) / imageSize.width;
-              if (handle.includes('l')) {
+
+              // Keep horizontal center (since no horizontal handle was dragged)
+              const centerX = startCrop.x + startCrop.width / 2;
+              newX = centerX - newWidth / 2;
+            } else if (resizingWidth && !resizingHeight) {
+              // Left or Right edge - width is changing, calculate height from width
+              newHeight =
+                (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+
+              // Keep vertical center (since no vertical handle was dragged)
+              const centerY = startCrop.y + startCrop.height / 2;
+              newY = centerY - newHeight / 2;
+            } else {
+              // Corner - maintain ratio, prefer the dimension that changed more
+              const widthChange = Math.abs(normDeltaX);
+              const heightChange = Math.abs(normDeltaY);
+
+              if (widthChange > heightChange) {
+                // Width changed more - adjust height
+                newHeight =
+                  (newWidth * imageSize.width) /
+                  (aspectRatio * imageSize.height);
+                if (handle.includes('t')) {
+                  newY = anchorY - newHeight;
+                }
+              } else {
+                // Height changed more - adjust width
+                newWidth =
+                  (newHeight * imageSize.height * aspectRatio) /
+                  imageSize.width;
+                if (handle.includes('l')) {
+                  newX = anchorX - newWidth;
+                }
+              }
+            }
+          }
+
+          // Constrain to bounds
+          if (newX < 0) {
+            newWidth += newX;
+            newX = 0;
+            if (aspectRatio) {
+              newHeight =
+                (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+              if (handle === 't' || handle === 'b') {
+                // Edge handle - keep vertical center
+                newY = anchorY - newHeight / 2;
+              } else if (handle.includes('t')) {
+                newY = anchorY - newHeight;
+              }
+            }
+          }
+          if (newY < 0) {
+            newHeight += newY;
+            newY = 0;
+            if (aspectRatio) {
+              newWidth =
+                (newHeight * imageSize.height * aspectRatio) / imageSize.width;
+              if (handle === 'l' || handle === 'r') {
+                // Edge handle - keep horizontal center
+                newX = anchorX - newWidth / 2;
+              } else if (handle.includes('l')) {
                 newX = anchorX - newWidth;
               }
             }
           }
-        }
+          if (newX + newWidth > 1) {
+            newWidth = 1 - newX;
+            if (aspectRatio) {
+              newHeight =
+                (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
+              if (handle === 't' || handle === 'b') {
+                // Edge handle - keep vertical center
+                newY = anchorY - newHeight / 2;
+              } else if (handle.includes('t')) {
+                newY = anchorY - newHeight;
+              }
+            }
+          }
+          if (newY + newHeight > 1) {
+            newHeight = 1 - newY;
+            if (aspectRatio) {
+              newWidth =
+                (newHeight * imageSize.height * aspectRatio) / imageSize.width;
+              if (handle === 'l' || handle === 'r') {
+                // Edge handle - keep horizontal center
+                newX = anchorX - newWidth / 2;
+              } else if (handle.includes('l')) {
+                newX = anchorX - newWidth;
+              }
+            }
+          }
 
-        // Constrain to bounds
-        if (newX < 0) {
-          newWidth += newX;
-          newX = 0;
-          if (aspectRatio) {
-            newHeight =
-              (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
-            if (handle.includes('t')) {
-              newY = anchorY - newHeight;
-            }
-          }
-        }
-        if (newY < 0) {
-          newHeight += newY;
-          newY = 0;
-          if (aspectRatio) {
-            newWidth =
-              (newHeight * imageSize.height * aspectRatio) / imageSize.width;
-            if (handle.includes('l')) {
-              newX = anchorX - newWidth;
-            }
-          }
-        }
-        if (newX + newWidth > 1) {
-          newWidth = 1 - newX;
-          if (aspectRatio) {
-            newHeight =
-              (newWidth * imageSize.width) / (aspectRatio * imageSize.height);
-            if (handle.includes('t')) {
-              newY = anchorY - newHeight;
-            }
-          }
-        }
-        if (newY + newHeight > 1) {
-          newHeight = 1 - newY;
-          if (aspectRatio) {
-            newWidth =
-              (newHeight * imageSize.height * aspectRatio) / imageSize.width;
-            if (handle.includes('l')) {
-              newX = anchorX - newWidth;
-            }
-          }
-        }
+          // Final check - ensure we're still in bounds after aspect ratio adjustments
+          newX = Math.max(0, Math.min(newX, 1 - newWidth));
+          newY = Math.max(0, Math.min(newY, 1 - newHeight));
+          newWidth = Math.min(newWidth, 1 - newX);
+          newHeight = Math.min(newHeight, 1 - newY);
 
-        // Final check - ensure we're still in bounds after aspect ratio adjustments
-        newX = Math.max(0, Math.min(newX, 1 - newWidth));
-        newY = Math.max(0, Math.min(newY, 1 - newHeight));
-        newWidth = Math.min(newWidth, 1 - newX);
-        newHeight = Math.min(newHeight, 1 - newY);
-
-        newCrop = { x: newX, y: newY, width: newWidth, height: newHeight };
-        setCrop(newCrop);
-      }
+          newCrop = { x: newX, y: newY, width: newWidth, height: newHeight };
+          setCrop(newCrop);
+        }
+      });
     };
 
     const handleMouseUp = () => {
+      // Notify parent of final crop value
+      onCropChange(cropRef.current);
       setIsDragging(false);
       setIsResizing(false);
     };
@@ -328,13 +356,19 @@ export function CropFrame({
   return (
     <div
       ref={frameRef}
-      className="absolute border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
+      className={`absolute border-2 border-white transition-shadow ${
+        isDragging || isResizing
+          ? 'shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]'
+          : 'shadow-[0_0_0_9999px_rgba(0,0,0,0.6),0_0_20px_rgba(139,92,246,0.4),inset_0_0_0_1px_rgba(255,255,255,0.2)]'
+      }`}
       style={{
         left: `${pixelCrop.x}px`,
         top: `${pixelCrop.y}px`,
         width: `${pixelCrop.width}px`,
         height: `${pixelCrop.height}px`,
         cursor: isDragging ? 'grabbing' : 'grab',
+        willChange:
+          isDragging || isResizing ? 'left, top, width, height' : 'auto',
       }}
       onMouseDown={handleMouseDown}
     >
