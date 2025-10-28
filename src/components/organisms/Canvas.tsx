@@ -176,6 +176,9 @@ export function Canvas() {
 
   // Auto-collapse/restore bars when edit panel opens/closes
   useEffect(() => {
+    // Only run this effect when image is uploaded (prevents flash during image change)
+    if (!uploadedImage) return;
+
     if (isEditPanelOpen) {
       // Opening edit panel - save current bar states and collapse all
       setSavedBarStates({
@@ -218,7 +221,7 @@ export function Canvas() {
       setPosition((prev) => ({ ...prev, x: 0 }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditPanelOpen]);
+  }, [isEditPanelOpen, uploadedImage]);
 
   const handleCropRatioChange = (ratio: number | null) => {
     setCropRatio(ratio);
@@ -379,8 +382,8 @@ export function Canvas() {
               />
             </div>
 
-            {/* Edit Panel - Only render when image is uploaded */}
-            {uploadedImage && (
+            {/* Edit Panel - Only render when image is uploaded and not loading */}
+            {uploadedImage && !isLoading && (
               <EditPanel
                 isOpen={isEditPanelOpen}
                 onClose={() => setIsEditPanelOpen(false)}
