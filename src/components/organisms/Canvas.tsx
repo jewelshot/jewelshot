@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useImageState } from '@/hooks/useImageState';
+import { useImageTransform } from '@/hooks/useImageTransform';
 import ZoomControls from '@/components/molecules/ZoomControls';
 import ActionControls from '@/components/molecules/ActionControls';
 import TopLeftControls from '@/components/molecules/TopLeftControls';
@@ -44,9 +45,18 @@ export function Canvas() {
     resetImageState,
   } = useImageState();
 
+  // Image transformation state (extracted to hook)
+  const {
+    scale,
+    setScale,
+    position,
+    setPosition,
+    transform,
+    setTransform,
+    resetTransform,
+  } = useImageTransform();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [scale, setScale] = useState(1.0);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [background, setBackground] = useState<
     'none' | 'black' | 'gray' | 'white' | 'alpha'
@@ -60,11 +70,6 @@ export function Canvas() {
   });
   const [cropRatio, setCropRatio] = useState<number | null>(null);
   const [isCropMode, setIsCropMode] = useState(false);
-  const [transform, setTransform] = useState({
-    rotation: 0,
-    flipHorizontal: false,
-    flipVertical: false,
-  });
   const [adjustFilters, setAdjustFilters] = useState({
     brightness: 0,
     contrast: 0,
@@ -105,8 +110,7 @@ export function Canvas() {
       const reader = new FileReader();
       reader.onload = (event) => {
         setUploadedImage(event.target?.result as string);
-        setScale(1.0);
-        setPosition({ x: 0, y: 0 });
+        resetTransform(); // Reset scale, position, transform
         setIsEditPanelOpen(false); // Close EditPanel when new image is loaded
         setIsLoading(false);
       };
@@ -118,10 +122,8 @@ export function Canvas() {
     // Reset image state (uploadedImage, fileName, fileSize, isLoading)
     resetImageState();
 
-    // Reset other canvas state
-    setScale(1.0);
-    setPosition({ x: 0, y: 0 });
-    setTransform({ rotation: 0, flipHorizontal: false, flipVertical: false });
+    // Reset transformation state (scale, position, transform)
+    resetTransform();
     setAdjustFilters({
       brightness: 0,
       contrast: 0,
@@ -254,8 +256,7 @@ export function Canvas() {
     setUploadedImage(croppedImage);
     setIsCropMode(false);
     setCropRatio(null);
-    setScale(1.0);
-    setPosition({ x: 0, y: 0 });
+    resetTransform(); // Reset scale, position, transform after crop
   };
 
   const handleCropCancel = () => {
