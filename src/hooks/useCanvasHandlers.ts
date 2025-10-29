@@ -53,8 +53,12 @@ interface UseCanvasHandlersProps {
   activeImage: 'left' | 'right';
   leftImageScale: number;
   rightImageScale: number;
+  leftImagePosition: { x: number; y: number };
+  rightImagePosition: { x: number; y: number };
   setLeftImageScale: (scale: number | ((prev: number) => number)) => void;
   setRightImageScale: (scale: number | ((prev: number) => number)) => void;
+  setLeftImagePosition: (pos: { x: number; y: number }) => void;
+  setRightImagePosition: (pos: { x: number; y: number }) => void;
 
   // Toast
   showToast: (
@@ -90,8 +94,12 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     activeImage,
     leftImageScale,
     rightImageScale,
+    leftImagePosition,
+    rightImagePosition,
     setLeftImageScale,
     setRightImageScale,
+    setLeftImagePosition,
+    setRightImagePosition,
     showToast,
   } = props;
 
@@ -239,13 +247,15 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     if (viewMode === 'side-by-side') {
       if (activeImage === 'left') {
         setLeftImageScale(1.0);
+        setLeftImagePosition({ x: 0, y: 0 });
       } else {
         setRightImageScale(1.0);
+        setRightImagePosition({ x: 0, y: 0 });
       }
     } else {
       setScale(1.0);
+      setPosition({ x: 0, y: 0 });
     }
-    setPosition({ x: 0, y: 0 });
   }, [
     viewMode,
     activeImage,
@@ -253,6 +263,8 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     setPosition,
     setLeftImageScale,
     setRightImageScale,
+    setLeftImagePosition,
+    setRightImagePosition,
   ]);
 
   // ============================================================================

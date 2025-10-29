@@ -182,8 +182,12 @@ export function Canvas() {
     activeImage,
     leftImageScale,
     rightImageScale,
+    leftImagePosition,
+    rightImagePosition,
     setLeftImageScale,
     setRightImageScale,
+    setLeftImagePosition,
+    setRightImagePosition,
     showToast,
   });
 
