@@ -711,6 +711,14 @@ export function Canvas() {
   const topPos = topOpen ? 64 : 0;
   const bottomPos = bottomOpen ? 40 : 0;
 
+  // Dynamic padding to prevent image overlap with controls
+  const imagePadding = {
+    top: canvasControlsVisible ? (topOpen ? 128 : 80) : 16,
+    left: canvasControlsVisible ? (leftOpen ? 16 : 232) : 16,
+    right: canvasControlsVisible ? (rightOpen ? 16 : 232) : 16,
+    bottom: canvasControlsVisible ? (bottomOpen ? 96 : 80) : 16,
+  };
+
   const backgroundStyles = {
     none: {},
     black: { backgroundColor: '#000000' },
@@ -754,27 +762,45 @@ export function Canvas() {
           <>
             {/* Image Viewer - Normal or Side by Side */}
             {viewMode === 'normal' ? (
-              <ImageViewer
-                key={uploadedImage}
-                src={uploadedImage}
-                alt="Uploaded"
-                scale={scale}
-                position={position}
-                onScaleChange={setScale}
-                onPositionChange={setPosition}
-                transform={transform}
-                adjustFilters={adjustFilters}
-                colorFilters={colorFilters}
-                filterEffects={filterEffects}
-                isAIProcessing={isAIEditing || isAIImageLoading}
-                aiProgress={aiProgress}
-                onImageLoad={handleAIImageLoad}
-                onImageError={handleAIImageError}
-                controlsVisible={canvasControlsVisible}
-              />
+              <div
+                className="h-full w-full transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                style={{
+                  paddingTop: `${imagePadding.top}px`,
+                  paddingLeft: `${imagePadding.left}px`,
+                  paddingRight: `${imagePadding.right}px`,
+                  paddingBottom: `${imagePadding.bottom}px`,
+                }}
+              >
+                <ImageViewer
+                  key={uploadedImage}
+                  src={uploadedImage}
+                  alt="Uploaded"
+                  scale={scale}
+                  position={position}
+                  onScaleChange={setScale}
+                  onPositionChange={setPosition}
+                  transform={transform}
+                  adjustFilters={adjustFilters}
+                  colorFilters={colorFilters}
+                  filterEffects={filterEffects}
+                  isAIProcessing={isAIEditing || isAIImageLoading}
+                  aiProgress={aiProgress}
+                  onImageLoad={handleAIImageLoad}
+                  onImageError={handleAIImageError}
+                  controlsVisible={canvasControlsVisible}
+                />
+              </div>
             ) : (
               /* Side by Side View */
-              <div className="flex h-full w-full items-center justify-center gap-4 p-4">
+              <div
+                className="flex h-full w-full items-center justify-center gap-4 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                style={{
+                  paddingTop: `${imagePadding.top}px`,
+                  paddingLeft: `${imagePadding.left}px`,
+                  paddingRight: `${imagePadding.right}px`,
+                  paddingBottom: `${imagePadding.bottom}px`,
+                }}
+              >
                 {/* Original Image */}
                 {originalImage && (
                   <div className="relative flex h-full w-1/2 flex-col items-center justify-center">

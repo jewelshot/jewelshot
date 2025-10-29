@@ -606,10 +606,9 @@ export function ImageViewer({
   return (
     <div
       ref={containerRef}
-      className="flex h-full items-center justify-center transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+      className="flex h-full items-center justify-center"
       style={{
         cursor: isDragging ? 'grabbing' : 'grab',
-        padding: controlsVisible ? '2rem' : '1rem',
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
