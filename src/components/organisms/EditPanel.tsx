@@ -105,6 +105,7 @@ export function EditPanel({
   const [isClosing, setIsClosing] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isBarMode, setIsBarMode] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -148,18 +149,28 @@ export function EditPanel({
     if (isOpen) {
       setShouldRender(true);
       setIsClosing(false);
+      setIsAnimating(true);
+
+      // Opening animation duration
+      const openTimer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 500);
+
+      return () => clearTimeout(openTimer);
     } else {
       // Start closing animation
       setIsClosing(true);
+      setIsAnimating(true);
 
       // Wait for animation to complete before unmounting
-      const timer = setTimeout(() => {
+      const closeTimer = setTimeout(() => {
         setShouldRender(false);
         setIsClosing(false);
+        setIsAnimating(false);
         setUserDragged(false);
       }, 400); // Match animation duration
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(closeTimer);
     }
   }, [isOpen]);
 
@@ -199,9 +210,10 @@ export function EditPanel({
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
-          transition: isDragging
-            ? 'none'
-            : 'left 800ms cubic-bezier(0.4, 0.0, 0.2, 1), top 800ms cubic-bezier(0.4, 0.0, 0.2, 1), width 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          transition:
+            isDragging || isAnimating
+              ? 'none'
+              : 'left 800ms cubic-bezier(0.4, 0.0, 0.2, 1), top 800ms cubic-bezier(0.4, 0.0, 0.2, 1), width 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
