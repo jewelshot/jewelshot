@@ -193,8 +193,13 @@ export function useDehaze(options: UseDehazeOptions): UseDehazeResult {
 
   // Effect: Process image with debounce
   useEffect(() => {
-    // Early exit: If disabled, instantly skip without timer
-    if (!enabled || dehaze === 0) {
+    // Early exit: If disabled, skip without timer (preserve current processedSrc)
+    if (!enabled) {
+      return;
+    }
+
+    // If value is 0, reset to original
+    if (dehaze === 0) {
       setProcessedSrc(originalSrc);
       return;
     }

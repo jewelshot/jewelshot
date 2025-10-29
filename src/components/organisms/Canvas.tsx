@@ -174,6 +174,7 @@ export function Canvas() {
     setScale,
     setPosition,
     resetTransform,
+    resetFilters,
     isFullscreen,
     setIsFullscreen,
     isCropMode,

@@ -202,8 +202,13 @@ export function useSelectiveTone(
 
   // Effect: Process image with debounce
   useEffect(() => {
-    // Early exit: If disabled, instantly skip without timer
-    if (!enabled || (highlights === 0 && shadows === 0)) {
+    // Early exit: If disabled, skip without timer (preserve current processedSrc)
+    if (!enabled) {
+      return;
+    }
+
+    // If both values are 0, reset to original
+    if (highlights === 0 && shadows === 0) {
       setProcessedSrc(originalSrc);
       return;
     }

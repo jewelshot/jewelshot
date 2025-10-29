@@ -36,6 +36,7 @@ interface UseCanvasHandlersProps {
   setScale: (scale: number | ((prev: number) => number)) => void;
   setPosition: (pos: { x: number; y: number }) => void;
   resetTransform: () => void;
+  resetFilters: () => void;
 
   // UI state
   isFullscreen: boolean;
@@ -83,6 +84,7 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     setScale,
     setPosition,
     resetTransform,
+    resetFilters,
     isFullscreen,
     setIsFullscreen,
     isCropMode,
@@ -160,6 +162,7 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
             // Save original image for crop reset functionality
             setOriginalImage(result);
             resetTransform();
+            resetFilters(); // Reset filters for new image
           } else {
             throw new Error('Failed to read image file');
           }
@@ -207,8 +210,10 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
       setFileSize,
       setIsLoading,
       resetTransform,
+      resetFilters,
       resetImageState,
       fileInputRef,
+      setOriginalImage,
     ]
   );
 
@@ -217,6 +222,8 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     resetImageState();
     // Reset transform
     resetTransform();
+    // Reset filters
+    resetFilters();
     // Reset original image (for comparison)
     setOriginalImage(null);
     // Reset file input so new images can be uploaded
@@ -225,7 +232,14 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     }
     // Navigate to studio without query params
     router.replace('/studio', { scroll: false });
-  }, [resetImageState, resetTransform, setOriginalImage, fileInputRef, router]);
+  }, [
+    resetImageState,
+    resetTransform,
+    resetFilters,
+    setOriginalImage,
+    fileInputRef,
+    router,
+  ]);
 
   // ============================================================================
   // ZOOM CONTROLS
