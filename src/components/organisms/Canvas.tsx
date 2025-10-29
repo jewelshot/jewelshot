@@ -694,6 +694,16 @@ export function Canvas() {
     };
   }, [editWithAI]);
 
+  // Smooth zoom transition when view mode changes
+  useEffect(() => {
+    // Reset zoom to fit screen when switching view modes
+    // This ensures smooth transition instead of jarring jump
+    if (uploadedImage) {
+      setScale(1.0);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [viewMode, uploadedImage, setScale, setPosition]);
+
   const allBarsOpen = leftOpen && rightOpen && topOpen && bottomOpen;
 
   const leftPos = leftOpen ? 260 : 0;
