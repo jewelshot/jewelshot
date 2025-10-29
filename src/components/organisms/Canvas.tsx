@@ -669,7 +669,6 @@ export function Canvas() {
                 }}
               >
                 <ImageViewer
-                  key={`${uploadedImage}-${leftOpen}-${rightOpen}`}
                   src={uploadedImage}
                   alt="Uploaded"
                   scale={scale}
@@ -719,7 +718,6 @@ export function Canvas() {
                       }}
                     >
                       <ImageViewer
-                        key={`${originalImage}-${leftOpen}-${rightOpen}`}
                         src={originalImage}
                         alt="Original"
                         scale={leftImageScale}
@@ -780,7 +778,6 @@ export function Canvas() {
                     }}
                   >
                     <ImageViewer
-                      key={`${uploadedImage}-${leftOpen}-${rightOpen}`}
                       src={uploadedImage}
                       alt="AI Generated"
                       scale={rightImageScale}
