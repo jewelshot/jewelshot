@@ -29,6 +29,7 @@ import CropModal from '@/components/organisms/CropModal';
 import UIToggleButton from '@/components/atoms/UIToggleButton';
 import ViewModeSelector from '@/components/atoms/ViewModeSelector';
 import KeyboardShortcutsModal from '@/components/molecules/KeyboardShortcutsModal';
+import AILoadingOverlay from '@/components/atoms/AILoadingOverlay';
 
 export function Canvas() {
   const searchParams = useSearchParams();
@@ -696,7 +697,7 @@ export function Canvas() {
             ) : (
               /* Side by Side View */
               <div
-                className="flex h-full w-full items-center justify-center gap-4 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                className="relative flex h-full w-full items-center justify-center gap-4 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
                 style={{
                   paddingTop: `${imagePadding.top}px`,
                   paddingLeft: `${imagePadding.left}px`,
@@ -704,6 +705,13 @@ export function Canvas() {
                   paddingBottom: `${imagePadding.bottom}px`,
                 }}
               >
+                {/* AI Loading Overlay for Side-by-Side View */}
+                {(isAIEditing || isAIImageLoading) && (
+                  <div className="absolute inset-0 z-50">
+                    <AILoadingOverlay progress={aiProgress} />
+                  </div>
+                )}
+
                 {/* Original Image */}
                 {originalImage && (
                   <div
@@ -795,8 +803,8 @@ export function Canvas() {
                       adjustFilters={adjustFilters}
                       colorFilters={colorFilters}
                       filterEffects={filterEffects}
-                      isAIProcessing={isAIEditing || isAIImageLoading}
-                      aiProgress={aiProgress}
+                      isAIProcessing={false}
+                      aiProgress=""
                       onImageLoad={handleAIImageLoad}
                       onImageError={handleAIImageError}
                       controlsVisible={canvasControlsVisible}

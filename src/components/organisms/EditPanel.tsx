@@ -148,14 +148,12 @@ export function EditPanel({
 
   useEffect(() => {
     if (isOpen) {
-      console.log('🟢 EditPanel Opening - shouldRender: true');
       setShouldRender(true);
       setIsClosing(false);
       setIsAnimating(true);
 
       // Opening animation duration
       const openTimer = setTimeout(() => {
-        console.log('✅ Opening animation complete');
         setIsAnimating(false);
         setHasAnimated(true); // Mark that opening animation has finished
       }, 500);
@@ -163,14 +161,12 @@ export function EditPanel({
       return () => clearTimeout(openTimer);
     } else if (!isOpen && shouldRender) {
       // Start closing animation
-      console.log('🔴 EditPanel Closing - isClosing: true');
       setIsClosing(true);
       setIsAnimating(true);
       setHasAnimated(false); // Reset so next opening animation works
 
       // Wait for animation to complete before unmounting
       const closeTimer = setTimeout(() => {
-        console.log('✅ Closing animation complete - unmounting');
         setShouldRender(false);
         setIsClosing(false);
         setIsAnimating(false);
@@ -215,10 +211,6 @@ export function EditPanel({
     : hasAnimated
       ? '' // No class after opening animation completes
       : 'animate-slide-in'; // Only during opening
-
-  console.log(
-    `🎬 EditPanel render - isClosing: ${isClosing}, hasAnimated: ${hasAnimated}, animation: ${animationClass}`
-  );
 
   return (
     <>
