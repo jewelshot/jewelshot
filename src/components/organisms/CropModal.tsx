@@ -45,6 +45,7 @@ export function CropModal({
     height: 0,
   });
   const [resetKey, setResetKey] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -77,45 +78,72 @@ export function CropModal({
     };
   }, [isOpen, imageSrc]);
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!imageRef.current || !canvasRef.current) return;
 
-    const img = imageRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    setIsProcessing(true);
 
-    // Crop uses normalized coordinates (0-1)
-    // Convert to actual image pixels
-    const srcX = cropArea.x * img.naturalWidth;
-    const srcY = cropArea.y * img.naturalHeight;
-    const srcWidth = cropArea.width * img.naturalWidth;
-    const srcHeight = cropArea.height * img.naturalHeight;
+    // Use setTimeout to ensure UI updates (loading state)
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // Set canvas size to crop area
-    canvas.width = srcWidth;
-    canvas.height = srcHeight;
+    try {
+      const img = imageRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Draw cropped image
-    ctx.drawImage(
-      img,
-      srcX,
-      srcY,
-      srcWidth,
-      srcHeight,
-      0,
-      0,
-      srcWidth,
-      srcHeight
-    );
+      // Crop uses normalized coordinates (0-1)
+      // Convert to actual image pixels
+      const srcX = cropArea.x * img.naturalWidth;
+      const srcY = cropArea.y * img.naturalHeight;
+      const srcWidth = cropArea.width * img.naturalWidth;
+      const srcHeight = cropArea.height * img.naturalHeight;
 
-    // Get cropped image as base64 (JPEG with quality for better performance)
-    const croppedImage = canvas.toDataURL('image/jpeg', 0.95);
+      // Optimize: Limit output size to max 4000px (for performance)
+      const MAX_DIMENSION = 4000;
+      let outputWidth = srcWidth;
+      let outputHeight = srcHeight;
 
-    // Apply immediately for instant feedback
-    requestAnimationFrame(() => {
-      onApply(croppedImage);
-    });
+      if (outputWidth > MAX_DIMENSION || outputHeight > MAX_DIMENSION) {
+        const scale = Math.min(
+          MAX_DIMENSION / outputWidth,
+          MAX_DIMENSION / outputHeight
+        );
+        outputWidth = Math.floor(outputWidth * scale);
+        outputHeight = Math.floor(outputHeight * scale);
+      }
+
+      // Set canvas size to optimized output size
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
+
+      // Draw cropped image with smooth scaling
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(
+        img,
+        srcX,
+        srcY,
+        srcWidth,
+        srcHeight,
+        0,
+        0,
+        outputWidth,
+        outputHeight
+      );
+
+      // Get cropped image as base64 (JPEG with quality for better performance)
+      const croppedImage = canvas.toDataURL('image/jpeg', 0.92);
+
+      // Apply with small delay for UI feedback
+      requestAnimationFrame(() => {
+        onApply(croppedImage);
+        setIsProcessing(false);
+      });
+    } catch (error) {
+      console.error('Crop error:', error);
+      setIsProcessing(false);
+    }
   };
 
   const handleReset = () => {
@@ -196,6 +224,7 @@ export function CropModal({
         onApply={handleApply}
         onCancel={onCancel}
         onReset={handleReset}
+        isProcessing={isProcessing}
       />
 
       {/* Info bar */}
