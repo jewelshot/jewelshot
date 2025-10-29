@@ -677,7 +677,7 @@ export function Canvas() {
           prompt: prompt || '', // Allow empty prompt for random generation
           image_urls: [imageUrl],
           num_images: 1,
-          aspect_ratio: '16:9', // Default to 16:9 for all generations
+          // Note: Edit API doesn't support aspect_ratio (uses input image dimensions)
         });
       }
     };
