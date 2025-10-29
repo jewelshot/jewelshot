@@ -1,293 +1,233 @@
-import { fal } from '@fal-ai/client';
+/**
+ * ============================================================================
+ * FAL.AI CLIENT - CLEAN & MINIMAL IMPLEMENTATION
+ * ============================================================================
+ *
+ * This is a fresh, minimal integration with fal.ai Nano Banana API.
+ * Following the official documentation exactly:
+ * https://fal.ai/models/fal-ai/nano-banana
+ * https://fal.ai/models/fal-ai/nano-banana/edit
+ */
+
+import * as fal from '@fal-ai/client';
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
 /**
- * Convert base64 data URI to Blob
+ * Initialize fal.ai client with API key
  */
-function dataURItoBlob(dataURI: string): Blob {
-  const byteString = atob(dataURI.split(',')[1]);
-  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
+function initializeFalClient() {
+  const apiKey = process.env.NEXT_PUBLIC_FAL_KEY;
+
+  if (!apiKey) {
+    console.warn('⚠️ FAL_KEY not found. AI features will be disabled.');
+    return;
   }
-  return new Blob([ab], { type: mimeString });
+
+  fal.config({
+    credentials: apiKey,
+  });
+}
+
+// Auto-initialize on import
+initializeFalClient();
+
+// ============================================================================
+// TYPES - Based on official fal.ai documentation
+// ============================================================================
+
+/**
+ * Text-to-Image Generation Input
+ */
+export interface GenerateInput {
+  prompt: string;
+  num_images?: number;
+  output_format?: 'jpeg' | 'png' | 'webp';
+  aspect_ratio?:
+    | '21:9'
+    | '1:1'
+    | '4:3'
+    | '3:2'
+    | '2:3'
+    | '5:4'
+    | '4:5'
+    | '3:4'
+    | '16:9'
+    | '9:16';
 }
 
 /**
- * Upload image to fal.ai storage
+ * Image-to-Image Edit Input
  */
-async function uploadImage(imageUrl: string): Promise<string> {
-  // If already a URL, return as-is
+export interface EditInput {
+  prompt: string;
+  image_url: string; // Single image URL or data URI
+  num_images?: number;
+  output_format?: 'jpeg' | 'png' | 'webp';
+}
+
+/**
+ * API Output (both generate and edit return this)
+ */
+export interface FalOutput {
+  images: Array<{
+    url: string;
+    width?: number;
+    height?: number;
+  }>;
+  description?: string;
+}
+
+/**
+ * Progress callback
+ */
+export type ProgressCallback = (status: string, message?: string) => void;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Upload a data URI or blob to fal.ai storage
+ * Only uploads if it's a base64 data URI, otherwise returns the URL as-is
+ */
+async function uploadIfNeeded(imageUrl: string): Promise<string> {
+  // If it's already a URL, return it
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
     return imageUrl;
   }
 
-  // If base64, upload to fal.ai storage
+  // If it's a data URI, upload it
   if (imageUrl.startsWith('data:')) {
-    const blob = dataURItoBlob(imageUrl);
+    // Convert data URI to Blob
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
     const file = new File([blob], 'image.jpg', { type: blob.type });
-    const url = await fal.storage.upload(file);
-    return url;
+
+    // Upload to fal.ai storage
+    const uploadedUrl = await fal.storage.upload(file);
+    return uploadedUrl;
   }
 
   throw new Error('Invalid image URL format');
 }
 
-/**
- * Configure fal.ai client
- *
- * API key should be set via environment variable:
- * NEXT_PUBLIC_FAL_KEY=your_key_here
- *
- * ⚠️ SECURITY NOTE:
- * For production, use a backend proxy to hide API keys.
- * See PRODUCTION_CHECKLIST.md for details.
- */
-export function configureFalClient() {
-  const apiKey = process.env.NEXT_PUBLIC_FAL_KEY;
-
-  if (!apiKey) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('FAL_KEY not found. AI features will be disabled.');
-    }
-    return false;
-  }
-
-  // Configure client
-  fal.config({
-    credentials: apiKey,
-    // Suppress warning in development (we're aware of the security implications)
-    // TODO: For production, implement backend proxy
-    requestMiddleware: async (url, options) => {
-      // In development, suppress the browser warning
-      if (process.env.NODE_ENV === 'development') {
-        // Warning is expected - we'll use proxy in production
-      }
-      return [url, options];
-    },
-  });
-
-  return true;
-}
-
-// Auto-configure on module load
-configureFalClient();
+// ============================================================================
+// TEXT-TO-IMAGE GENERATION
+// ============================================================================
 
 /**
- * Nano Banana Input Parameters
- */
-export interface NanoBananaInput {
-  prompt: string;
-  num_images?: number; // 1-4, default: 1
-  output_format?: 'jpeg' | 'png' | 'webp'; // default: jpeg
-  aspect_ratio?:
-    | '21:9'
-    | '1:1'
-    | '4:3'
-    | '3:2'
-    | '2:3'
-    | '5:4'
-    | '4:5'
-    | '3:4'
-    | '16:9'
-    | '9:16'; // default: 1:1
-  limit_generations?: boolean; // default: false
-  sync_mode?: boolean; // default: false
-}
-
-/**
- * Nano Banana Output
- */
-export interface NanoBananaOutput {
-  images: Array<{
-    url: string;
-    width?: number;
-    height?: number;
-    content_type?: string;
-  }>;
-  description: string;
-}
-
-/**
- * Generate image using Nano Banana (text-to-image)
- *
- * @param input - Generation parameters
- * @param onProgress - Progress callback
- * @returns Generated images
+ * Generate image from text prompt
  *
  * @example
  * ```ts
  * const result = await generateImage({
- *   prompt: "A black lab swimming",
- *   num_images: 1,
- *   aspect_ratio: "1:1"
+ *   prompt: "A jewelry ring on white background",
+ *   aspect_ratio: "16:9"
  * });
- *
  * console.log(result.images[0].url);
  * ```
  */
 export async function generateImage(
-  input: NanoBananaInput,
-  onProgress?: (update: {
-    status: string;
-    logs?: Array<{ message: string }>;
-  }) => void
-): Promise<NanoBananaOutput> {
+  input: GenerateInput,
+  onProgress?: ProgressCallback
+): Promise<FalOutput> {
   try {
+    if (onProgress) onProgress('INITIALIZING', 'Starting generation...');
+
     const result = await fal.subscribe('fal-ai/nano-banana', {
       input: {
         prompt: input.prompt,
-        num_images: input.num_images || 1,
-        output_format: input.output_format || 'jpeg',
-        aspect_ratio: input.aspect_ratio || '1:1',
-        limit_generations: input.limit_generations ?? false,
-        sync_mode: input.sync_mode ?? false,
+        num_images: input.num_images ?? 1,
+        output_format: input.output_format ?? 'jpeg',
+        aspect_ratio: input.aspect_ratio ?? '1:1',
       },
       logs: true,
       onQueueUpdate: (update) => {
         if (onProgress) {
-          onProgress({
-            status: update.status,
-            logs: update.status === 'IN_PROGRESS' ? update.logs : undefined,
-          });
+          if (update.status === 'IN_QUEUE') {
+            onProgress('IN_QUEUE', 'Waiting in queue...');
+          } else if (update.status === 'IN_PROGRESS') {
+            const lastLog = update.logs?.[update.logs.length - 1];
+            onProgress('IN_PROGRESS', lastLog?.message || 'Generating...');
+          } else if (update.status === 'COMPLETED') {
+            onProgress('COMPLETED', 'Generation complete!');
+          }
         }
       },
     });
 
-    return result.data as NanoBananaOutput;
+    return result.data as FalOutput;
   } catch (error) {
-    console.error('Nano Banana generation failed:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to generate image'
-    );
+    console.error('❌ Generation failed:', error);
+    throw error;
   }
 }
 
-/**
- * Nano Banana Edit Input Parameters (image-to-image)
- * Based on official fal.ai documentation
- */
-export interface NanoBananaEditInput {
-  prompt: string; // required
-  image_urls: string[]; // required - Array of image URLs
-  num_images?: number; // optional, 1-4, default: 1
-  output_format?: 'jpeg' | 'png' | 'webp'; // optional, default: jpeg
-  aspect_ratio?:
-    | '21:9'
-    | '1:1'
-    | '4:3'
-    | '3:2'
-    | '2:3'
-    | '5:4'
-    | '4:5'
-    | '3:4'
-    | '16:9'
-    | '9:16'; // optional, default: None (uses input image aspect ratio)
-  sync_mode?: boolean; // optional, default: false
-  limit_generations?: boolean; // optional, default: false
-}
+// ============================================================================
+// IMAGE-TO-IMAGE EDITING
+// ============================================================================
 
 /**
- * Edit image using Nano Banana (image-to-image)
- *
- * @param input - Edit parameters
- * @param onProgress - Progress callback
- * @returns Edited images
+ * Edit existing image with AI
  *
  * @example
  * ```ts
  * const result = await editImage({
- *   prompt: "make the sky more dramatic",
- *   image_urls: ["https://example.com/image.jpg"],
- *   num_images: 1
+ *   prompt: "enhance lighting and colors",
+ *   image_url: "https://example.com/image.jpg"
  * });
- *
  * console.log(result.images[0].url);
  * ```
  */
 export async function editImage(
-  input: NanoBananaEditInput,
-  onProgress?: (update: {
-    status: string;
-    logs?: Array<{ message: string }>;
-  }) => void
-): Promise<NanoBananaOutput> {
-  console.log('=== editImage called ===');
-  console.log('Input received:', {
-    prompt: input.prompt,
-    image_urls_count: input.image_urls?.length,
-    num_images: input.num_images,
-    output_format: input.output_format,
-  });
-
+  input: EditInput,
+  onProgress?: ProgressCallback
+): Promise<FalOutput> {
   try {
-    // Validate input
-    if (!input.prompt || typeof input.prompt !== 'string') {
-      throw new Error('Prompt is required and must be a string');
-    }
-    if (
-      !input.image_urls ||
-      !Array.isArray(input.image_urls) ||
-      input.image_urls.length === 0
-    ) {
-      throw new Error('image_urls is required and must be a non-empty array');
-    }
+    // Step 1: Upload image if needed
+    if (onProgress) onProgress('UPLOADING', 'Uploading image...');
 
-    // Upload base64 images to fal.ai storage first
-    if (onProgress) {
-      onProgress({
-        status: 'UPLOADING',
-        logs: [{ message: 'Uploading image...' }],
-      });
-    }
+    const uploadedUrl = await uploadIfNeeded(input.image_url);
+    console.log('✅ Image uploaded:', uploadedUrl);
 
-    console.log('Uploading images...');
-    const uploadedUrls = await Promise.all(
-      input.image_urls.map((url) => uploadImage(url))
-    );
-    console.log('Upload complete. URLs:', uploadedUrls);
+    // Step 2: Call edit API
+    if (onProgress) onProgress('EDITING', 'Processing with AI...');
 
-    // Build API input with safe string handling
-    const promptText = (input.prompt || '').trim() || 'enhance the image';
-
-    const apiInput = {
-      prompt: promptText,
-      image_urls: uploadedUrls,
-      num_images: 1,
-      output_format: 'jpeg' as const,
+    // Build the API request - exactly as per documentation
+    const apiRequest = {
+      prompt: input.prompt,
+      image_urls: [uploadedUrl], // Edit API expects an array
+      num_images: input.num_images ?? 1,
+      output_format: input.output_format ?? 'jpeg',
     };
 
-    console.log('=== Sending to Nano Banana edit API ===');
-    console.log('API Input:', JSON.stringify(apiInput, null, 2));
-    console.log('API endpoint: fal-ai/nano-banana/edit');
+    console.log('🚀 Calling fal-ai/nano-banana/edit with:', apiRequest);
 
     const result = await fal.subscribe('fal-ai/nano-banana/edit', {
-      input: apiInput,
+      input: apiRequest,
       logs: true,
       onQueueUpdate: (update) => {
-        console.log('Queue update:', update.status);
         if (onProgress) {
-          onProgress({
-            status: update.status,
-            logs: update.status === 'IN_PROGRESS' ? update.logs : undefined,
-          });
+          if (update.status === 'IN_QUEUE') {
+            onProgress('IN_QUEUE', 'Waiting in queue...');
+          } else if (update.status === 'IN_PROGRESS') {
+            const lastLog = update.logs?.[update.logs.length - 1];
+            onProgress('IN_PROGRESS', lastLog?.message || 'Editing...');
+          } else if (update.status === 'COMPLETED') {
+            onProgress('COMPLETED', 'Edit complete!');
+          }
         }
       },
     });
 
-    console.log('=== API call successful ===');
-    return result.data as NanoBananaOutput;
+    console.log('✅ Edit successful:', result.data);
+    return result.data as FalOutput;
   } catch (error) {
-    console.error('=== Nano Banana edit failed ===');
-    console.error('Error details:', error);
-    console.error(
-      'Error stack:',
-      error instanceof Error ? error.stack : 'No stack'
-    );
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to edit image'
-    );
+    console.error('❌ Edit failed:', error);
+    throw error;
   }
 }
 

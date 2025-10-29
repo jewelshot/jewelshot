@@ -675,7 +675,7 @@ export function Canvas() {
 
         editWithAI({
           prompt: prompt || 'enhance the image quality and lighting',
-          image_urls: [imageUrl],
+          image_url: imageUrl,
           num_images: 1,
           output_format: 'jpeg',
         });
