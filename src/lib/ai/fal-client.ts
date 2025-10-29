@@ -226,38 +226,21 @@ export async function editImage(
       input.image_urls.map((url) => uploadImage(url))
     );
 
-    // Build API input according to official documentation
+    // Build API input - start with ONLY required parameters
     const apiInput: {
       prompt: string;
       image_urls: string[];
       num_images?: number;
       output_format?: string;
-      aspect_ratio?: string;
-      sync_mode?: boolean;
-      limit_generations?: boolean;
     } = {
       prompt: input.prompt.trim() || 'enhance the image',
       image_urls: uploadedUrls,
+      num_images: 1, // Explicitly set to 1
+      output_format: 'jpeg', // Explicitly set to jpeg
     };
 
-    // Add optional parameters if provided
-    if (input.num_images !== undefined) {
-      apiInput.num_images = input.num_images;
-    }
-    if (input.output_format) {
-      apiInput.output_format = input.output_format;
-    }
-    if (input.aspect_ratio) {
-      apiInput.aspect_ratio = input.aspect_ratio;
-    }
-    if (input.sync_mode !== undefined) {
-      apiInput.sync_mode = input.sync_mode;
-    }
-    if (input.limit_generations !== undefined) {
-      apiInput.limit_generations = input.limit_generations;
-    }
-
     console.log('Sending to Nano Banana edit API:', apiInput);
+    console.log('API endpoint: fal-ai/nano-banana/edit');
 
     const result = await fal.subscribe('fal-ai/nano-banana/edit', {
       input: apiInput,
