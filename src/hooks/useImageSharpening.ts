@@ -208,6 +208,12 @@ export function useImageSharpening(
 
   // Effect: Process image with debounce
   useEffect(() => {
+    // Early exit: If disabled, instantly skip without timer
+    if (!enabled || sharpness === 0) {
+      setProcessedSrc(originalSrc);
+      return;
+    }
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -223,7 +229,7 @@ export function useImageSharpening(
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [processImage]);
+  }, [processImage, enabled, sharpness, originalSrc, setProcessedSrc]);
 
   // Cleanup effect
   useEffect(() => {

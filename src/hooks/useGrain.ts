@@ -171,6 +171,12 @@ export function useGrain(options: UseGrainOptions): UseGrainResult {
 
   // Effect: Process image with debounce
   useEffect(() => {
+    // Early exit: If disabled, instantly skip without timer
+    if (!enabled || amount === 0) {
+      setProcessedSrc(originalSrc);
+      return;
+    }
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -186,7 +192,7 @@ export function useGrain(options: UseGrainOptions): UseGrainResult {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [processImage]);
+  }, [processImage, enabled, amount, originalSrc, setProcessedSrc]);
 
   // Cleanup effect
   useEffect(() => {

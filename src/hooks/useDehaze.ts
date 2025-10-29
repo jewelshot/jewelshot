@@ -193,6 +193,12 @@ export function useDehaze(options: UseDehazeOptions): UseDehazeResult {
 
   // Effect: Process image with debounce
   useEffect(() => {
+    // Early exit: If disabled, instantly skip without timer
+    if (!enabled || dehaze === 0) {
+      setProcessedSrc(originalSrc);
+      return;
+    }
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -208,7 +214,7 @@ export function useDehaze(options: UseDehazeOptions): UseDehazeResult {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [processImage]);
+  }, [processImage, enabled, dehaze, originalSrc, setProcessedSrc]);
 
   // Cleanup effect
   useEffect(() => {

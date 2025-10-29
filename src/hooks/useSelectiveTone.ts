@@ -202,6 +202,12 @@ export function useSelectiveTone(
 
   // Effect: Process image with debounce
   useEffect(() => {
+    // Early exit: If disabled, instantly skip without timer
+    if (!enabled || (highlights === 0 && shadows === 0)) {
+      setProcessedSrc(originalSrc);
+      return;
+    }
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -217,7 +223,14 @@ export function useSelectiveTone(
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [processImage]);
+  }, [
+    processImage,
+    enabled,
+    highlights,
+    shadows,
+    originalSrc,
+    setProcessedSrc,
+  ]);
 
   // Cleanup effect
   useEffect(() => {

@@ -192,6 +192,12 @@ export function useClarity(options: UseClarityOptions): UseClarityResult {
 
   // Effect: Process image with debounce
   useEffect(() => {
+    // Early exit: If disabled, instantly skip without timer
+    if (!enabled || clarity === 0) {
+      setProcessedSrc(originalSrc);
+      return;
+    }
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -207,7 +213,7 @@ export function useClarity(options: UseClarityOptions): UseClarityResult {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [processImage]);
+  }, [processImage, enabled, clarity, originalSrc, setProcessedSrc]);
 
   // Cleanup effect
   useEffect(() => {
