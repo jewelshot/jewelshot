@@ -14,12 +14,12 @@ export function ViewModeSelector({
   disabled = false,
 }: ViewModeSelectorProps) {
   return (
-    <div className="flex items-center gap-1 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-1 backdrop-blur-[16px]">
+    <div className="flex items-center gap-0.5 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-0.5 backdrop-blur-[16px]">
       {/* Normal View */}
       <button
         onClick={() => onViewModeChange('normal')}
         disabled={disabled}
-        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+        className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200 ${
           viewMode === 'normal'
             ? 'bg-[rgba(139,92,246,0.2)] text-[rgba(196,181,253,1)]'
             : 'text-[rgba(196,181,253,0.6)] hover:text-[rgba(196,181,253,0.8)]'
@@ -27,8 +27,8 @@ export function ViewModeSelector({
         title="Normal View"
       >
         <svg
-          width="16"
-          height="16"
+          width="14"
+          height="14"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -45,7 +45,7 @@ export function ViewModeSelector({
       <button
         onClick={() => onViewModeChange('side-by-side')}
         disabled={disabled}
-        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+        className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200 ${
           viewMode === 'side-by-side'
             ? 'bg-[rgba(139,92,246,0.2)] text-[rgba(196,181,253,1)]'
             : 'text-[rgba(196,181,253,0.6)] hover:text-[rgba(196,181,253,0.8)]'
@@ -53,8 +53,8 @@ export function ViewModeSelector({
         title="Side by Side Comparison"
       >
         <svg
-          width="16"
-          height="16"
+          width="14"
+          height="14"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

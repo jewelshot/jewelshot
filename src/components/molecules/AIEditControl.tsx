@@ -88,7 +88,7 @@ export function AIEditControl({
         <div className="pointer-events-none absolute inset-0 -z-10 rounded-lg bg-black/50 backdrop-blur-2xl" />
 
         {/* Main container */}
-        <div className="relative flex items-center gap-2 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.85)] px-2.5 py-2 backdrop-blur-2xl transition-all duration-200 hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(10,10,10,0.95)]">
+        <div className="relative flex items-center gap-1.5 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.85)] px-2 py-1.5 backdrop-blur-2xl transition-all duration-200 hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(10,10,10,0.95)]">
           {/* Toggle Button */}
           <AIToggleButton
             isExpanded={isExpanded}
@@ -97,7 +97,7 @@ export function AIEditControl({
           />
 
           {/* Divider */}
-          <div className="h-6 w-px bg-[rgba(139,92,246,0.3)]" />
+          <div className="h-5 w-px bg-[rgba(139,92,246,0.3)]" />
 
           {/* Generate Button */}
           <AIGenerateButton

@@ -23,10 +23,10 @@ export function ZoomControls({
   maxZoom = 3.0,
 }: ZoomControlsProps) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-2 backdrop-blur-[16px]">
+    <div className="flex items-center gap-1.5 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-1.5 backdrop-blur-[16px]">
       <ZoomButton
         onClick={onZoomOut}
-        icon={<ZoomOut className="h-4 w-4" />}
+        icon={<ZoomOut className="h-3.5 w-3.5" />}
         title="Zoom Out"
         disabled={scale <= minZoom}
       />
@@ -35,16 +35,16 @@ export function ZoomControls({
 
       <ZoomButton
         onClick={onZoomIn}
-        icon={<ZoomIn className="h-4 w-4" />}
+        icon={<ZoomIn className="h-3.5 w-3.5" />}
         title="Zoom In"
         disabled={scale >= maxZoom}
       />
 
-      <div className="mx-1 h-6 w-px bg-[rgba(139,92,246,0.2)]" />
+      <div className="mx-0.5 h-5 w-px bg-[rgba(139,92,246,0.2)]" />
 
       <ZoomButton
         onClick={onFitScreen}
-        icon={<Scan className="h-4 w-4" />}
+        icon={<Scan className="h-3.5 w-3.5" />}
         title="Fit Screen"
       />
     </div>

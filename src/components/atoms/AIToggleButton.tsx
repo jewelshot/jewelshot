@@ -18,7 +18,7 @@ export function AIToggleButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="group relative h-8 w-8 overflow-hidden rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.85)] backdrop-blur-xl transition-all duration-200 hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(10,10,10,0.95)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+      className="group relative h-7 w-7 overflow-hidden rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.85)] backdrop-blur-xl transition-all duration-200 hover:border-[rgba(139,92,246,0.5)] hover:bg-[rgba(10,10,10,0.95)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       title={isExpanded ? 'Hide prompt' : 'Show prompt'}
       aria-label={isExpanded ? 'Hide prompt' : 'Show prompt'}
       aria-expanded={isExpanded}
@@ -29,7 +29,7 @@ export function AIToggleButton({
       {/* Icon */}
       <div className="relative flex h-full w-full items-center justify-center">
         <ChevronUp
-          className={`h-4 w-4 text-purple-300 transition-all duration-300 ease-out group-hover:text-white ${
+          className={`h-3.5 w-3.5 text-purple-300 transition-all duration-300 ease-out group-hover:text-white ${
             isExpanded ? 'rotate-0' : 'rotate-180'
           }`}
           style={{

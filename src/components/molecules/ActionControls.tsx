@@ -30,12 +30,12 @@ export function ActionControls({
   onToggleFullscreen,
 }: ActionControlsProps) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-2 backdrop-blur-[16px]">
+    <div className="flex items-center gap-1.5 rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] p-1.5 backdrop-blur-[16px]">
       <ToggleAllBarsButton
         allBarsOpen={allBarsOpen}
         onClick={onToggleAllBars}
       />
-      <div className="h-6 w-px bg-[rgba(139,92,246,0.2)]" />
+      <div className="h-5 w-px bg-[rgba(139,92,246,0.2)]" />
       <FullscreenButton
         isFullscreen={isFullscreen}
         onClick={onToggleFullscreen}
