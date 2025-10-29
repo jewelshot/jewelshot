@@ -191,6 +191,11 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
         showToast('Failed to read file. Please try again.', 'error');
         setIsLoading(false);
         resetImageState();
+      } finally {
+        // Reset file input so the same file can be selected again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     },
     [
@@ -201,6 +206,7 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
       setIsLoading,
       resetTransform,
       resetImageState,
+      fileInputRef,
     ]
   );
 
@@ -211,9 +217,13 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
     resetTransform();
     // Reset original image (for comparison)
     setOriginalImage(null);
+    // Reset file input so new images can be uploaded
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     // Navigate to studio without query params
     router.replace('/studio', { scroll: false });
-  }, [resetImageState, resetTransform, setOriginalImage, router]);
+  }, [resetImageState, resetTransform, setOriginalImage, fileInputRef, router]);
 
   // ============================================================================
   // ZOOM CONTROLS
