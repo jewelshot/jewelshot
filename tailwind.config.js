@@ -8,14 +8,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Inter',
-          'SF Pro Display',
-          'Segoe UI',
-          'sans-serif',
-        ],
+        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
       animation: {
         fadeInSlide: 'fadeInSlide 500ms ease-out forwards',
