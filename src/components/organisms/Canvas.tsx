@@ -597,8 +597,8 @@ export function Canvas() {
   // Dynamic padding to prevent image overlap with controls
   const imagePadding = {
     top: canvasControlsVisible ? (topOpen ? 128 : 80) : 16,
-    left: canvasControlsVisible ? (leftOpen ? 16 : 232) : 16,
-    right: canvasControlsVisible ? (rightOpen ? 16 : 232) : 16,
+    left: canvasControlsVisible ? (leftOpen ? 232 : 16) : 16,
+    right: canvasControlsVisible ? (rightOpen ? 232 : 16) : 16,
     bottom: canvasControlsVisible ? (bottomOpen ? 96 : 80) : 16,
   };
 
