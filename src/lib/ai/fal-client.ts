@@ -166,15 +166,26 @@ export async function generateImage(
 
 /**
  * Nano Banana Edit Input Parameters (image-to-image)
- * Note: Edit API does not support aspect_ratio (output follows input image dimensions)
+ * Based on official fal.ai documentation
  */
 export interface NanoBananaEditInput {
-  prompt: string;
-  image_urls: string[]; // Array of image URLs
-  num_images?: number; // 1-4, default: 1
-  output_format?: 'jpeg' | 'png' | 'webp'; // default: jpeg
-  limit_generations?: boolean; // default: false
-  sync_mode?: boolean; // default: false
+  prompt: string; // required
+  image_urls: string[]; // required - Array of image URLs
+  num_images?: number; // optional, 1-4, default: 1
+  output_format?: 'jpeg' | 'png' | 'webp'; // optional, default: jpeg
+  aspect_ratio?:
+    | '21:9'
+    | '1:1'
+    | '4:3'
+    | '3:2'
+    | '2:3'
+    | '5:4'
+    | '4:5'
+    | '3:4'
+    | '16:9'
+    | '9:16'; // optional, default: None (uses input image aspect ratio)
+  sync_mode?: boolean; // optional, default: false
+  limit_generations?: boolean; // optional, default: false
 }
 
 /**

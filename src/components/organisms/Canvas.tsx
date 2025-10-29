@@ -674,9 +674,10 @@ export function Canvas() {
         setOriginalImage(imageUrl);
 
         editWithAI({
-          prompt: prompt || 'enhance the image quality and lighting', // Default prompt if empty
+          prompt: prompt || 'enhance the image quality and lighting',
           image_urls: [imageUrl],
-          // Note: Edit API only supports prompt and image_urls
+          num_images: 1,
+          output_format: 'jpeg',
         });
       }
     };
