@@ -142,20 +142,24 @@ export function EditPanel({
   }, [leftOpen, topOpen, isOpen, userDragged]);
 
   // Handle closing animation
+  const [shouldRender, setShouldRender] = useState(false);
+
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setShouldRender(true);
+      setIsClosing(false);
+    } else {
       // Start closing animation
       setIsClosing(true);
 
-      // Reset after animation completes
+      // Wait for animation to complete before unmounting
       const timer = setTimeout(() => {
+        setShouldRender(false);
         setIsClosing(false);
         setUserDragged(false);
       }, 400); // Match animation duration
 
       return () => clearTimeout(timer);
-    } else {
-      setIsClosing(false);
     }
   }, [isOpen]);
 
@@ -183,21 +187,18 @@ export function EditPanel({
     };
   }, [isDragging]);
 
-  // Don't render if closed and not animating out
-  if (!isOpen && !isClosing) return null;
+  // Don't render if not needed (wait for animation to complete)
+  if (!shouldRender) return null;
 
   return (
     <>
       <div
         className={`fixed z-50 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.95)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px] ${
           isMinimized ? 'w-auto' : isBarMode ? 'w-auto' : 'w-96'
-        }`}
+        } ${isClosing ? 'animate-slide-out' : 'animate-slide-in'}`}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
-          animation: isClosing
-            ? 'slideOutToLeft 400ms cubic-bezier(0.4, 0.0, 0.2, 1) forwards'
-            : 'slideInFromLeft 500ms cubic-bezier(0.4, 0.0, 0.2, 1)',
           transition: isDragging
             ? 'none'
             : 'left 800ms cubic-bezier(0.4, 0.0, 0.2, 1), top 800ms cubic-bezier(0.4, 0.0, 0.2, 1), width 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
@@ -328,30 +329,6 @@ export function EditPanel({
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes slideInFromLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-32px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slideOutToLeft {
-          from {
-            opacity: 1;
-            transform: translateX(0);
-          }
-          to {
-            opacity: 0;
-            transform: translateX(-32px);
-          }
-        }
-      `}</style>
     </>
   );
 }
