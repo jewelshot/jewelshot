@@ -143,9 +143,8 @@ export function EditPanel({
 
   // Handle closing animation
   useEffect(() => {
-    if (!isOpen && !isClosing) {
+    if (!isOpen) {
       // Start closing animation
-
       setIsClosing(true);
 
       // Reset after animation completes
@@ -155,10 +154,10 @@ export function EditPanel({
       }, 400); // Match animation duration
 
       return () => clearTimeout(timer);
-    } else if (isOpen) {
+    } else {
       setIsClosing(false);
     }
-  }, [isOpen, isClosing]);
+  }, [isOpen]);
 
   // Global mouse move and up handlers
   useEffect(() => {
