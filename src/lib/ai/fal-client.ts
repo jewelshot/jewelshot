@@ -9,7 +9,7 @@
  * https://fal.ai/models/fal-ai/nano-banana/edit
  */
 
-import * as fal from '@fal-ai/client';
+import { fal } from '@fal-ai/client';
 
 // ============================================================================
 // CONFIGURATION
