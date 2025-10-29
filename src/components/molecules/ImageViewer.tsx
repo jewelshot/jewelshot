@@ -621,11 +621,10 @@ export function ImageViewer({
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${transform.rotation}deg) scaleX(${transform.flipHorizontal ? -1 : 1}) scaleY(${transform.flipVertical ? -1 : 1})`,
           filter: filterString,
-          animation: 'scaleIn 400ms ease-out',
           transition:
             isDragging || isZooming
               ? 'none'
-              : 'transform 800ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+              : 'transform 200ms cubic-bezier(0.4, 0.0, 0.2, 1), filter 150ms ease-out',
         }}
         draggable={false}
       />

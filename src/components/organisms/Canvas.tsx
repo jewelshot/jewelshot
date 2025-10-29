@@ -431,14 +431,14 @@ export function Canvas() {
     (croppedImage: string) => {
       setUploadedImage(croppedImage);
       resetCropState(); // Reset crop mode and ratio
-      resetTransform(); // Reset scale, position, transform after crop
+      // Note: No resetTransform() - let user keep their current zoom/position
       showToast(
         'Crop applied! Use Reset to restore original image.',
         'success'
       );
       logger.info('Crop applied - original image preserved for reset');
     },
-    [setUploadedImage, resetCropState, resetTransform, showToast]
+    [setUploadedImage, resetCropState, showToast]
   );
 
   const handleCropCancel = () => {
