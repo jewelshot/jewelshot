@@ -7,6 +7,9 @@ import {
   Minus,
   RectangleHorizontal,
   Maximize2,
+  Undo2,
+  Redo2,
+  RotateCcw,
 } from 'lucide-react';
 import TabList from '@/components/molecules/TabList';
 import CropPanel from '@/components/molecules/CropPanel';
@@ -73,6 +76,32 @@ interface EditPanelProps {
    * Filter change handler
    */
   onFilterChange?: (filters: FilterEffects) => void;
+  /**
+   * Reset all edits handler
+   */
+  onResetAll?: () => void;
+  /**
+   * Current edit state (for undo/redo)
+   */
+  currentTransform?: {
+    rotation: number;
+    flipHorizontal: boolean;
+    flipVertical: boolean;
+  };
+  currentAdjust?: {
+    brightness: number;
+    contrast: number;
+    exposure: number;
+    highlights: number;
+    shadows: number;
+    whites: number;
+    blacks: number;
+    clarity: number;
+    sharpness: number;
+    dehaze: number;
+  };
+  currentColors?: ColorFilters;
+  currentFilters?: FilterEffects;
 }
 
 const tabs = [
@@ -97,6 +126,7 @@ export function EditPanel({
   onAdjustChange,
   onColorChange,
   onFilterChange,
+  onResetAll,
 }: EditPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -242,6 +272,56 @@ export function EditPanel({
           <div className="pointer-events-none flex items-center gap-2">
             <GripVertical className="h-4 w-4 text-white/50" />
             <h3 className="text-sm font-medium text-white">Edit Tools</h3>
+          </div>
+
+          {/* History Controls (Undo/Redo/Reset) */}
+          <div className="pointer-events-auto flex items-center gap-1">
+            {/* Reset All Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (
+                  onResetAll &&
+                  window.confirm('Reset all edits? This cannot be undone.')
+                ) {
+                  onResetAll();
+                }
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-white/60 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Reset All"
+              title="Reset All Edits"
+              disabled={!onResetAll}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Undo Button - Disabled for now, will be implemented with history */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // TODO: Implement undo
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-white/60 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Undo"
+              title="Undo (Coming Soon)"
+              disabled={true}
+            >
+              <Undo2 className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Redo Button - Disabled for now, will be implemented with history */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // TODO: Implement redo
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-white/60 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Redo"
+              title="Redo (Coming Soon)"
+              disabled={true}
+            >
+              <Redo2 className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           <div className="pointer-events-auto flex items-center gap-1">

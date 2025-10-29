@@ -351,6 +351,13 @@ export function Canvas() {
     setIsEditPanelOpen((prev) => !prev);
   };
 
+  // Reset all edits (transform + filters)
+  const handleResetAll = useCallback(() => {
+    resetTransform(); // Reset rotation, flips, scale, position
+    resetFilters(); // Reset adjust, color, filter effects
+    logger.info('All edits reset to default');
+  }, [resetTransform, resetFilters]);
+
   // Auto-collapse/restore bars when edit panel opens/closes
   useEffect(() => {
     // Only run this effect when image is uploaded (prevents flash during image change)
@@ -1027,6 +1034,7 @@ export function Canvas() {
                     fadeAmount: filterData.fadeAmount || 0,
                   });
                 }}
+                onResetAll={handleResetAll}
               />
             )}
           </>
