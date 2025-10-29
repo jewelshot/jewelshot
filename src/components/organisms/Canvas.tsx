@@ -919,8 +919,8 @@ export function Canvas() {
               className="fixed z-20 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
               style={{
                 bottom: bottomOpen ? '56px' : '16px',
-                left: leftOpen ? '130px' : '0px',
-                right: rightOpen ? '130px' : '0px',
+                left: leftOpen ? '260px' : '0px',
+                right: rightOpen ? '260px' : '0px',
                 display: 'flex',
                 justifyContent: 'center',
                 transform: canvasControlsVisible
