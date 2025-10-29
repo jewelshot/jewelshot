@@ -106,6 +106,7 @@ export function EditPanel({
   const [isMinimized, setIsMinimized] = useState(false);
   const [isBarMode, setIsBarMode] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -147,23 +148,29 @@ export function EditPanel({
 
   useEffect(() => {
     if (isOpen) {
+      console.log('🟢 EditPanel Opening - shouldRender: true');
       setShouldRender(true);
       setIsClosing(false);
       setIsAnimating(true);
 
       // Opening animation duration
       const openTimer = setTimeout(() => {
+        console.log('✅ Opening animation complete');
         setIsAnimating(false);
+        setHasAnimated(true); // Mark that opening animation has finished
       }, 500);
 
       return () => clearTimeout(openTimer);
-    } else {
+    } else if (!isOpen && shouldRender) {
       // Start closing animation
+      console.log('🔴 EditPanel Closing - isClosing: true');
       setIsClosing(true);
       setIsAnimating(true);
+      setHasAnimated(false); // Reset so next opening animation works
 
       // Wait for animation to complete before unmounting
       const closeTimer = setTimeout(() => {
+        console.log('✅ Closing animation complete - unmounting');
         setShouldRender(false);
         setIsClosing(false);
         setIsAnimating(false);
@@ -172,7 +179,7 @@ export function EditPanel({
 
       return () => clearTimeout(closeTimer);
     }
-  }, [isOpen]);
+  }, [isOpen, shouldRender]);
 
   // Global mouse move and up handlers
   useEffect(() => {
@@ -201,12 +208,24 @@ export function EditPanel({
   // Don't render if not needed (wait for animation to complete)
   if (!shouldRender) return null;
 
+  // Only apply animation class when actually animating
+  // After opening animation completes, remove class so closing animation can work fresh
+  const animationClass = isClosing
+    ? 'animate-slide-out'
+    : hasAnimated
+      ? '' // No class after opening animation completes
+      : 'animate-slide-in'; // Only during opening
+
+  console.log(
+    `🎬 EditPanel render - isClosing: ${isClosing}, hasAnimated: ${hasAnimated}, animation: ${animationClass}`
+  );
+
   return (
     <>
       <div
         className={`fixed z-50 rounded-lg border border-[rgba(139,92,246,0.3)] bg-[rgba(10,10,10,0.95)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px] ${
           isMinimized ? 'w-auto' : isBarMode ? 'w-auto' : 'w-96'
-        } ${isClosing ? 'animate-slide-out' : 'animate-slide-in'}`}
+        } ${animationClass}`}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
