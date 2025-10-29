@@ -911,7 +911,7 @@ export function Canvas() {
 
             {/* Bottom Left Controls - Background Selector & UI Toggle */}
             <div
-              className="fixed z-20 flex items-center gap-2 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              className="fixed z-30 flex items-center gap-2 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
               style={{
                 bottom: bottomOpen ? '56px' : '16px',
                 left: leftOpen ? '276px' : '16px',
@@ -934,12 +934,15 @@ export function Canvas() {
                   />
                 </div>
               </div>
-              <UIToggleButton
-                controlsVisible={canvasControlsVisible}
-                onToggle={() =>
-                  setCanvasControlsVisible(!canvasControlsVisible)
-                }
-              />
+              {/* UIToggleButton wrapper with explicit z-index and pointer events */}
+              <div className="relative z-10">
+                <UIToggleButton
+                  controlsVisible={canvasControlsVisible}
+                  onToggle={() =>
+                    setCanvasControlsVisible(!canvasControlsVisible)
+                  }
+                />
+              </div>
             </div>
 
             {/* Bottom Center - AI Edit Control */}

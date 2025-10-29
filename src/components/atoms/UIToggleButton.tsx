@@ -14,12 +14,13 @@ export default function UIToggleButton({
   return (
     <button
       onClick={onToggle}
-      className={`group relative flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${
+      className={`group relative z-50 flex h-10 w-10 items-center justify-center rounded-lg border backdrop-blur-[16px] transition-all duration-300 ${
         controlsVisible
-          ? 'bg-[rgba(10,10,10,0.8)] text-white/70 hover:bg-purple-500/20 hover:text-purple-400'
-          : 'bg-purple-500/20 text-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+          ? 'border-[rgba(139,92,246,0.2)] bg-[rgba(10,10,10,0.8)] text-white/70 hover:border-purple-500/40 hover:bg-purple-500/20 hover:text-purple-400'
+          : 'border-purple-500/40 bg-purple-500/20 text-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:border-purple-500/60 hover:bg-purple-500/30'
       }`}
       title={controlsVisible ? 'Hide canvas controls' : 'Show canvas controls'}
+      style={{ cursor: 'pointer' }}
     >
       {/* Icon */}
       <div className="relative h-5 w-5">
