@@ -182,10 +182,10 @@ export function validatePrompt(prompt: string): PromptValidationResult {
     };
   }
 
-  if (trimmed.length > 500) {
+  if (trimmed.length > 2000) {
     return {
       valid: false,
-      error: 'Prompt is too long (maximum 500 characters)',
+      error: 'Prompt is too long (maximum 2000 characters)',
     };
   }
 

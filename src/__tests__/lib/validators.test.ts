@@ -97,7 +97,7 @@ describe('validators', () => {
     });
 
     it('should reject prompts that are too long', () => {
-      const longPrompt = 'a'.repeat(501);
+      const longPrompt = 'a'.repeat(2001);
       const result = validatePrompt(longPrompt);
       expect(result.valid).toBe(false);
       expect(result.error).toContain('too long');
