@@ -351,12 +351,27 @@ export function Canvas() {
     setIsEditPanelOpen((prev) => !prev);
   };
 
-  // Reset all edits (transform + filters)
+  // Reset all edits (transform + filters + crop)
   const handleResetAll = useCallback(() => {
     resetTransform(); // Reset rotation, flips, scale, position
     resetFilters(); // Reset adjust, color, filter effects
+
+    // Reset crop - restore original image if it was cropped
+    if (originalImage && uploadedImage !== originalImage) {
+      setUploadedImage(originalImage);
+      showToast('Image restored to original', 'success');
+      logger.info('Crop reset - image restored to original');
+    }
+
     logger.info('All edits reset to default');
-  }, [resetTransform, resetFilters]);
+  }, [
+    resetTransform,
+    resetFilters,
+    originalImage,
+    uploadedImage,
+    setUploadedImage,
+    showToast,
+  ]);
 
   // Auto-collapse/restore bars when edit panel opens/closes
   useEffect(() => {
@@ -412,11 +427,19 @@ export function Canvas() {
     setIsCropMode(true);
   };
 
-  const handleCropApply = (croppedImage: string) => {
-    setUploadedImage(croppedImage);
-    resetCropState(); // Reset crop mode and ratio
-    resetTransform(); // Reset scale, position, transform after crop
-  };
+  const handleCropApply = useCallback(
+    (croppedImage: string) => {
+      setUploadedImage(croppedImage);
+      resetCropState(); // Reset crop mode and ratio
+      resetTransform(); // Reset scale, position, transform after crop
+      showToast(
+        'Crop applied! Use Reset to restore original image.',
+        'success'
+      );
+      logger.info('Crop applied - original image preserved for reset');
+    },
+    [setUploadedImage, resetCropState, resetTransform, showToast]
+  );
 
   const handleCropCancel = () => {
     resetCropState(); // Reset crop mode and ratio

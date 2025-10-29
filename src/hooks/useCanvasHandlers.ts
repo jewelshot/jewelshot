@@ -157,6 +157,8 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
           const result = event.target?.result;
           if (typeof result === 'string') {
             setUploadedImage(result);
+            // Save original image for crop reset functionality
+            setOriginalImage(result);
             resetTransform();
           } else {
             throw new Error('Failed to read image file');

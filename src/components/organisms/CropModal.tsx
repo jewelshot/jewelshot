@@ -109,9 +109,13 @@ export function CropModal({
       srcHeight
     );
 
-    // Get cropped image as base64
-    const croppedImage = canvas.toDataURL('image/png');
-    onApply(croppedImage);
+    // Get cropped image as base64 (JPEG with quality for better performance)
+    const croppedImage = canvas.toDataURL('image/jpeg', 0.95);
+
+    // Apply immediately for instant feedback
+    requestAnimationFrame(() => {
+      onApply(croppedImage);
+    });
   };
 
   const handleReset = () => {
