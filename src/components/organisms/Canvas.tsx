@@ -429,16 +429,23 @@ export function Canvas() {
 
   const handleCropApply = useCallback(
     (croppedImage: string) => {
+      // Reset filters FIRST to disable canvas processing hooks
+      // This prevents 6 heavy canvas operations after crop
+      resetFilters();
+
+      // Then update image
       setUploadedImage(croppedImage);
       resetCropState(); // Reset crop mode and ratio
       // Note: No resetTransform() - let user keep their current zoom/position
       showToast(
-        'Crop applied! Use Reset to restore original image.',
+        'Crop applied! Filters reset for instant rendering.',
         'success'
       );
-      logger.info('Crop applied - original image preserved for reset');
+      logger.info(
+        'Crop applied - filters reset for performance, original image preserved for reset'
+      );
     },
-    [setUploadedImage, resetCropState, showToast]
+    [setUploadedImage, resetCropState, resetFilters, showToast]
   );
 
   const handleCropCancel = () => {
