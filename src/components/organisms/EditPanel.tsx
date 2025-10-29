@@ -42,6 +42,10 @@ interface EditPanelProps {
    */
   topOpen?: boolean;
   /**
+   * Active tab change handler (for lazy loading optimization)
+   */
+  onActiveTabChange?: (tabId: string) => void;
+  /**
    * Crop ratio change handler
    */
   onCropRatioChange?: (ratio: number | null) => void;
@@ -121,6 +125,7 @@ export function EditPanel({
   initialPosition = { x: 100, y: 100 },
   leftOpen = false,
   topOpen = false,
+  onActiveTabChange,
   onCropRatioChange,
   onTransformChange,
   onAdjustChange,
@@ -138,6 +143,11 @@ export function EditPanel({
   const [isAnimating, setIsAnimating] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
+
+  // Notify parent when active tab changes (for lazy loading optimization)
+  useEffect(() => {
+    onActiveTabChange?.(activeTab);
+  }, [activeTab, onActiveTabChange]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);

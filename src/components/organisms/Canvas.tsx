@@ -102,6 +102,7 @@ export function Canvas() {
   // Canvas-specific UI state (not extracted)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [activeEditTab, setActiveEditTab] = useState<string>('crop'); // Track active edit tab for lazy loading
   const [savedBarStates, setSavedBarStates] = useState({
     left: false,
     right: false,
@@ -714,6 +715,7 @@ export function Canvas() {
                   onScaleChange={setScale}
                   onPositionChange={setPosition}
                   transform={transform}
+                  activeEditTab={activeEditTab}
                   adjustFilters={adjustFilters}
                   colorFilters={colorFilters}
                   filterEffects={filterEffects}
@@ -774,6 +776,7 @@ export function Canvas() {
                           flipHorizontal: false,
                           flipVertical: false,
                         }}
+                        activeEditTab="none"
                         adjustFilters={{
                           brightness: 0,
                           contrast: 0,
@@ -830,6 +833,7 @@ export function Canvas() {
                       onScaleChange={setRightImageScale}
                       onPositionChange={setRightImagePosition}
                       transform={transform}
+                      activeEditTab={activeEditTab}
                       adjustFilters={adjustFilters}
                       colorFilters={colorFilters}
                       filterEffects={filterEffects}
@@ -1017,6 +1021,7 @@ export function Canvas() {
                 }}
                 leftOpen={leftOpen}
                 topOpen={topOpen}
+                onActiveTabChange={setActiveEditTab}
                 onCropRatioChange={handleCropRatioChange}
                 onTransformChange={(transformData) => {
                   setTransform({

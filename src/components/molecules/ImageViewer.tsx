@@ -23,6 +23,7 @@ interface ImageViewerProps {
     flipHorizontal: boolean;
     flipVertical: boolean;
   };
+  activeEditTab?: string; // Active edit tab for lazy loading optimization
   adjustFilters?: {
     brightness?: number;
     contrast?: number;
@@ -64,6 +65,7 @@ export function ImageViewer({
   onScaleChange,
   onPositionChange,
   transform = { rotation: 0, flipHorizontal: false, flipVertical: false },
+  activeEditTab = 'none', // Default to 'none' when Edit Panel is closed
   adjustFilters = {},
   colorFilters = {},
   filterEffects = {},
@@ -81,54 +83,59 @@ export function ImageViewer({
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Processing pipeline (order matters):
-  // 1. Dehaze (atmospheric correction first)
+  // Lazy loading: Only process when relevant tab is active
+
+  // 1. Dehaze (atmospheric correction first) - Only when 'adjust' tab active
   const { processedSrc: dehazedSrc } = useDehaze({
     originalSrc: src,
     dehaze: adjustFilters.dehaze || 0,
-    enabled: (adjustFilters.dehaze || 0) !== 0,
+    enabled: (adjustFilters.dehaze || 0) !== 0 && activeEditTab === 'adjust',
     highQuality: false, // Fast mode for real-time performance
   });
 
-  // 2. Selective tone adjustment (highlights & shadows after dehaze)
+  // 2. Selective tone adjustment (highlights & shadows after dehaze) - Only when 'adjust' tab active
   const { processedSrc: toneMappedSrc } = useSelectiveTone({
     originalSrc: dehazedSrc,
     highlights: adjustFilters.highlights || 0,
     shadows: adjustFilters.shadows || 0,
     enabled:
-      (adjustFilters.highlights || 0) !== 0 ||
-      (adjustFilters.shadows || 0) !== 0,
+      ((adjustFilters.highlights || 0) !== 0 ||
+        (adjustFilters.shadows || 0) !== 0) &&
+      activeEditTab === 'adjust',
   });
 
-  // 3. Clarity (local contrast enhancement after tone mapping)
+  // 3. Clarity (local contrast enhancement after tone mapping) - Only when 'adjust' tab active
   const { processedSrc: clarifiedSrc } = useClarity({
     originalSrc: toneMappedSrc,
     clarity: adjustFilters.clarity || 0,
-    enabled: (adjustFilters.clarity || 0) !== 0,
+    enabled: (adjustFilters.clarity || 0) !== 0 && activeEditTab === 'adjust',
     highQuality: false, // Fast mode for real-time performance
   });
 
-  // 4. Sharpening (applied last for maximum detail)
+  // 4. Sharpening (applied last for maximum detail) - Only when 'adjust' tab active
   const { processedSrc: sharpenedSrc } = useImageSharpening({
     originalSrc: clarifiedSrc,
     sharpness: adjustFilters.sharpness || 0,
-    enabled: (adjustFilters.sharpness || 0) !== 0,
+    enabled: (adjustFilters.sharpness || 0) !== 0 && activeEditTab === 'adjust',
   });
 
-  // 5. Vignette (artistic effect after all adjustments)
+  // 5. Vignette (artistic effect after all adjustments) - Only when 'filters' tab active
   const { processedSrc: vignettedSrc } = useVignette({
     originalSrc: sharpenedSrc,
     amount: filterEffects.vignetteAmount || 0,
     size: filterEffects.vignetteSize || 50,
     feather: filterEffects.vignetteFeather || 50,
-    enabled: (filterEffects.vignetteAmount || 0) !== 0,
+    enabled:
+      (filterEffects.vignetteAmount || 0) !== 0 && activeEditTab === 'filters',
   });
 
-  // 6. Grain (film texture as final touch)
+  // 6. Grain (film texture as final touch) - Only when 'filters' tab active
   const { processedSrc: finalProcessedSrc } = useGrain({
     originalSrc: vignettedSrc,
     amount: filterEffects.grainAmount || 0,
     size: filterEffects.grainSize || 50,
-    enabled: (filterEffects.grainAmount || 0) > 0,
+    enabled:
+      (filterEffects.grainAmount || 0) > 0 && activeEditTab === 'filters',
   });
 
   // Build CSS filter string from adjust values (memoized for performance)
