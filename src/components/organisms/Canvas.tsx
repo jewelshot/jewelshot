@@ -595,10 +595,17 @@ export function Canvas() {
   const bottomPos = bottomOpen ? 40 : 0;
 
   // Dynamic padding to prevent image overlap with controls
+  // In normal mode: use minimum padding from both sides to keep image centered
+  // In compare mode: use sidebar-aware padding for proper spacing
+  const minHorizontalPadding = Math.min(
+    leftOpen ? 232 : 16,
+    rightOpen ? 232 : 16
+  );
+
   const imagePadding = {
     top: canvasControlsVisible ? (topOpen ? 128 : 80) : 16,
-    left: canvasControlsVisible ? (leftOpen ? 232 : 16) : 16,
-    right: canvasControlsVisible ? (rightOpen ? 232 : 16) : 16,
+    left: canvasControlsVisible ? minHorizontalPadding : 16,
+    right: canvasControlsVisible ? minHorizontalPadding : 16,
     bottom: canvasControlsVisible ? (bottomOpen ? 96 : 80) : 16,
   };
 
