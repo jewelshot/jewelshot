@@ -605,7 +605,7 @@ export function Canvas() {
   // AI Edit Control position: bottom: bottomOpen ? 56px : 16px
   const aiEditControlBottom = bottomOpen ? 56 : 16;
   const aiEditControlHeight = 50; // Approximate height
-  const aiEditControlSpacing = 12; // Extra spacing between image and generate button
+  const aiEditControlSpacing = bottomOpen ? 0 : 12; // Extra spacing only when bottom bar is closed
 
   const imagePadding = {
     top: canvasControlsVisible ? 80 : 16,
