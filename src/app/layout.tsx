@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ErrorBoundary } from '@/components/organisms/ErrorBoundary';
+import ToastContainer from '@/components/organisms/ToastContainer';
 import './globals.css';
 
 const inter = Inter({
@@ -64,6 +65,7 @@ export default function RootLayout({
         data-theme="purple"
       >
         <ErrorBoundary>{children}</ErrorBoundary>
+        <ToastContainer />
       </body>
     </html>
   );

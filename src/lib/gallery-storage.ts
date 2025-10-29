@@ -5,6 +5,10 @@
  * In production, this would be replaced with API calls to a database
  */
 
+import { createScopedLogger } from './logger';
+
+const logger = createScopedLogger('Gallery Storage');
+
 export interface SavedImage {
   id: string;
   src: string; // base64 data URL
@@ -36,7 +40,7 @@ export function getSavedImages(): SavedImage[] {
       createdAt: new Date(img.createdAt),
     }));
   } catch (error) {
-    console.error('Failed to load gallery images:', error);
+    logger.error('Failed to load gallery images:', error);
     return [];
   }
 }
@@ -72,7 +76,7 @@ export function saveImageToGallery(
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     return newImage;
   } catch (error) {
-    console.error('Failed to save image to gallery:', error);
+    logger.error('Failed to save image to gallery:', error);
 
     // Handle quota exceeded
     if (
@@ -99,7 +103,7 @@ export function deleteImageFromGallery(imageId: string): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   } catch (error) {
-    console.error('Failed to delete image from gallery:', error);
+    logger.error('Failed to delete image from gallery:', error);
     throw new Error('Failed to delete image.');
   }
 }
@@ -111,7 +115,7 @@ export function clearGallery(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error('Failed to clear gallery:', error);
+    logger.error('Failed to clear gallery:', error);
   }
 }
 

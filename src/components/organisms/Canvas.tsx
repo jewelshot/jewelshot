@@ -10,7 +10,10 @@ import { useCanvasUI } from '@/hooks/useCanvasUI';
 import { useToast } from '@/hooks/useToast';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useImageEdit } from '@/hooks/useImageEdit';
+import { createScopedLogger } from '@/lib/logger';
 import Toast from '@/components/atoms/Toast';
+
+const logger = createScopedLogger('Canvas');
 import AIEditControl from '@/components/molecules/AIEditControl';
 import ZoomControls from '@/components/molecules/ZoomControls';
 import ActionControls from '@/components/molecules/ActionControls';
@@ -24,6 +27,7 @@ import EditPanel from '@/components/organisms/EditPanel';
 import CropModal from '@/components/organisms/CropModal';
 import UIToggleButton from '@/components/atoms/UIToggleButton';
 import ViewModeSelector from '@/components/atoms/ViewModeSelector';
+import KeyboardShortcutsModal from '@/components/molecules/KeyboardShortcutsModal';
 
 export function Canvas() {
   const searchParams = useSearchParams();
@@ -103,6 +107,7 @@ export function Canvas() {
     bottom: false,
   });
   const [canvasControlsVisible, setCanvasControlsVisible] = useState(true);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
   // Toast notifications
   const { showToast, hideToast, toastState } = useToast();
@@ -227,7 +232,7 @@ export function Canvas() {
             throw new Error('Failed to read image file');
           }
         } catch (error) {
-          console.error('Error processing image:', error);
+          logger.error('Error processing image:', error);
           showToast('Failed to load image. Please try again.', 'error');
           resetImageState();
         } finally {
@@ -237,7 +242,7 @@ export function Canvas() {
 
       // Error handler
       reader.onerror = () => {
-        console.error('FileReader error:', reader.error);
+        logger.error('FileReader error:', reader.error);
         showToast('Failed to read file. The file may be corrupted.', 'error');
         setIsLoading(false);
         resetImageState();
@@ -245,14 +250,14 @@ export function Canvas() {
 
       // Abort handler
       reader.onabort = () => {
-        console.log('File reading was aborted');
+        logger.debug('File reading was aborted');
         setIsLoading(false);
       };
 
       try {
         reader.readAsDataURL(file);
       } catch (error) {
-        console.error('Error reading file:', error);
+        logger.error('Error reading file:', error);
         showToast('Failed to read file. Please try again.', 'error');
         setIsLoading(false);
         resetImageState();
@@ -350,7 +355,7 @@ export function Canvas() {
             });
         }
       } catch (error) {
-        console.error('Failed to load image from gallery:', error);
+        logger.error('Failed to load image from gallery:', error);
         showToast('Failed to load image from gallery', 'error');
         setIsLoading(false);
         router.replace('/studio', { scroll: false });
@@ -443,7 +448,7 @@ export function Canvas() {
         showToast('Image saved to gallery!', 'success');
       });
     } catch (error) {
-      console.error('Failed to save image:', error);
+      logger.error('Failed to save image:', error);
       showToast('Failed to save image to gallery', 'error');
     }
   }, [uploadedImage, fileName, originalImage, showToast]);
@@ -558,7 +563,7 @@ export function Canvas() {
 
       img.src = uploadedImage;
     } catch (error) {
-      console.error('Download error:', error);
+      logger.error('Download error:', error);
       showToast('Failed to download image', 'error');
     }
   }, [
@@ -736,6 +741,40 @@ export function Canvas() {
         if (uploadedImage && !isCropMode) {
           handleCloseImage();
         }
+      },
+    },
+    // F: Toggle fullscreen
+    {
+      key: 'f',
+      handler: () => {
+        if (uploadedImage) {
+          toggleFullscreen();
+        }
+      },
+    },
+    // E: Toggle edit panel
+    {
+      key: 'e',
+      handler: () => {
+        if (uploadedImage && !isCropMode) {
+          setIsEditPanelOpen((prev) => !prev);
+        }
+      },
+    },
+    // C: Toggle canvas controls
+    {
+      key: 'c',
+      handler: () => {
+        if (uploadedImage) {
+          setCanvasControlsVisible((prev) => !prev);
+        }
+      },
+    },
+    // ?: Show keyboard shortcuts
+    {
+      key: '?',
+      handler: () => {
+        setShowKeyboardHelp(true);
       },
     },
   ]);
@@ -1217,6 +1256,12 @@ export function Canvas() {
           />
         )}
       </div>
+
+      {/* Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsModal
+        isOpen={showKeyboardHelp}
+        onClose={() => setShowKeyboardHelp(false)}
+      />
     </>
   );
 }

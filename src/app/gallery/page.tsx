@@ -10,6 +10,7 @@
 import dynamic from 'next/dynamic';
 import AuroraBackground from '@/components/atoms/AuroraBackground';
 import ErrorBoundary from '@/components/organisms/ErrorBoundary';
+import GalleryFallback from '@/components/molecules/GalleryFallback';
 
 // Dynamic imports for heavy components
 const GalleryContent = dynamic(
@@ -43,7 +44,7 @@ export default function GalleryPage() {
       <SidebarToggle />
 
       {/* Gallery Content - Wrapped in Error Boundary */}
-      <ErrorBoundary>
+      <ErrorBoundary fallback={<GalleryFallback />}>
         <GalleryContent />
       </ErrorBoundary>
     </>

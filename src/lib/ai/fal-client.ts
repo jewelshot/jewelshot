@@ -10,6 +10,9 @@
  */
 
 import { fal } from '@fal-ai/client';
+import { createScopedLogger } from '@/lib/logger';
+
+const logger = createScopedLogger('FAL.AI');
 
 // ============================================================================
 // CONFIGURATION
@@ -22,7 +25,7 @@ function initializeFalClient() {
   const apiKey = process.env.NEXT_PUBLIC_FAL_KEY;
 
   if (!apiKey) {
-    console.warn('⚠️ FAL_KEY not found. AI features will be disabled.');
+    logger.warn('⚠️ FAL_KEY not found. AI features will be disabled.');
     return;
   }
 
@@ -127,7 +130,7 @@ async function uploadIfNeeded(imageUrl: string): Promise<string> {
  *   prompt: "A jewelry ring on white background",
  *   aspect_ratio: "16:9"
  * });
- * console.log(result.images[0].url);
+ * // result.images[0].url
  * ```
  */
 export async function generateImage(
@@ -161,7 +164,7 @@ export async function generateImage(
 
     return result.data as FalOutput;
   } catch (error) {
-    console.error('❌ Generation failed:', error);
+    logger.error('❌ Generation failed:', error);
     throw error;
   }
 }
@@ -179,7 +182,7 @@ export async function generateImage(
  *   prompt: "enhance lighting and colors",
  *   image_url: "https://example.com/image.jpg"
  * });
- * console.log(result.images[0].url);
+ * // result.images[0].url
  * ```
  */
 export async function editImage(
@@ -191,7 +194,7 @@ export async function editImage(
     if (onProgress) onProgress('UPLOADING', 'Uploading image...');
 
     const uploadedUrl = await uploadIfNeeded(input.image_url);
-    console.log('✅ Image uploaded:', uploadedUrl);
+    logger.debug('✅ Image uploaded:', uploadedUrl);
 
     // Step 2: Call edit API
     if (onProgress) onProgress('EDITING', 'Processing with AI...');
@@ -204,7 +207,7 @@ export async function editImage(
       output_format: input.output_format ?? 'jpeg',
     };
 
-    console.log('🚀 Calling fal-ai/nano-banana/edit with:', apiRequest);
+    logger.debug('🚀 Calling fal-ai/nano-banana/edit with:', apiRequest);
 
     const result = await fal.subscribe('fal-ai/nano-banana/edit', {
       input: apiRequest,
@@ -223,10 +226,10 @@ export async function editImage(
       },
     });
 
-    console.log('✅ Edit successful:', result.data);
+    logger.debug('✅ Edit successful:', result.data);
     return result.data as FalOutput;
   } catch (error) {
-    console.error('❌ Edit failed:', error);
+    logger.error('❌ Edit failed:', error);
     throw error;
   }
 }

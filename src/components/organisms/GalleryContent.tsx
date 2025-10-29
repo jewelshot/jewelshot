@@ -6,6 +6,9 @@ import GalleryToolbar from '@/components/molecules/GalleryToolbar';
 import GalleryGrid, { GalleryImage } from '@/components/molecules/GalleryGrid';
 import { SortOption } from '@/components/atoms/SortButton';
 import { getSavedImages, deleteImageFromGallery } from '@/lib/gallery-storage';
+import { createScopedLogger } from '@/lib/logger';
+
+const logger = createScopedLogger('Gallery');
 
 export function GalleryContent() {
   const router = useRouter();
@@ -98,7 +101,7 @@ export function GalleryContent() {
         // Refresh the list
         setRefreshKey((prev) => prev + 1);
       } catch (error) {
-        console.error('Failed to delete image:', error);
+        logger.error('Failed to delete image:', error);
         alert('Failed to delete image. Please try again.');
       }
     }

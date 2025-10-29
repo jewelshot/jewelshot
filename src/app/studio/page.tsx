@@ -10,6 +10,7 @@
 import dynamic from 'next/dynamic';
 import AuroraBackground from '@/components/atoms/AuroraBackground';
 import ErrorBoundary from '@/components/organisms/ErrorBoundary';
+import CanvasFallback from '@/components/molecules/CanvasFallback';
 
 // Dynamic imports for heavy components
 const Canvas = dynamic(() => import('@/components/organisms/Canvas'), {
@@ -69,7 +70,7 @@ export default function StudioPage() {
       <BottomBarToggle />
 
       {/* Canvas Area - Wrapped in Error Boundary */}
-      <ErrorBoundary>
+      <ErrorBoundary fallback={<CanvasFallback />}>
         <Canvas />
       </ErrorBoundary>
     </>
