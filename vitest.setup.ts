@@ -1,11 +1,38 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 // Cleanup after each test
 afterEach(() => {
   cleanup();
 });
+
+// Mock Next.js Router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    pathname: '/studio',
+    query: {},
+  }),
+  useSearchParams: () => ({
+    get: vi.fn(() => null),
+    has: vi.fn(() => false),
+    getAll: vi.fn(() => []),
+    keys: vi.fn(() => []),
+    values: vi.fn(() => []),
+    entries: vi.fn(() => []),
+    forEach: vi.fn(),
+    toString: vi.fn(() => ''),
+    size: 0,
+  }),
+  usePathname: () => '/studio',
+  useParams: () => ({}),
+}));
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
