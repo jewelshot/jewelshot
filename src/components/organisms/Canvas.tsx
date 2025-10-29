@@ -10,9 +10,8 @@ import { useCanvasUI } from '@/hooks/useCanvasUI';
 import { useToast } from '@/hooks/useToast';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useImageEdit } from '@/hooks/useImageEdit';
+import { useCanvasHandlers } from '@/hooks/useCanvasHandlers';
 import { createScopedLogger } from '@/lib/logger';
-import { validateFile } from '@/lib/validators';
-import { uploadRateLimiter } from '@/lib/rate-limiter';
 import Toast from '@/components/atoms/Toast';
 
 const logger = createScopedLogger('Canvas');
@@ -145,6 +144,49 @@ export function Canvas() {
     },
   });
 
+  // Canvas handlers (extracted to hook for better organization)
+  const {
+    handleUploadClick,
+    handleFileChange,
+    handleCloseImage,
+    handleZoomIn,
+    handleZoomOut,
+    handleFitScreen,
+    handleSave,
+    handleDownload,
+    handleDelete,
+    toggleFullscreen,
+  } = useCanvasHandlers({
+    fileInputRef,
+    uploadedImage,
+    fileName,
+    originalImage,
+    setUploadedImage,
+    setFileName,
+    setFileSize,
+    setIsLoading,
+    setOriginalImage,
+    resetImageState,
+    scale,
+    setScale,
+    setPosition,
+    resetTransform,
+    isFullscreen,
+    setIsFullscreen,
+    isCropMode,
+    adjustFilters,
+    colorFilters,
+    filterEffects,
+    transform,
+    viewMode,
+    activeImage,
+    leftImageScale,
+    rightImageScale,
+    setLeftImageScale,
+    setRightImageScale,
+    showToast,
+  });
+
   // Handle AI image load complete
   const handleAIImageLoad = useCallback(() => {
     setIsAIImageLoading(false);
@@ -195,116 +237,14 @@ export function Canvas() {
     viewMode,
   ]);
 
-  const handleUploadClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+  // ============================================================================
+  // FILE & ACTION HANDLERS - Moved to useCanvasHandlers hook
+  // ============================================================================
 
-  const handleFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      // Check rate limit
-      const rateLimit = uploadRateLimiter.checkLimit();
-      if (!rateLimit.allowed) {
-        showToast(
-          `Too many uploads. Please wait ${rateLimit.retryAfter} seconds.`,
-          'warning'
-        );
-        return;
-      }
-
-      // Comprehensive file validation
-      const validation = await validateFile(file, {
-        maxSizeMB: 10,
-        minSizeMB: 0.001,
-        allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-        maxDimensions: { width: 8000, height: 8000 },
-        minDimensions: { width: 100, height: 100 },
-      });
-
-      if (!validation.valid) {
-        showToast(validation.error || 'Invalid file', 'error');
-        return;
-      }
-
-      // Record successful upload
-      uploadRateLimiter.recordRequest();
-
-      setIsLoading(true);
-      setFileName(file.name);
-      setFileSize(file.size);
-
-      const reader = new FileReader();
-
-      // Success handler
-      reader.onload = (event) => {
-        try {
-          const result = event.target?.result;
-          if (typeof result === 'string') {
-            setUploadedImage(result);
-            resetTransform();
-          } else {
-            throw new Error('Failed to read image file');
-          }
-        } catch (error) {
-          logger.error('Error processing image:', error);
-          showToast('Failed to load image. Please try again.', 'error');
-          resetImageState();
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      // Error handler
-      reader.onerror = () => {
-        logger.error('FileReader error:', reader.error);
-        showToast('Failed to read file. The file may be corrupted.', 'error');
-        setIsLoading(false);
-        resetImageState();
-      };
-
-      // Abort handler
-      reader.onabort = () => {
-        logger.debug('File reading was aborted');
-        setIsLoading(false);
-      };
-
-      try {
-        reader.readAsDataURL(file);
-      } catch (error) {
-        logger.error('Error reading file:', error);
-        showToast('Failed to read file. Please try again.', 'error');
-        setIsLoading(false);
-        resetImageState();
-      }
-    },
-    [
-      showToast,
-      setUploadedImage,
-      setFileName,
-      setFileSize,
-      setIsLoading,
-      resetTransform,
-      resetImageState,
-    ]
-  );
-
-  const handleCloseImage = useCallback(() => {
-    // Reset image state (uploadedImage, fileName, fileSize, isLoading)
-    resetImageState();
-
-    // Reset transformation state (scale, position, transform)
-    resetTransform();
-
-    // Reset all filters (adjust, color, effects)
-    resetFilters();
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    setIsEditPanelOpen(false); // Close EditPanel when image is closed
-  }, [resetImageState, resetTransform, resetFilters]);
+  // The following handlers are now provided by useCanvasHandlers:
+  // - handleUploadClick, handleFileChange, handleCloseImage
+  // - handleZoomIn, handleZoomOut, handleFitScreen
+  // - handleSave, handleDownload, handleDelete, toggleFullscreen
 
   // Load image from gallery via query param
   useEffect(() => {
@@ -390,207 +330,16 @@ export function Canvas() {
     showToast,
   ]);
 
-  const handleZoomIn = useCallback(() => {
-    if (viewMode === 'side-by-side') {
-      // Update the active image's zoom
-      if (activeImage === 'left') {
-        setLeftImageScale((prev) => Math.min(prev + 0.1, 3.0));
-      } else {
-        setRightImageScale((prev) => Math.min(prev + 0.1, 3.0));
-      }
-    } else {
-      setScale((prev) => Math.min(prev + 0.1, 3.0));
-    }
-  }, [viewMode, activeImage, setScale]);
+  // ============================================================================
+  // ZOOM, FULLSCREEN, SAVE, DOWNLOAD HANDLERS - Moved to useCanvasHandlers
+  // ============================================================================
 
-  const handleZoomOut = useCallback(() => {
-    if (viewMode === 'side-by-side') {
-      // Update the active image's zoom
-      if (activeImage === 'left') {
-        setLeftImageScale((prev) => Math.max(prev - 0.1, 0.1));
-      } else {
-        setRightImageScale((prev) => Math.max(prev - 0.1, 0.1));
-      }
-    } else {
-      setScale((prev) => Math.max(prev - 0.1, 0.1));
-    }
-  }, [viewMode, activeImage, setScale]);
-
-  const handleFitScreen = useCallback(() => {
-    if (viewMode === 'side-by-side') {
-      // Reset the active image's position and zoom
-      if (activeImage === 'left') {
-        setLeftImageScale(1.0);
-        setLeftImagePosition({ x: 0, y: 0 });
-      } else {
-        setRightImageScale(1.0);
-        setRightImagePosition({ x: 0, y: 0 });
-      }
-    } else {
-      setScale(1.0);
-      setPosition({ x: 0, y: 0 });
-    }
-  }, [viewMode, activeImage, setScale, setPosition]);
-
-  const handleToggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this image?')) {
-      handleCloseImage();
-    }
-  };
-
-  const handleSave = useCallback(() => {
-    if (!uploadedImage) return;
-
-    try {
-      // Import dynamically to avoid SSR issues
-      import('@/lib/gallery-storage').then(({ saveImageToGallery }) => {
-        // Determine if this is an AI-edited image
-        const type = originalImage ? 'ai-edited' : 'manual';
-
-        // Save to gallery
-        saveImageToGallery(uploadedImage, fileName || 'edited-image', type);
-
-        // Dispatch custom event to update sidebar count
-        window.dispatchEvent(new Event('gallery-updated'));
-
-        showToast('Image saved to gallery!', 'success');
-      });
-    } catch (error) {
-      logger.error('Failed to save image:', error);
-      showToast('Failed to save image to gallery', 'error');
-    }
-  }, [uploadedImage, fileName, originalImage, showToast]);
-
-  const handleDownload = useCallback(async () => {
-    if (!uploadedImage) return;
-
-    try {
-      // Create a canvas to apply filters and transformations
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Set canvas size to image size
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-
-        // Apply CSS filters to canvas context
-        const filters: string[] = [];
-
-        // Adjust filters
-        if (adjustFilters.brightness !== 0) {
-          filters.push(`brightness(${100 + adjustFilters.brightness}%)`);
-        }
-        if (adjustFilters.contrast !== 0) {
-          filters.push(`contrast(${100 + adjustFilters.contrast}%)`);
-        }
-        if (adjustFilters.exposure !== 0) {
-          filters.push(`brightness(${100 + adjustFilters.exposure * 1.5}%)`);
-        }
-        if (adjustFilters.sharpness !== 0) {
-          filters.push(`contrast(${100 + adjustFilters.sharpness * 0.5}%)`);
-        }
-
-        // Color filters
-        if (colorFilters.temperature !== 0) {
-          const hue = colorFilters.temperature * 0.5;
-          filters.push(`hue-rotate(${hue}deg)`);
-        }
-        if (colorFilters.tint !== 0) {
-          filters.push(`saturate(${100 + colorFilters.tint}%)`);
-        }
-
-        // Effect filters
-        if (filterEffects.blur > 0) {
-          filters.push(`blur(${filterEffects.blur}px)`);
-        }
-        if (filterEffects.grayscale > 0) {
-          filters.push(`grayscale(${filterEffects.grayscale}%)`);
-        }
-        if (filterEffects.sepia > 0) {
-          filters.push(`sepia(${filterEffects.sepia}%)`);
-        }
-        if (filterEffects.invert > 0) {
-          filters.push(`invert(${filterEffects.invert}%)`);
-        }
-
-        ctx.filter = filters.length > 0 ? filters.join(' ') : 'none';
-
-        // Apply transformations
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate((transform.rotation * Math.PI) / 180);
-        ctx.scale(
-          transform.flipHorizontal ? -1 : 1,
-          transform.flipVertical ? -1 : 1
-        );
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
-
-        // Draw image
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        // Convert canvas to blob and download
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return;
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-
-            // Generate filename with timestamp
-            const timestamp = new Date()
-              .toISOString()
-              .slice(0, 19)
-              .replace(/:/g, '-');
-            const baseName = fileName?.replace(/\.[^/.]+$/, '') || 'jewelshot';
-            link.download = `${baseName}_edited_${timestamp}.jpg`;
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Clean up
-            URL.revokeObjectURL(url);
-
-            showToast('Image downloaded successfully!', 'success');
-          },
-          'image/jpeg',
-          0.95
-        );
-      };
-
-      img.onerror = () => {
-        showToast('Failed to download image', 'error');
-      };
-
-      img.src = uploadedImage;
-    } catch (error) {
-      logger.error('Download error:', error);
-      showToast('Failed to download image', 'error');
-    }
-  }, [
-    uploadedImage,
-    fileName,
-    adjustFilters,
-    colorFilters,
-    filterEffects,
-    transform,
-    showToast,
-  ]);
+  // These handlers were moved to useCanvasHandlers hook:
+  // - handleZoomIn, handleZoomOut, handleFitScreen (zoom controls)
+  // - handleToggleFullscreen → toggleFullscreen (fullscreen control)
+  // - handleDelete (delete confirmation)
+  // - handleSave (save to gallery)
+  // - handleDownload (download with filters applied)
 
   const handleToggleEditPanel = () => {
     setIsEditPanelOpen((prev) => !prev);
@@ -1108,7 +857,7 @@ export function Canvas() {
                 allBarsOpen={allBarsOpen}
                 onToggleAllBars={toggleAll}
                 isFullscreen={isFullscreen}
-                onToggleFullscreen={handleToggleFullscreen}
+                onToggleFullscreen={toggleFullscreen}
               />
             </div>
 
