@@ -16,18 +16,25 @@ interface AIEditControlProps {
   isEditing?: boolean;
   progress?: string;
   visible?: boolean;
+  onExpandedChange?: (isExpanded: boolean) => void;
 }
 
 export function AIEditControl({
   currentImageUrl,
   isEditing = false,
   visible = true,
+  onExpandedChange,
 }: AIEditControlProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [prompt, setPrompt] = useState('');
 
   // Auto-collapse expanded area when AI starts processing
   const shouldShowExpanded = isExpanded && !isEditing;
+
+  // Notify parent when expanded state changes
+  React.useEffect(() => {
+    onExpandedChange?.(shouldShowExpanded);
+  }, [shouldShowExpanded, onExpandedChange]);
 
   const handleGenerate = () => {
     if (isEditing) return;

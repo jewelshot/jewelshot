@@ -109,6 +109,7 @@ export function Canvas() {
   });
   const [canvasControlsVisible, setCanvasControlsVisible] = useState(true);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
 
   // Toast notifications
   const { showToast, hideToast, toastState } = useToast();
@@ -604,15 +605,21 @@ export function Canvas() {
   // Calculate bottom padding to stay aligned with AI Edit Control (generate button)
   // AI Edit Control position: bottom: bottomOpen ? 56px : 16px
   const aiEditControlBottom = bottomOpen ? 56 : 16;
-  const aiEditControlHeight = 50; // Approximate height
+  const aiEditControlHeight = 50; // Approximate height of generate button
   const aiEditControlSpacing = bottomOpen ? 0 : 12; // Extra spacing only when bottom bar is closed
+  const promptAreaHeight = isPromptExpanded ? 150 : 0; // Height of expanded prompt area (textarea + quick buttons)
+  const promptAreaSpacing = isPromptExpanded ? 8 : 0; // Gap between prompt area and generate button
 
   const imagePadding = {
     top: canvasControlsVisible ? 80 : 16,
     left: canvasControlsVisible ? minHorizontalPadding : 16,
     right: canvasControlsVisible ? minHorizontalPadding : 16,
     bottom: canvasControlsVisible
-      ? aiEditControlBottom + aiEditControlHeight + aiEditControlSpacing
+      ? aiEditControlBottom +
+        aiEditControlHeight +
+        aiEditControlSpacing +
+        promptAreaHeight +
+        promptAreaSpacing
       : 16,
   };
 
@@ -935,6 +942,7 @@ export function Canvas() {
                 isEditing={isAIEditing}
                 progress={aiProgress}
                 visible={!!uploadedImage}
+                onExpandedChange={setIsPromptExpanded}
               />
             </div>
 
