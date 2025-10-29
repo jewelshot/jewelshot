@@ -604,14 +604,15 @@ export function Canvas() {
   // Calculate bottom padding to stay aligned with AI Edit Control (generate button)
   // AI Edit Control position: bottom: bottomOpen ? 56px : 16px
   const aiEditControlBottom = bottomOpen ? 56 : 16;
-  const aiEditControlHeight = 50; // Approximate height + margin
+  const aiEditControlHeight = 50; // Approximate height
+  const aiEditControlSpacing = 12; // Extra spacing between image and generate button
 
   const imagePadding = {
     top: canvasControlsVisible ? 80 : 16,
     left: canvasControlsVisible ? minHorizontalPadding : 16,
     right: canvasControlsVisible ? minHorizontalPadding : 16,
     bottom: canvasControlsVisible
-      ? aiEditControlBottom + aiEditControlHeight
+      ? aiEditControlBottom + aiEditControlHeight + aiEditControlSpacing
       : 16,
   };
 
