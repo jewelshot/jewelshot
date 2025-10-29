@@ -245,20 +245,17 @@ export function useCanvasHandlers(props: UseCanvasHandlersProps) {
 
   const handleFitScreen = useCallback(() => {
     if (viewMode === 'side-by-side') {
-      if (activeImage === 'left') {
-        setLeftImageScale(1.0);
-        setLeftImagePosition({ x: 0, y: 0 });
-      } else {
-        setRightImageScale(1.0);
-        setRightImagePosition({ x: 0, y: 0 });
-      }
+      // Fit both images in compare mode
+      setLeftImageScale(1.0);
+      setLeftImagePosition({ x: 0, y: 0 });
+      setRightImageScale(1.0);
+      setRightImagePosition({ x: 0, y: 0 });
     } else {
       setScale(1.0);
       setPosition({ x: 0, y: 0 });
     }
   }, [
     viewMode,
-    activeImage,
     setScale,
     setPosition,
     setLeftImageScale,
