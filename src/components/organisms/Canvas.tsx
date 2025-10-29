@@ -113,6 +113,13 @@ export function Canvas() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'normal' | 'side-by-side'>('normal');
 
+  // Independent states for side-by-side comparison
+  const [leftImageScale, setLeftImageScale] = useState(1.0);
+  const [leftImagePosition, setLeftImagePosition] = useState({ x: 0, y: 0 });
+  const [rightImageScale, setRightImageScale] = useState(1.0);
+  const [rightImagePosition, setRightImagePosition] = useState({ x: 0, y: 0 });
+  const [activeImage, setActiveImage] = useState<'left' | 'right'>('right'); // Which image is on top
+
   const {
     edit: editWithAI,
     isEditing: isAIEditing,
@@ -141,6 +148,45 @@ export function Canvas() {
     setIsAIImageLoading(false);
     showToast('Failed to load generated image', 'error');
   }, [showToast]);
+
+  // Sync comparison states when switching view modes
+  useEffect(() => {
+    if (viewMode === 'side-by-side') {
+      // Initialize side-by-side states with current values
+      setLeftImageScale(scale);
+      setLeftImagePosition(position);
+      setRightImageScale(scale);
+      setRightImagePosition(position);
+      setActiveImage('right');
+    } else {
+      // Sync back to single state when switching to normal
+      // Use right image state as the source (AI generated)
+      setScale(rightImageScale);
+      setPosition(rightImagePosition);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]); // Only run when viewMode changes
+
+  // Update main zoom/position based on active image in compare mode
+  useEffect(() => {
+    if (viewMode === 'side-by-side') {
+      if (activeImage === 'left') {
+        setScale(leftImageScale);
+        setPosition(leftImagePosition);
+      } else {
+        setScale(rightImageScale);
+        setPosition(rightImagePosition);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeImage,
+    leftImageScale,
+    leftImagePosition,
+    rightImageScale,
+    rightImagePosition,
+    viewMode,
+  ]);
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -324,17 +370,46 @@ export function Canvas() {
   ]);
 
   const handleZoomIn = useCallback(() => {
-    setScale((prev) => Math.min(prev + 0.1, 3.0));
-  }, [setScale]);
+    if (viewMode === 'side-by-side') {
+      // Update the active image's zoom
+      if (activeImage === 'left') {
+        setLeftImageScale((prev) => Math.min(prev + 0.1, 3.0));
+      } else {
+        setRightImageScale((prev) => Math.min(prev + 0.1, 3.0));
+      }
+    } else {
+      setScale((prev) => Math.min(prev + 0.1, 3.0));
+    }
+  }, [viewMode, activeImage, setScale]);
 
   const handleZoomOut = useCallback(() => {
-    setScale((prev) => Math.max(prev - 0.1, 0.1));
-  }, [setScale]);
+    if (viewMode === 'side-by-side') {
+      // Update the active image's zoom
+      if (activeImage === 'left') {
+        setLeftImageScale((prev) => Math.max(prev - 0.1, 0.1));
+      } else {
+        setRightImageScale((prev) => Math.max(prev - 0.1, 0.1));
+      }
+    } else {
+      setScale((prev) => Math.max(prev - 0.1, 0.1));
+    }
+  }, [viewMode, activeImage, setScale]);
 
   const handleFitScreen = useCallback(() => {
-    setScale(1.0);
-    setPosition({ x: 0, y: 0 });
-  }, [setScale, setPosition]);
+    if (viewMode === 'side-by-side') {
+      // Reset the active image's position and zoom
+      if (activeImage === 'left') {
+        setLeftImageScale(1.0);
+        setLeftImagePosition({ x: 0, y: 0 });
+      } else {
+        setRightImageScale(1.0);
+        setRightImagePosition({ x: 0, y: 0 });
+      }
+    } else {
+      setScale(1.0);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [viewMode, activeImage, setScale, setPosition]);
 
   const handleToggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -803,16 +878,32 @@ export function Canvas() {
               >
                 {/* Original Image */}
                 {originalImage && (
-                  <div className="relative flex h-full w-1/2 flex-col items-center justify-center">
-                    <div className="relative h-full w-full">
+                  <div
+                    className="relative flex h-full w-1/2 flex-col items-center justify-center transition-all duration-200"
+                    style={{
+                      zIndex: activeImage === 'left' ? 10 : 5,
+                      opacity: activeImage === 'left' ? 1 : 0.85,
+                    }}
+                  >
+                    <div
+                      className="relative h-full w-full cursor-pointer transition-all duration-200"
+                      onClick={() => setActiveImage('left')}
+                      title="Click to bring to front"
+                      style={{
+                        filter:
+                          activeImage === 'left'
+                            ? 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.4))'
+                            : 'none',
+                      }}
+                    >
                       <ImageViewer
                         key={originalImage}
                         src={originalImage}
                         alt="Original"
-                        scale={scale}
-                        position={position}
-                        onScaleChange={setScale}
-                        onPositionChange={setPosition}
+                        scale={leftImageScale}
+                        position={leftImagePosition}
+                        onScaleChange={setLeftImageScale}
+                        onPositionChange={setLeftImagePosition}
                         transform={{
                           rotation: 0,
                           flipHorizontal: false,
@@ -848,16 +939,32 @@ export function Canvas() {
                 )}
 
                 {/* AI Generated Image */}
-                <div className="relative flex h-full w-1/2 flex-col items-center justify-center">
-                  <div className="relative h-full w-full">
+                <div
+                  className="relative flex h-full w-1/2 flex-col items-center justify-center transition-all duration-200"
+                  style={{
+                    zIndex: activeImage === 'right' ? 10 : 5,
+                    opacity: activeImage === 'right' ? 1 : 0.85,
+                  }}
+                >
+                  <div
+                    className="relative h-full w-full cursor-pointer transition-all duration-200"
+                    onClick={() => setActiveImage('right')}
+                    title="Click to bring to front"
+                    style={{
+                      filter:
+                        activeImage === 'right'
+                          ? 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.4))'
+                          : 'none',
+                    }}
+                  >
                     <ImageViewer
                       key={uploadedImage}
                       src={uploadedImage}
                       alt="AI Generated"
-                      scale={scale}
-                      position={position}
-                      onScaleChange={setScale}
-                      onPositionChange={setPosition}
+                      scale={rightImageScale}
+                      position={rightImagePosition}
+                      onScaleChange={setRightImageScale}
+                      onPositionChange={setRightImagePosition}
                       transform={transform}
                       adjustFilters={adjustFilters}
                       colorFilters={colorFilters}
@@ -931,7 +1038,13 @@ export function Canvas() {
               }}
             >
               <ZoomControls
-                scale={scale}
+                scale={
+                  viewMode === 'side-by-side'
+                    ? activeImage === 'left'
+                      ? leftImageScale
+                      : rightImageScale
+                    : scale
+                }
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onFitScreen={handleFitScreen}
