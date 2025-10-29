@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/useToast';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useImageEdit } from '@/hooks/useImageEdit';
 import { createScopedLogger } from '@/lib/logger';
+import { validateFile } from '@/lib/validators';
+import { uploadRateLimiter } from '@/lib/rate-limiter';
 import Toast from '@/components/atoms/Toast';
 
 const logger = createScopedLogger('Canvas');
@@ -198,22 +200,36 @@ export function Canvas() {
   }, []);
 
   const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        showToast('Please upload an image file (JPG, PNG, GIF, WebP)', 'error');
+      // Check rate limit
+      const rateLimit = uploadRateLimiter.checkLimit();
+      if (!rateLimit.allowed) {
+        showToast(
+          `Too many uploads. Please wait ${rateLimit.retryAfter} seconds.`,
+          'warning'
+        );
         return;
       }
 
-      // Validate file size (max 10MB)
-      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-      if (file.size > MAX_FILE_SIZE) {
-        showToast('File is too large. Maximum size is 10MB.', 'error');
+      // Comprehensive file validation
+      const validation = await validateFile(file, {
+        maxSizeMB: 10,
+        minSizeMB: 0.001,
+        allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+        maxDimensions: { width: 8000, height: 8000 },
+        minDimensions: { width: 100, height: 100 },
+      });
+
+      if (!validation.valid) {
+        showToast(validation.error || 'Invalid file', 'error');
         return;
       }
+
+      // Record successful upload
+      uploadRateLimiter.recordRequest();
 
       setIsLoading(true);
       setFileName(file.name);

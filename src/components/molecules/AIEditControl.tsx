@@ -5,6 +5,8 @@ import AIPromptInput from '@/components/atoms/AIPromptInput';
 import AIGenerateButton from '@/components/atoms/AIGenerateButton';
 import AIToggleButton from '@/components/atoms/AIToggleButton';
 import QuickPromptButton from '@/components/atoms/QuickPromptButton';
+import { validatePrompt } from '@/lib/validators';
+import { toastManager } from '@/lib/toast-manager';
 import jewelryPrompts from '@/data/jewelryPrompts.json';
 
 interface AIEditControlProps {
@@ -30,8 +32,19 @@ export function AIEditControl({
   const handleGenerate = () => {
     if (isEditing) return;
 
+    const trimmedPrompt = prompt.trim();
+
+    // Validate prompt if provided
+    if (trimmedPrompt.length > 0) {
+      const validation = validatePrompt(trimmedPrompt);
+      if (!validation.valid) {
+        toastManager.error(validation.error || 'Invalid prompt');
+        return;
+      }
+    }
+
     const event = new CustomEvent('ai-edit-generate', {
-      detail: { prompt: prompt.trim() || '', imageUrl: currentImageUrl },
+      detail: { prompt: trimmedPrompt || '', imageUrl: currentImageUrl },
     });
     window.dispatchEvent(event);
   };
