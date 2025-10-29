@@ -215,21 +215,13 @@ export async function editImage(
       input.image_urls.map((url) => uploadImage(url))
     );
 
-    // Build input object with only valid parameters
+    // Build input object with required and optional parameters
     const apiInput: Record<string, unknown> = {
       image_urls: uploadedUrls,
+      prompt: input.prompt && input.prompt.trim() ? input.prompt : 'enhance', // Prompt is required
+      num_images: input.num_images || 1,
+      output_format: input.output_format || 'jpeg',
     };
-
-    // Add optional parameters only if they have valid values
-    if (input.prompt && input.prompt.trim()) {
-      apiInput.prompt = input.prompt;
-    }
-    if (input.num_images) {
-      apiInput.num_images = input.num_images;
-    }
-    if (input.output_format) {
-      apiInput.output_format = input.output_format;
-    }
 
     console.log('Sending to Nano Banana edit API:', apiInput);
 
