@@ -607,7 +607,7 @@ export function Canvas() {
   const aiEditControlBottom = bottomOpen ? 56 : 16;
   const aiEditControlHeight = 50; // Approximate height of generate button
   const aiEditControlSpacing = bottomOpen ? 0 : 12; // Extra spacing only when bottom bar is closed
-  const promptAreaHeight = isPromptExpanded ? 150 : 0; // Height of expanded prompt area (textarea + quick buttons)
+  const promptAreaHeight = isPromptExpanded ? 110 : 0; // Height of expanded prompt area (textarea ~60px + quick buttons ~40px + gap ~8px)
   const promptAreaSpacing = isPromptExpanded ? 8 : 0; // Gap between prompt area and generate button
 
   const imagePadding = {
