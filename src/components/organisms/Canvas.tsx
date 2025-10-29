@@ -894,6 +894,29 @@ export function Canvas() {
               />
             </div>
 
+            {/* Top Center Controls - View Mode Selector */}
+            {originalImage && (
+              <div
+                className="fixed z-20 flex justify-center transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                style={{
+                  top: topOpen ? '80px' : '16px',
+                  left: leftOpen ? '130px' : '0px',
+                  right: rightOpen ? '130px' : '0px',
+                  opacity: canvasControlsVisible ? 1 : 0,
+                  transform: canvasControlsVisible
+                    ? 'translateY(0)'
+                    : 'translateY(-20px)',
+                  pointerEvents: canvasControlsVisible ? 'auto' : 'none',
+                }}
+              >
+                <ViewModeSelector
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  disabled={isAIEditing || isAIImageLoading}
+                />
+              </div>
+            )}
+
             {/* Top Right Controls */}
             <div
               className="fixed z-20 flex items-center gap-2 transition-all duration-[800ms] ease-[cubic-bezier(0.4,0.0,0.2,1)]"
@@ -907,14 +930,6 @@ export function Canvas() {
                 pointerEvents: canvasControlsVisible ? 'auto' : 'none',
               }}
             >
-              {/* View Mode Selector - only show if AI image exists */}
-              {originalImage && (
-                <ViewModeSelector
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                  disabled={isAIEditing || isAIImageLoading}
-                />
-              )}
               <ZoomControls
                 scale={scale}
                 onZoomIn={handleZoomIn}
