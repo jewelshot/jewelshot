@@ -10,6 +10,13 @@ module.exports = {
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
+      colors: {
+        theme: {
+          primary: 'rgb(var(--theme-primary) / <alpha-value>)',
+          'primary-dark': 'rgb(var(--theme-primary-dark) / <alpha-value>)',
+          'primary-light': 'rgb(var(--theme-primary-light) / <alpha-value>)',
+        },
+      },
       animation: {
         fadeInSlide: 'fadeInSlide 500ms ease-out forwards',
         shimmer: 'shimmer 2s infinite',

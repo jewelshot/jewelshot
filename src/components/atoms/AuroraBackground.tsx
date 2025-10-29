@@ -16,6 +16,7 @@
 'use client';
 
 import React from 'react';
+import { useThemeStore } from '@/store/themeStore';
 
 interface AuroraBackgroundProps {
   /**
@@ -25,17 +26,46 @@ interface AuroraBackgroundProps {
   enabled?: boolean;
 }
 
+const auroraGradients = {
+  purple: {
+    topLeft: 'rgba(107, 33, 168, 0.6)',
+    topRight: 'rgba(55, 48, 163, 0.55)',
+    bottomLeft: 'rgba(19, 78, 74, 0.5)',
+    bottomRight: 'rgba(159, 18, 57, 0.5)',
+  },
+  gold: {
+    topLeft: 'rgba(217, 119, 6, 0.5)',
+    topRight: 'rgba(180, 83, 9, 0.45)',
+    bottomLeft: 'rgba(99, 102, 241, 0.4)',
+    bottomRight: 'rgba(219, 39, 119, 0.45)',
+  },
+  emerald: {
+    topLeft: 'rgba(5, 150, 105, 0.55)',
+    topRight: 'rgba(20, 184, 166, 0.5)',
+    bottomLeft: 'rgba(6, 78, 59, 0.45)',
+    bottomRight: 'rgba(6, 95, 70, 0.5)',
+  },
+  rose: {
+    topLeft: 'rgba(219, 39, 119, 0.55)',
+    topRight: 'rgba(236, 72, 153, 0.5)',
+    bottomLeft: 'rgba(157, 23, 77, 0.45)',
+    bottomRight: 'rgba(244, 114, 182, 0.5)',
+  },
+};
+
 export function AuroraBackground({ enabled = true }: AuroraBackgroundProps) {
+  const theme = useThemeStore((state) => state.theme);
+  const gradients = auroraGradients[theme];
+
   if (!enabled) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
-      {/* Top-Left: Deep Purple */}
+      {/* Top-Left */}
       <div
-        className="absolute h-[800px] w-[800px] rounded-full opacity-50"
+        className="absolute h-[800px] w-[800px] rounded-full opacity-50 transition-all duration-1000"
         style={{
-          background:
-            'radial-gradient(circle, rgba(107, 33, 168, 0.6) 0%, transparent 70%)',
+          background: `radial-gradient(circle, ${gradients.topLeft} 0%, transparent 70%)`,
           filter: 'blur(100px)',
           top: '-20%',
           left: '-20%',
@@ -43,12 +73,11 @@ export function AuroraBackground({ enabled = true }: AuroraBackgroundProps) {
         }}
       />
 
-      {/* Top-Right: Deep Indigo Blue */}
+      {/* Top-Right */}
       <div
-        className="absolute h-[800px] w-[800px] rounded-full opacity-50"
+        className="absolute h-[800px] w-[800px] rounded-full opacity-50 transition-all duration-1000"
         style={{
-          background:
-            'radial-gradient(circle, rgba(55, 48, 163, 0.55) 0%, transparent 70%)',
+          background: `radial-gradient(circle, ${gradients.topRight} 0%, transparent 70%)`,
           filter: 'blur(100px)',
           top: '-20%',
           right: '-20%',
@@ -56,12 +85,11 @@ export function AuroraBackground({ enabled = true }: AuroraBackgroundProps) {
         }}
       />
 
-      {/* Bottom-Left: Deep Teal */}
+      {/* Bottom-Left */}
       <div
-        className="absolute h-[800px] w-[800px] rounded-full opacity-50"
+        className="absolute h-[800px] w-[800px] rounded-full opacity-50 transition-all duration-1000"
         style={{
-          background:
-            'radial-gradient(circle, rgba(19, 78, 74, 0.5) 0%, transparent 70%)',
+          background: `radial-gradient(circle, ${gradients.bottomLeft} 0%, transparent 70%)`,
           filter: 'blur(100px)',
           bottom: '-20%',
           left: '-20%',
@@ -69,12 +97,11 @@ export function AuroraBackground({ enabled = true }: AuroraBackgroundProps) {
         }}
       />
 
-      {/* Bottom-Right: Deep Crimson */}
+      {/* Bottom-Right */}
       <div
-        className="absolute h-[800px] w-[800px] rounded-full opacity-50"
+        className="absolute h-[800px] w-[800px] rounded-full opacity-50 transition-all duration-1000"
         style={{
-          background:
-            'radial-gradient(circle, rgba(159, 18, 57, 0.5) 0%, transparent 70%)',
+          background: `radial-gradient(circle, ${gradients.bottomRight} 0%, transparent 70%)`,
           filter: 'blur(100px)',
           bottom: '-20%',
           right: '-20%',

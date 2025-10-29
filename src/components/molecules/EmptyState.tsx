@@ -11,7 +11,7 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
       <div className="space-y-6 text-center">
         {/* Camera Icon - First to appear */}
         <Camera
-          className="mx-auto h-16 w-16 text-purple-400"
+          className="mx-auto h-16 w-16 text-theme-primary-light"
           style={{
             animation: 'welcomeZoomIn 1.6s ease-out forwards',
             opacity: 0,
@@ -51,7 +51,7 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
         >
           {/* Pulse glow behind button */}
           <div
-            className="absolute inset-0 rounded-xl bg-purple-500"
+            className="absolute inset-0 rounded-xl bg-theme-primary"
             style={{
               animation:
                 'glowFadeIn 1.6s ease-out 0.45s forwards, slowPulse 3s ease-in-out 2.05s infinite',
@@ -64,7 +64,7 @@ export function EmptyState({ onUploadClick }: EmptyStateProps) {
           {/* Actual button */}
           <button
             onClick={onUploadClick}
-            className="relative inline-flex items-center gap-2 rounded-xl border border-[rgba(139,92,246,0.4)] bg-gradient-to-br from-[rgba(139,92,246,0.15)] to-[rgba(99,102,241,0.1)] px-6 py-3 font-semibold text-white transition-all hover:scale-105 hover:border-[rgba(139,92,246,0.6)] hover:shadow-[0_4px_16px_rgba(139,92,246,0.3)]"
+            className="relative inline-flex items-center gap-2 rounded-xl border border-theme-primary/40 bg-gradient-to-br from-theme-primary/15 to-theme-primary-dark/10 px-6 py-3 font-semibold text-white transition-all hover:scale-105 hover:border-theme-primary/60 hover:shadow-[0_4px_16px_var(--theme-glow)]"
             title="Upload Image (Ctrl+O)"
             aria-label="Upload Image"
           >
