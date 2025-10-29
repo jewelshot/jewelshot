@@ -25,7 +25,7 @@ export function CloseButton({
       className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/20 hover:text-red-300 active:scale-95"
       aria-label={ariaLabel}
     >
-      <X className="pointer-events-none h-4 w-4" />
+      <X className="h-4 w-4" />
     </button>
   );
 }
