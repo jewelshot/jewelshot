@@ -594,11 +594,11 @@ export function Canvas() {
   const topPos = topOpen ? 64 : 0;
   const bottomPos = bottomOpen ? 40 : 0;
 
-  // Dynamic padding to prevent image overlap with controls
+  // Dynamic padding - minimal padding for all states
   const imagePadding = {
     top: canvasControlsVisible ? (topOpen ? 128 : 80) : 16,
-    left: canvasControlsVisible ? (leftOpen ? 232 : 16) : 16,
-    right: canvasControlsVisible ? (rightOpen ? 232 : 16) : 16,
+    left: 16, // Fixed minimal padding regardless of sidebar state
+    right: 16, // Fixed minimal padding regardless of sidebar state
     bottom: canvasControlsVisible ? (bottomOpen ? 96 : 80) : 16,
   };
 
