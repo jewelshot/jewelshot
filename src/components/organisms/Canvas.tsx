@@ -676,9 +676,7 @@ export function Canvas() {
         editWithAI({
           prompt: prompt || 'enhance the image quality and lighting', // Default prompt if empty
           image_urls: [imageUrl],
-          num_images: 1,
-          output_format: 'jpeg',
-          // Note: Edit API doesn't support aspect_ratio (uses input image dimensions)
+          // Note: Edit API only supports prompt and image_urls
         });
       }
     };

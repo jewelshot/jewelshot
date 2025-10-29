@@ -215,13 +215,17 @@ export async function editImage(
       input.image_urls.map((url) => uploadImage(url))
     );
 
-    // Build input object with required and optional parameters
+    // Build minimal input object - Edit API only supports prompt and image_urls
     const apiInput: Record<string, unknown> = {
+      prompt:
+        input.prompt && input.prompt.trim()
+          ? input.prompt
+          : 'enhance the image', // Prompt is required
       image_urls: uploadedUrls,
-      prompt: input.prompt && input.prompt.trim() ? input.prompt : 'enhance', // Prompt is required
-      num_images: input.num_images || 1,
-      output_format: input.output_format || 'jpeg',
     };
+
+    // Note: Edit API doesn't support num_images, output_format, aspect_ratio
+    // These are only available in text-to-image generation
 
     console.log('Sending to Nano Banana edit API:', apiInput);
 
