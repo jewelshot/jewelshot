@@ -594,19 +594,18 @@ export function Canvas() {
   const topPos = topOpen ? 64 : 0;
   const bottomPos = bottomOpen ? 40 : 0;
 
-  // Dynamic padding to prevent image overlap with controls
-  // In normal mode: use minimum padding from both sides to keep image centered
-  // In compare mode: use sidebar-aware padding for proper spacing
+  // Minimal padding to prevent overlap with controls only
+  // Use equal padding on both sides to keep image centered
   const minHorizontalPadding = Math.min(
-    leftOpen ? 232 : 16,
-    rightOpen ? 232 : 16
+    leftOpen ? 48 : 16,
+    rightOpen ? 48 : 16
   );
 
   const imagePadding = {
-    top: canvasControlsVisible ? (topOpen ? 128 : 80) : 16,
+    top: canvasControlsVisible ? (topOpen ? 100 : 80) : 16,
     left: canvasControlsVisible ? minHorizontalPadding : 16,
     right: canvasControlsVisible ? minHorizontalPadding : 16,
-    bottom: canvasControlsVisible ? (bottomOpen ? 96 : 80) : 16,
+    bottom: canvasControlsVisible ? (bottomOpen ? 64 : 60) : 16,
   };
 
   const backgroundStyles = {
