@@ -213,7 +213,27 @@ export async function editImage(
     logs?: Array<{ message: string }>;
   }) => void
 ): Promise<NanoBananaOutput> {
+  console.log('=== editImage called ===');
+  console.log('Input received:', {
+    prompt: input.prompt,
+    image_urls_count: input.image_urls?.length,
+    num_images: input.num_images,
+    output_format: input.output_format,
+  });
+
   try {
+    // Validate input
+    if (!input.prompt || typeof input.prompt !== 'string') {
+      throw new Error('Prompt is required and must be a string');
+    }
+    if (
+      !input.image_urls ||
+      !Array.isArray(input.image_urls) ||
+      input.image_urls.length === 0
+    ) {
+      throw new Error('image_urls is required and must be a non-empty array');
+    }
+
     // Upload base64 images to fal.ai storage first
     if (onProgress) {
       onProgress({
@@ -222,30 +242,31 @@ export async function editImage(
       });
     }
 
+    console.log('Uploading images...');
     const uploadedUrls = await Promise.all(
       input.image_urls.map((url) => uploadImage(url))
     );
+    console.log('Upload complete. URLs:', uploadedUrls);
 
-    // Build API input - start with ONLY required parameters
-    const apiInput: {
-      prompt: string;
-      image_urls: string[];
-      num_images?: number;
-      output_format?: string;
-    } = {
-      prompt: input.prompt.trim() || 'enhance the image',
+    // Build API input with safe string handling
+    const promptText = (input.prompt || '').trim() || 'enhance the image';
+
+    const apiInput = {
+      prompt: promptText,
       image_urls: uploadedUrls,
-      num_images: 1, // Explicitly set to 1
-      output_format: 'jpeg', // Explicitly set to jpeg
+      num_images: 1,
+      output_format: 'jpeg' as const,
     };
 
-    console.log('Sending to Nano Banana edit API:', apiInput);
+    console.log('=== Sending to Nano Banana edit API ===');
+    console.log('API Input:', JSON.stringify(apiInput, null, 2));
     console.log('API endpoint: fal-ai/nano-banana/edit');
 
     const result = await fal.subscribe('fal-ai/nano-banana/edit', {
       input: apiInput,
       logs: true,
       onQueueUpdate: (update) => {
+        console.log('Queue update:', update.status);
         if (onProgress) {
           onProgress({
             status: update.status,
@@ -255,9 +276,15 @@ export async function editImage(
       },
     });
 
+    console.log('=== API call successful ===');
     return result.data as NanoBananaOutput;
   } catch (error) {
-    console.error('Nano Banana edit failed:', error);
+    console.error('=== Nano Banana edit failed ===');
+    console.error('Error details:', error);
+    console.error(
+      'Error stack:',
+      error instanceof Error ? error.stack : 'No stack'
+    );
     throw new Error(
       error instanceof Error ? error.message : 'Failed to edit image'
     );
