@@ -977,7 +977,7 @@ export function Canvas() {
             </div>
 
             {/* Edit Panel - Only render when explicitly opened by user */}
-            {uploadedImage && !isLoading && isEditPanelOpen && (
+            {uploadedImage && !isLoading && (
               <EditPanel
                 isOpen={isEditPanelOpen}
                 onClose={() => setIsEditPanelOpen(false)}
