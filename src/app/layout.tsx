@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ErrorBoundary } from '@/components/organisms/ErrorBoundary';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -60,10 +59,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </ThemeProvider>
+      <body
+        className={`${inter.variable} font-sans antialiased`}
+        data-theme="purple"
+      >
+        <ErrorBoundary>{children}</ErrorBoundary>
       </body>
     </html>
   );
